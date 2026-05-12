@@ -1,0 +1,172 @@
+/* Estilos generales de la página */
+ion-content {
+    --background: #f4f5f8; // Un fondo gris muy claro para que las tarjetas resalten
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ion-color-dark-shade);
+    margin-bottom: 12px;
+    padding-left: 4px;
+}
+
+/* Header se mantiene igual, ya tiene un buen estilo */
+ion-header {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    ion-toolbar {
+        --background: transparent;
+        --padding-start: 16px;
+        --padding-end: 16px;
+        border-bottom: 1px solid var(--ion-color-step-150, #e0e0e0);
+    }
+
+    h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    p {
+        font-size: 0.9rem;
+        color: var(--ion-color-medium-shade);
+        margin: 0;
+    }
+}
+
+
+/* 🎨 NUEVO ESTILO PARA LAS TARJETAS DE INDICADORES (KPIs) */
+.summary-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    transition: transform 0.2s ease-in-out;
+
+    &:active {
+        transform: scale(0.98); // Efecto al presionar
+    }
+
+    .card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+
+        ion-icon {
+            font-size: 22px;
+            color: #ffffff;
+        }
+
+        &.blue {
+            background: #3880ff;
+        }
+
+        &.green {
+            background: #2dd36f;
+        }
+
+        &.indigo {
+            background: #4f46e5;
+        }
+
+        &.orange {
+            background: #f59e0b;
+        }
+    }
+
+    .card-value {
+        font-size: clamp(1.2rem, 5vw, 1.7rem); // <-- ESTA ES LA LÍNEA CLAVE
+        font-weight: 700;
+        color: var(--ion-color-dark);
+        line-height: 1.1;
+        margin-bottom: 4px;
+        overflow-wrap: break-word; // <-- Buena práctica como respaldo
+    }
+
+    .card-label {
+        font-size: 0.8rem;
+        color: var(--ion-color-medium-shade);
+        font-weight: 500;
+    }
+}
+
+/* Espaciado de la grilla */
+ion-grid {
+    padding: 0;
+    margin-bottom: 16px;
+
+    ion-col {
+        padding: 8px;
+    }
+}
+
+
+/* 🎨 NUEVO ESTILO PARA LA LISTA DE PRODUCTOS */
+.top-products-list {
+    background: transparent;
+    padding: 0;
+
+    ion-list-header {
+        padding: 0;
+    }
+
+    p.empty-list {
+        text-align: center;
+        color: var(--ion-color-medium);
+        margin-top: 16px;
+    }
+
+    ion-item {
+        --background: #ffffff;
+        --border-radius: 12px;
+        --padding-start: 12px;
+        --inner-padding-end: 16px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+        .product-rank {
+            width: 32px;
+            height: 32px;
+            background-color: var(--ion-color-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+
+            span {
+                font-weight: 700;
+                font-size: 0.9rem;
+                color: var(--ion-color-primary);
+            }
+        }
+
+        ion-label h3 {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--ion-color-dark-shade);
+        }
+
+        .product-count {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--ion-color-medium-shade);
+            background-color: var(--ion-color-light);
+            padding: 4px 8px;
+            border-radius: 16px;
+        }
+    }
+}

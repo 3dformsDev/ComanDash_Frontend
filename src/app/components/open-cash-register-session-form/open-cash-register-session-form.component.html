@@ -1,0 +1,46 @@
+<ion-header class="custom-header">
+  <ion-toolbar>
+    <ion-title class="header-title">
+      Abrir Sesión: {{ cashRegisterName }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" class="cancel-btn" (click)="dismiss()">
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        Cancelar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  <div class="form-container">
+    <div class="form-section">
+
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Monto de Apertura *</ion-label>
+          <ion-input type="tel" [ngModel]="formData.openingBalance | number:'1.0-0':'es-CO'"
+            (ionInput)="formatOpeningBalance($event)" class="custom-input" placeholder="0" required>
+            <div slot="start" class="currency-symbol">$</div>
+          </ion-input>
+        </ion-item>
+      </div>
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Notas (Opcional)</ion-label>
+          <ion-textarea rows="3" [(ngModel)]="formData.notes" class="custom-input"
+            placeholder="Ej: Se inicia con sencillo para vueltos.">
+          </ion-textarea>
+        </ion-item>
+      </div>
+
+    </div>
+
+    <div class="button-section">
+      <ion-button expand="block" class="save-btn" (click)="save()" [disabled]="!isFormValid()">
+        <ion-icon name="play-outline" slot="start"></ion-icon>
+        Abrir Sesión
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

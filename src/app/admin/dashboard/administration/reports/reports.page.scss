@@ -1,0 +1,169 @@
+/* Contenedor para los selectores de fecha */
+.selector-container {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+
+    ion-item {
+        --background: transparent;
+        --padding-start: 0;
+    }
+}
+
+/* Contenedor principal para los resultados */
+.report-container {
+    margin-top: 16px;
+}
+
+/* Toolbar de exportación */
+.export-toolbar {
+    --background: transparent;
+    --border-width: 0;
+    padding: 0;
+
+    ion-title {
+        font-weight: 600;
+        font-size: 1.2rem;
+        padding: 0;
+    }
+}
+
+/* Contenedor del Gráfico y la Tabla (estilo tarjeta) */
+.chart-container,
+.table-container {
+    --background: #ffffff;
+    --border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 16px;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    /* Importante para la tabla */
+}
+
+.chart-container {
+    padding: 16px;
+    min-height: 250px;
+}
+
+/* Estilos de la tabla */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--ion-color-step-150, #f0f0f0);
+    }
+
+    th {
+        font-weight: 600;
+        font-size: 0.9rem;
+        background-color: var(--ion-color-step-50, #f9f9f9);
+    }
+
+    td {
+        font-size: 0.95rem;
+    }
+
+    /* Quitar borde de la última fila */
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+}
+
+/* Mensaje de vacío (reutilizado de tu ejemplo) */
+.empty-message {
+    text-align: center;
+    margin-top: 20%;
+    color: var(--ion-color-medium);
+}
+
+// AÑADE ESTO A TU 'reports.page.scss'
+
+// 1. Contenedor de la lista (el mismo estilo de "tarjeta" que los gráficos)
+.list-container {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 16px;
+    overflow: hidden; // Para que el header se vea bien
+}
+
+// 2. Quita el fondo de la lista
+ion-list {
+    --background: transparent;
+    padding: 0;
+}
+
+// 3. Estilos para el texto dentro de cada item
+.item-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--ion-color-dark-shade);
+}
+
+.item-subtitle {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium-shade);
+}
+
+// 4. Estilos para los números de la derecha (Cantidad y Total)
+.item-totals {
+    text-align: right;
+    min-width: 100px;
+}
+
+.item-total-price {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 2px;
+}
+
+.item-quantity {
+    font-size: 0.8rem;
+}
+
+/* =============================
+  == ESTILOS PARA LA KPI CARD ==
+  =============================
+*/
+.kpi-card {
+    background: var(--ion-color-primary, #3880ff);
+    background: linear-gradient(135deg, var(--ion-color-primary-shade, #3171e0) 0%, var(--ion-color-primary, #3880ff) 100%);
+    color: var(--ion-color-primary-contrast, #ffffff);
+
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(56, 128, 255, 0.3);
+    margin-bottom: 20px; // Aumenta el espacio
+    padding: 20px;
+    text-align: center;
+}
+
+.kpi-title {
+    font-size: 1rem; // 16px
+    font-weight: 600;
+    opacity: 0.8;
+    display: block;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.kpi-value {
+    color: #fff;
+    font-size: 2.75rem; // 44px
+    font-weight: 700;
+    margin-top: 8px;
+    margin-bottom: 0;
+    line-height: 1.2;
+}

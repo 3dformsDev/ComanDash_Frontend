@@ -1,0 +1,86 @@
+<ion-content id="selection-view" class="h-full">
+  <div class="flex flex-col min-h-full justify-center items-center p-4 sm:p-8 bg-gray-50">
+    <div class="flex flex-col h-full justify-between w-full md:max-w-lg lg:max-w-xl">
+      <div class="text-center pt-12">
+        <!-- Icono principal ahora usa el color secundario (naranja) -->
+        <div style="display: flex; justify-content: center;">
+          <img src="assets/images/minsiva-horizontal.svg" alt="" style="width: 50%; ">
+        </div>
+        <!-- <i class="fas fa-concierge-bell text-5xl mb-4" style="color: var(--secondary, #FF6B53);"></i> -->
+        <!-- Títulos y texto de cuerpo usan los colores de la paleta -->
+        <h1 class="text-3xl font-bold mb-2" style="color: var(--title, #000000);">{{ (companyName | async) || 'Sistema
+          de
+          comandas' }}</h1>
+        <p style="color: var(--body-color, #000); font-size: 1.2rem;">Selecciona una opción para comenzar.</p>
+      </div>
+
+      <div class="w-full space-y-4" *ifRole="['super_admin', 'cashier', 'admin', 'waiter']">
+        <!-- Botones principales con colores de la paleta -->
+        <ion-button id="open-table-modal" expand="block" fill="clear"
+          style="--background: var(--light, #ffffff); --color: var(--title, #000000); --border-radius: 12px; --padding-top: 24px; --padding-bottom: 24px; border: 1px solid var(--border-color, #d5d5d5); text-transform: none; font-weight: 600; font-size: 18px;"
+          class="rounded" (click)="callTables()">
+          <i class="fas fa-chair mr-3" slot="start"></i>
+          Seleccionar Mesa
+        </ion-button>
+
+        <ion-modal id="table-modal" #modal trigger="open-table-modal">
+          <ng-template>
+            <app-table-selection [tables]="allTables" (onTableSelect)="onModalDismiss($event)"
+              (onCancel)="modal.dismiss(null, 'cancel')">
+            </app-table-selection>
+          </ng-template>
+        </ion-modal>
+
+        <ion-button id="takeaway-btn" expand="block" fill="clear"
+          style="--background: var(--light, #ffffff); --color: var(--title, #000000); --border-radius: 12px; --padding-top: 24px; --padding-bottom: 24px; border: 1px solid var(--border-color, #d5d5d5); text-transform: none; font-weight: 600; font-size: 18px;"
+          class="rounded" (click)="openClientNameModal(true)">
+          <i class="fas fa-shopping-bag mr-3" slot="start"></i>
+          Para Llevar
+        </ion-button>
+      </div>
+
+      <div class="w-full space-y-4 pb-4">
+        <div class="flex flex-wrap justify-center gap-x-8 gap-y-4 w-full">
+          <!-- Botones de navegación inferiores usan el color de texto de la paleta -->
+          <ion-button *ifRole="['super_admin', 'admin', 'cashier', 'waiter']" id="go-to-waiter-view" fill="clear"
+            style="--color: var(--body-color, #000000); text-transform: none; height: auto; flex-direction: column;"
+            (click)="openWaiterPage()">
+            <div class="flex flex-col items-center">
+              <i class="fas fa-user-tie text-2xl"></i>
+              <span class="text-xs mt-1">Mesero {{pendingOrders}}</span>
+            </div>
+          </ion-button>
+          <ion-button *ifRole="['super_admin', 'admin', 'kitchen']" id="go-to-kitchen-view" fill="clear"
+            style="--color: var(--body-color, #000); text-transform: none; height: auto; flex-direction: column;"
+            (click)="openKitchehPage()">
+            <div class="flex flex-col items-center">
+              <i class="fas fa-utensils text-2xl"></i>
+              <span class="text-xs mt-1">Cocina {{pendingOrders}}</span>
+            </div>
+          </ion-button>
+          <ion-button *ifRole="['super_admin', 'cashier','admin']" id="go-to-summary-view" fill="clear"
+            style="--color: var(--body-color, #000); text-transform: none; height: auto; flex-direction: column;"
+            (click)="openSummaryPage()">
+            <div class="flex flex-col items-center">
+              <i class="fas fa-chart-pie text-2xl"></i>
+              <span class="text-xs mt-1">Resumen</span>
+            </div>
+          </ion-button>
+        </div>
+        <!-- Botón de Administrar ahora usa el color de acento (negro) -->
+        <ion-button id="go-to-admin-view" expand="block" fill="solid"
+          style="--background: var(--accent, #ff3131); --background-hover: var(--dark, #ff3131); --background-focused: var(--dark, #ff3131); --color: var(--light, #ffffff); --border-radius: 12px; --padding-top: 12px; --padding-bottom: 12px; text-transform: none; font-weight: 600; font-size: 14px;"
+          class="rounded" (click)="openAdministrationPage()">
+          <i class="fas fa-cogs mr-2" slot="start"></i>
+          Administrar
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+
+<ion-button (click)="enableSounds()" *ngIf="!_audioPlayerService.audioContext">
+  <ion-icon name="volume-high-outline" slot="start"></ion-icon>
+  Habilitar Sonidos
+</ion-button>

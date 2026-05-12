@@ -1,0 +1,88 @@
+<ion-header class="custom-header">
+  <ion-toolbar>
+    <ion-title class="header-title">
+      Cerrar Sesión: {{ cashRegisterName }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" class="cancel-btn" (click)="dismiss()">
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        Cancelar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content" *ngIf="summary">
+  <div class="form-container">
+
+    <ion-list lines="full" class="summary-section">
+      <ion-list-header>
+        <ion-label>Resumen del Sistema</ion-label>
+      </ion-list-header>
+      <ion-item>
+        <ion-label>Monto de Apertura</ion-label>
+        <ion-text slot="end">{{ summary.openingBalance | currency:'COP':'$' }}</ion-text>
+      </ion-item>
+      <ion-item>
+        <ion-label color="success">Total en Ventas</ion-label>
+        <ion-text slot="end" color="success">+ {{ summary.transactions.totalSales | currency:'COP':'$' }}</ion-text>
+      </ion-item>
+      <ion-item>
+        <ion-label color="danger">Total Retiros/Reembolsos</ion-label>
+        <ion-text slot="end" color="danger">- {{ summary.transactions.totalWithdrawals | currency:'COP':'$'
+          }}</ion-text>
+      </ion-item>
+      <ion-item class="summary-total-item">
+        <ion-label><strong>Saldo Esperado</strong></ion-label>
+        <ion-text slot="end" color="primary"><strong>{{ summary.expectedClosingBalance | currency:'COP':'$'
+            }}</strong></ion-text>
+      </ion-item>
+      <ion-item>
+        <ion-label>Diferencia</ion-label>
+        <ion-text slot="end" [color]="difference > 0 ? 'success' : (difference < 0 ? 'danger' : 'medium')"
+          class="difference-text">
+          {{ difference | currency:'COP':'$' }}
+          <span *ngIf="difference > 0">(Sobrante)</span>
+          <span *ngIf="difference < 0">(Faltante)</span>
+        </ion-text>
+      </ion-item>
+    </ion-list>
+
+    <div class="form-section">
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Saldo Real Contado *</ion-label>
+          <ion-input type="tel" [ngModel]="formData.realClosingBalance | number:'1.0-0':'es-CO'"
+            (ionInput)="formatAndCalculate($event)" class="custom-input" placeholder="0" required>
+            <div slot="start" class="currency-symbol">$</div>
+          </ion-input>
+        </ion-item>
+      </div>
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Notas de Cierre (Opcional)</ion-label>
+          <ion-textarea rows="3" [(ngModel)]="formData.notes" class="custom-input"
+            placeholder="Ej: Hubo un faltante debido a un error en el cambio.">
+          </ion-textarea>
+        </ion-item>
+      </div>
+    </div>
+
+    <ion-list lines="full" class="summary-section" *ngIf="summary.transactions.incomeByPaymentMethod.length > 0">
+      <ion-list-header>
+        <ion-label>Desglose de Ingresos</ion-label>
+      </ion-list-header>
+      <ion-item *ngFor="let item of summary.transactions.incomeByPaymentMethod">
+        <ion-label>{{ item.name }}</ion-label>
+        <ion-text slot="end">{{ item.total | currency:'COP':'$' }}</ion-text>
+      </ion-item>
+    </ion-list>
+
+    <div class="button-section">
+      <ion-button expand="block" class="save-btn" (click)="save()" [disabled]="!isFormValid()">
+        <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+        Cerrar caja
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

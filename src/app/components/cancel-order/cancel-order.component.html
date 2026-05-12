@@ -1,0 +1,104 @@
+<!-- Header con mejor diseño y iconografía -->
+<ion-header class="header-custom">
+  <ion-toolbar>
+    <ion-title class="header-title ml-3">
+      <!-- <ion-icon name="card-outline" class="header-icon"></ion-icon> -->
+      Cancelar y Reembolsar
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" shape="round" class="close-button" (click)="dismiss()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="main-content">
+  <!-- Alert informativo mejorado -->
+  <div class="info-card">
+    <ion-icon name="information-circle" class="info-icon"></ion-icon>
+    <div class="info-content">
+      <h3>Orden Pagada</h3>
+      <p>
+        La comanda <strong class="order-number">#{{ order?.orderNumber }}</strong>
+        ya fue pagada. Para cancelarla, especifica un motivo y selecciona el método de reembolso.
+      </p>
+    </div>
+  </div>
+
+  <!-- Resumen de items con mejor presentación -->
+  <div class="section-card items-summary">
+    <div class="section-header">
+      <ion-icon name="receipt-outline" class="section-icon"></ion-icon>
+      <h4>Items en la Orden</h4>
+    </div>
+
+    <div class="items-list">
+      <div class="item-row" *ngFor="let item of order?.orderItems">
+        <div class="item-info">
+          <div class="item-quantity">{{ item.quantity }}x</div>
+          <div class="item-details">
+            <span class="item-name">{{ item.product?.name }}</span>
+          </div>
+        </div>
+        <div class="item-price">
+          {{ item.totalPrice | currency:'COP':'$':'1.0-0' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total destacado -->
+  <div class="total-card">
+    <div class="total-content">
+      <span class="total-label">Total a Devolver</span>
+      <span class="total-amount">{{ refundAmount | currency:'COP':'$':'1.0-0' }}</span>
+    </div>
+  </div>
+
+  <!-- Formulario de motivo mejorado -->
+  <div class="section-card form-section">
+    <div class="section-header">
+      <ion-icon name="document-text-outline" class="section-icon"></ion-icon>
+      <h4>Motivo de la Cancelación</h4>
+    </div>
+
+    <div class="textarea-wrapper">
+      <ion-textarea placeholder="Ej: El cliente se arrepintió, producto dañado, etc..." [(ngModel)]="reason"
+        [autoGrow]="true" rows="3" class="custom-textarea" required></ion-textarea>
+      <div class="textarea-footer" *ngIf="reason">
+        <span class="char-count">{{ reason.length || 0 }} caracteres</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Métodos de pago con mejor diseño -->
+  <div class="section-card payment-section">
+    <div class="section-header">
+      <ion-icon name="wallet-outline" class="section-icon"></ion-icon>
+      <h4>Método de Reembolso</h4>
+    </div>
+
+    <ion-radio-group [(ngModel)]="selectedPaymentMethodId" class="payment-methods">
+      <div class="payment-method-option" *ngFor="let method of allPaymentMethods"
+        [class.selected]="selectedPaymentMethodId === method.id">
+        <ion-radio [value]="method.id" class="custom-radio"></ion-radio>
+        <div class="payment-method-info">
+          <ion-icon [name]="getPaymentMethodIcon(method.type)" class="payment-icon"></ion-icon>
+          <span class="payment-name">{{ method.name }}</span>
+        </div>
+      </div>
+    </ion-radio-group>
+  </div>
+</ion-content>
+
+<!-- Footer con botón mejorado -->
+<ion-footer class="footer-custom">
+  <div class="footer-content">
+    <ion-button expand="block" shape="round" size="large" class="confirm-button"
+      [disabled]="!reason || !selectedPaymentMethodId" (click)="confirm()">
+      <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+      Confirmar Cancelación y Reembolso
+    </ion-button>
+  </div>
+</ion-footer>

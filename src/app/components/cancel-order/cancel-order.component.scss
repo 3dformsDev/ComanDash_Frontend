@@ -1,0 +1,415 @@
+// ===== CONFIGURACIÓN BASE =====
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    --primary-color: #ff3131;
+    --secondary-color: #FF6B53;
+    --success-color: #FF6B53;
+    --warning-color: #ffc107;
+    --danger-color: #ff3131;
+    --light-color: #d5d5d5;
+    --medium-color: #8a8a8a;
+    --dark-color: #2f2f2f;
+    --card-shadow: 0 2px 12px rgba(255, 49, 49, 0.08);
+    --border-radius: 30px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+}
+
+// ===== HEADER PERSONALIZADO =====
+.header-custom {
+    ion-toolbar {
+        --background: var(--primary-color);
+        --color: white;
+        --border-width: 0;
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+
+            .header-icon {
+                font-size: 1.3rem;
+                color: rgba(255, 255, 255, 0.9);
+            }
+        }
+
+        .close-button {
+            --color: white;
+            --background-hover: rgba(255, 255, 255, 0.1);
+            --border-radius: 50%;
+            width: 40px;
+            height: 40px;
+
+            ion-icon {
+                font-size: 1.2rem;
+            }
+        }
+    }
+}
+
+// ===== CONTENIDO PRINCIPAL =====
+.main-content {
+    --padding-start: var(--spacing-md);
+    --padding-end: var(--spacing-md);
+    --padding-top: var(--spacing-lg);
+    --padding-bottom: var(--spacing-md);
+    --background: #ffffff;
+}
+
+// ===== CARD INFORMATIVA =====
+.info-card {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--primary-color);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--card-shadow);
+
+    .info-icon {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin-top: var(--spacing-xs);
+        flex-shrink: 0;
+    }
+
+    .info-content {
+        flex: 1;
+
+        h3 {
+            margin: 0 0 var(--spacing-sm) 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.5;
+            color: var(--medium-color);
+            font-size: 0.9rem;
+        }
+
+        .order-number {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+    }
+}
+
+// ===== CARDS DE SECCIÓN =====
+.section-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    margin-bottom: var(--spacing-lg);
+    overflow: hidden;
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: var(--light-color);
+        border-bottom: 1px solid #e0e0e0;
+
+        .section-icon {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        h4 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+    }
+}
+
+// ===== LISTA DE ITEMS =====
+.items-list {
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-bottom: 1px solid #f0f0f0;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+
+            .item-quantity {
+                background: var(--secondary-color);
+                color: white;
+                padding: var(--spacing-xs) var(--spacing-sm);
+                border-radius: 15px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                min-width: 32px;
+                text-align: center;
+            }
+
+            .item-name {
+                font-weight: 500;
+                color: var(--dark-color);
+            }
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+        }
+    }
+}
+
+// ===== TOTAL DESTACADO =====
+.total-card {
+    background: linear-gradient(135deg, var(--secondary-color), #ff8a65);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: 0 4px 20px rgba(255, 107, 83, 0.25);
+
+    .total-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-lg);
+
+        .total-label {
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .total-amount {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+    }
+}
+
+// ===== FORMULARIO =====
+.form-section {
+    .textarea-wrapper {
+        padding: var(--spacing-lg);
+
+        .custom-textarea {
+            --background: #f8f9fa;
+            --color: var(--dark-color);
+            --padding-start: var(--spacing-md);
+            --padding-end: var(--spacing-md);
+            --padding-top: var(--spacing-md);
+            --padding-bottom: var(--spacing-md);
+            border-radius: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+
+            &.ion-focused {
+                --background: white;
+                border-color: var(--secondary-color);
+                box-shadow: 0 0 0 3px rgba(255, 107, 83, 0.1);
+            }
+        }
+
+        .textarea-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: var(--spacing-sm);
+
+            .char-count {
+                font-size: 0.8rem;
+                color: var(--medium-color);
+            }
+        }
+    }
+}
+
+// ===== MÉTODOS DE PAGO =====
+.payment-section {
+    .payment-methods {
+        padding: var(--spacing-md);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+
+        .payment-method-option {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: 2px solid var(--light-color);
+            border-radius: 20px;
+            background: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+
+            &:hover {
+                background: #fff8f5;
+                border-color: rgba(255, 107, 83, 0.3);
+            }
+
+            &.selected {
+                border-color: var(--secondary-color);
+                background: rgba(255, 107, 83, 0.05);
+
+                .payment-icon {
+                    color: var(--secondary-color);
+                }
+
+                .payment-name {
+                    color: var(--secondary-color);
+                    font-weight: 600;
+                }
+            }
+
+            .custom-radio {
+                --color: var(--secondary-color);
+                --color-checked: var(--secondary-color);
+                margin: 0;
+            }
+
+            .payment-method-info {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-sm);
+                flex: 1;
+
+                .payment-icon {
+                    font-size: 1.3rem;
+                    color: var(--medium-color);
+                    transition: color 0.3s ease;
+                }
+
+                .payment-name {
+                    font-weight: 500;
+                    color: var(--dark-color);
+                    transition: all 0.3s ease;
+                }
+            }
+        }
+    }
+}
+
+// ===== FOOTER =====
+.footer-custom {
+    --background: white;
+    --border-width: 0;
+    box-shadow: 0 -2px 12px rgba(255, 49, 49, 0.08);
+
+    .footer-content {
+        padding: var(--spacing-lg) var(--spacing-md);
+
+        .confirm-button {
+            --background: var(--secondary-color);
+            --color: white;
+            --border-radius: var(--border-radius);
+            --box-shadow: 0 4px 20px rgba(255, 107, 83, 0.3);
+            --padding-top: var(--spacing-md);
+            --padding-bottom: var(--spacing-md);
+            height: 56px;
+            font-weight: 600;
+            font-size: 1rem;
+
+            &:not([disabled]):hover {
+                --background: #ff8a65;
+                transform: translateY(-1px);
+                --box-shadow: 0 6px 25px rgba(255, 107, 83, 0.4);
+            }
+
+            &[disabled] {
+                --background: var(--medium-color);
+                --color: rgba(255, 255, 255, 0.6);
+                --box-shadow: none;
+                opacity: 0.6;
+            }
+
+            ion-icon {
+                margin-right: var(--spacing-sm);
+            }
+        }
+    }
+}
+
+// ===== ANIMACIONES =====
+.section-card,
+.total-card,
+.info-card {
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// ===== RESPONSIVE =====
+@media (max-width: 576px) {
+    :host {
+        --spacing-md: 12px;
+        --spacing-lg: 16px;
+    }
+
+    .info-card {
+        flex-direction: column;
+        text-align: center;
+
+        .info-icon {
+            align-self: center;
+            margin-top: 0;
+        }
+    }
+
+    .total-card .total-content {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        text-align: center;
+    }
+}
+
+// ===== MODO OSCURO =====
+// @media (prefers-color-scheme: dark) {
+//     :host {
+//         --light-color: #1e1e1e;
+//         --dark-color: #ffffff;
+//         --medium-color: #a0a0a0;
+//     }
+
+//     .main-content {
+//         --background: #121212;
+//     }
+
+//     .section-card,
+//     .payment-method-option {
+//         background: #1e1e1e !important;
+//         border-color: #444 !important;
+//     }
+
+//     .info-card {
+//         background: linear-gradient(135deg, #3e2723, #5d4037);
+//     }
+// }

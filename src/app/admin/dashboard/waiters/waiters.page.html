@@ -1,0 +1,126 @@
+<ion-header class="ion-no-border waiter-header">
+  <ion-toolbar>
+    <div class="toolbar-content">
+      <div class="title-group">
+        <h1>Gestión de Comandas</h1>
+        <p>Vista del Mesero</p>
+      </div>
+      <ion-button class="home-button" fill="clear" (click)="openDashboardPage()">
+        <ion-icon slot="icon-only" name="home-outline"></ion-icon>
+      </ion-button>
+    </div>
+  </ion-toolbar>
+  <div class="sub-header-nav">
+    <div class="filter-tabs">
+      <button *ngFor="let status of statusFilters" [ngClass]="{'tab-selected': currentFilter === status.value}"
+        (click)="selectFilter(status.value)">
+        {{ status.label }}
+      </button>
+    </div>
+    <div class="search-container">
+      <ion-icon name="search-outline"></ion-icon>
+      <input type="text" placeholder="Buscar por # o cliente..." (input)="handleSearch($event)">
+    </div>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div *ngIf="filteredOrders.length === 0" class="empty-state">
+    <ion-icon name="file-tray-outline"></ion-icon>
+    <p>No hay comandas en esta categoría.</p>
+  </div>
+
+
+  <cdk-virtual-scroll-viewport itemSize="215" minBufferPx="900" maxBufferPx="1350">
+    <ion-list lines="none">
+      <ion-item-sliding *cdkVirtualFor="let order of filteredOrders; trackBy: trackByOrder"
+        [disabled]="order.status !== 'pending' && order.status !== 'ready'">
+
+        <ion-item class="order-card-item">
+
+          <div class="order-card" (click)="viewOrderDetails(order.id)"
+            [style.border-left-color]="getStatusInfo(order.status).color">
+            <div class="card-header">
+              <div class="order-info">
+                <h2 class="order-id">Comanda #{{ order.orderNumber }} - tomada por {{ order.waiter?.fullName }}</h2>
+                <p class="order-info">{{
+                  order.table
+                  ? `Mesa ${order.table.tableNumber || order.table.name} ${order.customerName || ''}`
+                  : `Para llevar - ${order.customerName || 'Sin nombre'}`
+                  }}</p>
+              </div>
+              <div class="order-status d-flex flex-col gap-3">
+                <div class="status-pill">
+                  <ion-icon [name]="getStatusInfo(order.status).icon"></ion-icon>
+                  {{ getStatusInfo(order.status).label }}
+                </div>
+                <div class="status-pill">
+                  {{ order.totalAmount | currency:'COP':'symbol':'1.0-0' }}
+                </div>
+              </div>
+            </div>
+            <ul class="order-items-list">
+              <li *ngFor="let item of order.orderItems">
+                <span class="item-quantity">{{ item.quantity }}x</span> {{item.product.category.name}} - {{ item.product.name }}
+              </li>
+            </ul>
+
+            <!-- ✅ NUEVO: Botones de acción dinámicos según el estado -->
+            <div class="order-actions">
+              <!-- Botones para 'En Proceso' -->
+              <ng-container *ngIf="!order.isReadyToServe && !order.isServed && order.status != 'cancelled'">
+                <ion-button class="action-btn edit-btn" fill="solid" color="primary"
+                  (click)="$event.stopPropagation(); editOrder(order)">
+                  <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+                </ion-button>
+                <!-- <ion-button class="action-btn change-btn" fill="solid" color="medium"
+                  (click)="$event.stopPropagation(); changeModality(order)">
+                  <ion-icon slot="icon-only" name="swap-horizontal-outline"></ion-icon>
+                </ion-button> -->
+                <ion-button class="action-btn cancel-btn" fill="solid" color="dark"
+                  (click)="$event.stopPropagation(); cancelOrder(order)">
+                  <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                </ion-button>
+              </ng-container>
+
+              <!-- Botón para 'Listas' -->
+              <ion-button *ngIf="order.isReadyToServe && !order.isServed" expand="block" color="success"
+                (click)="$event.stopPropagation(); markAsServed(order)">
+                <ion-icon name="restaurant-outline" slot="start"></ion-icon>
+                Marcar Servido
+              </ion-button>
+
+
+
+              <!-- Botón para 'Servidas' -->
+              <ion-button *ngIf="order.isReadyToServe && order.isServed && !order.paidAt" expand="block"
+                color="tertiary" (click)="$event.stopPropagation(); payOrder(order)">
+                <ion-icon name="cash-outline" slot="start"></ion-icon>
+                Cobrar {{ order.total | currency:'COP':'$':'1.0-0' }}
+              </ion-button>
+
+              <ion-button *ngIf="order.isReadyToServe && order.isServed && order.tableId && !order.isFreedTable"
+                expand="block" color="secondary" (click)="$event.stopPropagation(); releaseTable(order)"
+                [disabled]="!order.paidAt">
+                <ion-icon name="log-out-outline" slot="start"></ion-icon>
+                Liberar Mesa
+              </ion-button>
+            </div>
+          </div>
+        </ion-item>
+
+        <!-- Opciones de Swipe -->
+        <ion-item-options side="end">
+          <ion-item-option *ngIf="order.status === 'pending'" color="success" (click)="markAsReady(order)">
+            <ion-icon slot="icon-only" name="checkmark-done-outline"></ion-icon>
+          </ion-item-option>
+          <ion-item-option *ngIf="order.status === 'pending' || order.status === 'ready'" color="danger"
+            (click)="cancelOrder(order)">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-list>
+  </cdk-virtual-scroll-viewport>
+
+</ion-content>

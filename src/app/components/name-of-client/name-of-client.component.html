@@ -1,0 +1,32 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title class="modal-title">{{ isRequired ? 'Nombre para el Pedido' : 'Nombre del Cliente (Opcional)'
+      }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<div class="pt-2 px-8 ">
+  <ion-input class="custom-input" label-placement="stacked" placeholder="Escribe el nombre aquí..."
+    [(ngModel)]="clientName" (ionInput)="validateName()">
+  </ion-input>
+  <p class="error-message">{{ errorMessage }}</p>
+</div>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row class="px-8 pb-4">
+        <ion-col>
+          <ion-button expand="block" class="cancel-button text-base" (click)="cancel()">
+            Cancelar
+          </ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button expand="block" class="confirm-button text-base" (click)="confirm()">
+            Confirmar
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

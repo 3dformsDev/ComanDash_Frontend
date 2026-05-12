@@ -1,0 +1,156 @@
+/*
+  * Estilos SCSS actualizados para coincidir con el diseño de la imagen.
+  * - Se utiliza un enfoque minimalista con el color primario rojo.
+  * - Los inputs tienen un fondo sutil y bordes redondeados.
+  * - La tipografía y los espaciados se han ajustado para un look más moderno.
+*/
+
+// Asegúrate de que tu color primario en 'variables.scss' sea el rojo del logo.
+// Por ejemplo: --ion-color-primary: #D92425;
+
+ion-content {
+    // Variable para el color de fondo de los inputs
+    --input-background-color: #f4f4f4;
+
+    // Centra todo el contenido verticalmente
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    // Añadimos un padding inferior para dejar espacio al texto de 'Crear cuenta'
+    // y evitar que se solape con el contenido.
+    --padding-bottom: 70px;
+}
+
+.logo-container {
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    // Eliminamos la altura fija para permitir que el logo defina el espacio
+    padding: 0 0; // Usamos padding para dar un poco de espacio vertical
+
+    img {
+        // Aumenta este valor si quieres que el logo sea aún más ancho
+        max-width: 500px;
+        width: 100%;
+        // La altura automática mantiene la proporción del SVG
+        height: auto;
+    }
+}
+
+.form-area {
+    width: 100%;
+}
+
+.welcome-text {
+    margin-bottom: 25px;
+
+    h3 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: var(--ion-color-dark, #222);
+    }
+
+    p {
+        font-size: 0.95rem;
+        color: var(--ion-color-medium, #888);
+        margin: 0;
+    }
+}
+
+.custom-input-item {
+    --background: var(--input-background-color);
+    --border-radius: 10px;
+    --padding-start: 12px;
+    margin-bottom: 18px;
+    min-height: 50px;
+
+    ion-icon {
+        font-size: 1.3rem;
+        margin-right: 8px;
+    }
+
+    ion-input {
+        --placeholder-color: var(--ion-color-medium-shade);
+        font-size: 1rem;
+    }
+}
+
+.password-toggle {
+    --padding-start: 0;
+    --padding-end: 8px;
+}
+
+.error-message {
+    color: var(--ion-color-danger);
+    font-size: 0.8rem;
+    padding-left: 16px;
+    margin-top: -12px; // Acerca el mensaje al input
+    margin-bottom: 12px;
+}
+
+.login-btn {
+    --background: var(--ion-color-primary);
+    --background-activated: var(--ion-color-primary-shade);
+    --border-radius: 10px;
+    --box-shadow: none;
+    --color: white;
+    font-weight: 600;
+    height: 50px;
+    margin-top: 15px;
+}
+
+.options-grid {
+    padding: 0;
+    margin-top: 20px;
+
+    .checkbox-item {
+        --background: transparent;
+        --padding-start: 0;
+
+        ion-checkbox {
+            --size: 20px;
+            --border-radius: 4px;
+            --border-color-checked: var(--ion-color-primary);
+            --background-checked: var(--ion-color-primary);
+            margin-right: 10px;
+        }
+
+        ion-label {
+            font-size: 0.9rem;
+            color: var(--ion-color-medium-shade);
+        }
+    }
+
+    .forgot-btn {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--ion-color-primary);
+        text-transform: uppercase;
+        --padding-end: 0;
+    }
+}
+
+.signup-container {
+    position: absolute;
+    // Ajustamos 'bottom' para que tenga en cuenta el safe-area de los dispositivos
+    bottom: calc(15px + var(--ion-safe-area-bottom, 0px));
+    width: calc(100% - var(--ion-safe-area-left, 0px) - var(--ion-safe-area-right, 0px));
+    left: 0;
+    right: 0;
+    padding: 0 16px; // Coincide con el padding de ion-content
+    text-align: center; // Aseguramos que el texto esté centrado
+
+    ion-text {
+        font-size: 0.9rem;
+        color: var(--ion-color-medium);
+
+        a {
+            color: var(--ion-color-primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+    }
+}

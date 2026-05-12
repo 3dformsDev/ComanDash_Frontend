@@ -1,0 +1,27 @@
+ion-item {
+    --background: #ffffff;
+    --border-radius: 12px;
+    --padding-start: 16px;
+    --inner-padding-end: 16px;
+    --min-height: 55px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
+
+    ion-label {
+        font-weight: 600;
+    }
+
+    ion-icon[slot="start"] {
+        margin-right: 12px;
+    }
+}
+
+.empty-message {
+    text-align: center;
+    margin-top: 40%;
+    color: var(--ion-color-medium);
+}
+
+.badge-status {
+    padding: .5rem;
+}

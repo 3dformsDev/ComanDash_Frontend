@@ -1,0 +1,485 @@
+/*
+ * ===================================================================
+ * == ESTILOS ESENCIALES EXTRAÍDOS PARA ONBOARDING Y AUTENTICACIÓN  ==
+ * ===================================================================
+ * Este archivo contiene únicamente los estilos necesarios de la plantilla
+ * "Foodia". NO incluye Bootstrap completo para evitar conflictos con Tailwind CSS.
+*/
+
+/* --- Variables de Color y Tipografía (Tomadas de la plantilla) --- */
+:root {
+    --font-family-title: 'Roboto Slab', serif;
+    --dark: #ff3131;
+    --primary: ##ef8d57;
+    --body-color: #7D8FAB;
+    --border-color: #E8EFF3;
+    --bg-white: #FFF;
+    --border-radius-base: 8px;
+}
+
+/* --- Estilo base para las páginas de autenticación --- */
+/* NOTA: Para un mejor control del espaciado, considera añadir una clase
+     'auth-page' a tus páginas de Login/Signup y elimina 'ion-padding' del <ion-content> */
+.auth-page ion-content {
+    --background: var(--bg-white);
+}
+
+
+/* --- Estilos para el Banner Superior (Login/Signup) --- */
+.banner-wrapper {
+    padding: 40px 0;
+    text-align: center;
+    background: var(--dark);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    color: #fff;
+}
+
+.banner-wrapper ion-title {
+    font-family: var(--font-family-title);
+    font-weight: 800;
+    font-size: 2.25rem;
+    color: #fff;
+}
+
+.banner-wrapper p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.banner-wrapper .circle-1 {
+    width: 146px;
+    height: 146px;
+    border-radius: 50%;
+    background: #334878;
+    /* Color de la plantilla */
+    position: absolute;
+    top: -40px;
+    left: -55px;
+    z-index: -1;
+}
+
+/* --- Estilos para el Área Principal del Formulario (Login/Signup) --- */
+.account-area {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* El ion-padding en ion-content ya proporciona el espaciado lateral */
+}
+
+.account-area h3 {
+    font-family: var(--font-family-title);
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--dark);
+    margin-bottom: 8px;
+}
+
+.account-area p {
+    color: #7D8FAB;
+    /* Color de texto suave de la plantilla */
+    margin-bottom: 24px;
+}
+
+/* --- Estilos para los Inputs Personalizados --- */
+.custom-input-item {
+    --background: #f7f7f7;
+    --border-radius: 12px;
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+    --border-width: 0px;
+    /* Asegura que no haya borde por defecto */
+    --inner-border-width: 0px;
+    --highlight-height: 0;
+    /* Remueve la línea de foco de Ionic */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.2rem;
+}
+
+.custom-input-item ion-input {
+    --color: var(--dark);
+    font-weight: 500;
+}
+
+.custom-input-item ion-input::placeholder {
+    color: var(--body-color);
+    font-weight: 400;
+    opacity: 1;
+}
+
+.custom-input-item ion-input::-webkit-input-placeholder {
+    color: var(--body-color);
+    font-weight: 400;
+}
+
+.custom-input-item ion-input::-moz-placeholder {
+    color: var(--body-color);
+    font-weight: 400;
+    opacity: 1;
+}
+
+.custom-input-item ion-icon {
+    margin-right: 8px;
+    color: #a19fa8;
+}
+
+.custom-input-item.ion-focused {
+    outline: 2px solid var(--dark);
+    outline-offset: -2px;
+}
+
+.password-toggle {
+    --padding-start: 0;
+    --padding-end: 0;
+}
+
+/* --- Estilos para Botones --- */
+.login-btn,
+ion-footer ion-button {
+    --border-radius: 50px;
+    --font-weight: 600;
+    --box-shadow: none;
+    text-transform: uppercase;
+    height: 48px;
+}
+
+.login-btn {
+    --background: var(--dark);
+    --color: #fff;
+    margin-top: 1.5rem;
+}
+
+ion-footer ion-button[fill="clear"] {
+    --background: transparent;
+    --color: var(--dark);
+    border: 1px solid var(--dark);
+}
+
+.forgot-btn {
+    --color: #7D8FAB;
+    text-transform: none;
+    font-size: 0.9em;
+}
+
+/* --- Estilos para Checkbox y Opciones --- */
+.options-grid {
+    margin-top: 1rem;
+}
+
+.checkbox-item {
+    --background: transparent;
+    --inner-padding-end: 0px;
+}
+
+.checkbox-item ion-label {
+    color: #7D8FAB;
+    font-size: 0.9em;
+}
+
+.checkbox-item ion-checkbox {
+    --size: 22px;
+    --border-radius: 4px;
+    --border-width: 1px;
+    --border-color: #c5c5c5;
+    margin-right: 10px;
+}
+
+.checkbox-item ion-checkbox[aria-checked="true"] {
+    --background-checked: var(--dark);
+    --border-color-checked: var(--dark);
+}
+
+.signup-text {
+    margin-top: 1.5rem;
+    color: #7D8FAB;
+}
+
+/* --- Estilos específicos para la página de Registro (Signup) --- */
+.terms-item ion-label {
+    font-size: 0.8em;
+    color: #7D8FAB;
+}
+
+.terms-item a {
+    color: var(--dark);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/*
+   * ===================================================================
+   * ==             ESTILOS PARA LA PÁGINA DE ONBOARDING              ==
+   * ===================================================================
+  */
+swiper-container {
+    width: 100%;
+    height: 100%;
+}
+
+swiper-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+    padding-bottom: 60px;
+}
+
+.slide-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    max-width: 350px;
+}
+
+.slide-info img {
+    max-width: 250px;
+    margin-bottom: 40px;
+}
+
+.slide-info h2 {
+    font-family: var(--font-family-title);
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: var(--dark);
+    margin-bottom: 12px;
+}
+
+.slide-info p {
+    color: var(--body-color);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+swiper-container::part(pagination) {
+    bottom: 20px !important;
+}
+
+swiper-container::part(bullet) {
+    width: 10px;
+    height: 10px;
+    background: #d2d2d2;
+    opacity: 1;
+}
+
+swiper-container::part(bullet-active) {
+    background: var(--dark);
+}
+
+ion-footer ion-button:not([fill="clear"]) {
+    --background: var(--dark);
+    --color: #fff;
+    margin: 0 16px 16px;
+}
+
+/*
+   * ===================================================================
+   * ==             ESTILOS PARA LA PÁGINA DE WELCOME                 ==
+   * ===================================================================
+  */
+.welcome-page .content-body {
+    height: 100%;
+}
+
+.welcome-area {
+    flex-direction: column;
+    display: flex;
+    height: 100%;
+}
+
+.welcome-area .welcome-logo {
+    margin: 80px auto auto;
+    text-align: center;
+}
+
+.welcome-area .welcome-logo img {
+    width: 100px;
+}
+
+.welcome-area .get-started {
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: 500;
+    margin-top: 15px;
+}
+
+.welcome-area .get-started .dz-title {
+    margin-bottom: 0;
+    font-size: 2.375rem;
+    font-weight: 800;
+    font-family: 'Roboto Slab', serif;
+    color: var(--dark);
+}
+
+.welcome-area .join-area {
+    padding: 0 0 15px;
+    margin: auto 0 0;
+}
+
+.welcome-area .join-area .started h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-family: var(--font-family-title);
+    color: var(--dark);
+}
+
+.welcome-area .join-area .started p {
+    color: var(--body-color);
+}
+
+.welcome-box {
+    box-shadow: none;
+    padding: 20px;
+    background-color: var(--bg-white);
+    border-radius: var(--border-radius-base);
+    border: 1px solid var(--border-color);
+    margin: 0 0 20px 0;
+    color: #000;
+    display: block;
+    position: relative;
+    transition: all 0.3s ease-in-out;
+}
+
+.welcome-box .d-flex {
+    display: flex;
+}
+
+.welcome-box .align-items-center {
+    align-items: center;
+}
+
+.welcome-box img {
+    width: 70px;
+    min-width: 70px;
+    height: 70px;
+}
+
+.welcome-box .ms-2 {
+    margin-left: 1rem;
+}
+
+.welcome-box h5 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.welcome-box p {
+    margin-bottom: 0;
+    color: var(--body-color);
+    font-size: 0.9rem;
+}
+
+.welcome-box:hover {
+    border-color: var(--primary);
+    transform: translateY(-5px);
+}
+
+/* Theme Color Settings */
+.theme-color-settings {
+    padding: 15px 10px 10px;
+    margin: 10px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.theme-color-settings li {
+    display: inline-block;
+    width: 33.33%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.theme-color-settings li input {
+    display: none;
+}
+
+.theme-color-settings li label {
+    background-color: #000;
+    width: 40px;
+    border-radius: var(--border-radius-base);
+    height: 40px;
+    margin: 0 auto 5px;
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.theme-color-settings li label:after {
+    content: "\\f00c";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: none;
+    transform: translate(-50%, -50%);
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 16px;
+    color: #fff;
+}
+
+.theme-color-settings li input:checked+label:after {
+    display: block;
+}
+
+.theme-color-settings li span {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--body-color);
+}
+
+.theme-color-settings li input[value="color-primary"]+label {
+    background-color: #42a7e5;
+}
+
+.theme-color-settings li input[value="color-green"]+label {
+    background-color: #4cd964;
+}
+
+.theme-color-settings li input[value="color-blue"]+label {
+    background-color: #2196f3;
+}
+
+.theme-color-settings li input[value="color-pink"]+label {
+    background-color: #ff9eb1;
+}
+
+.theme-color-settings li input[value="color-yellow"]+label {
+    background-color: #ffcc00;
+}
+
+.theme-color-settings li input[value="color-orange"]+label {
+    background-color: #ff9500;
+}
+
+.theme-color-settings li input[value="color-purple"]+label {
+    background-color: #9237e3;
+}
+
+.theme-color-settings li input[value="color-red"]+label {
+    background-color: #ff3b30;
+}
+
+.theme-color-settings li input[value="color-lightblue"]+label {
+    background-color: #5ac8fa;
+}
+
+.theme-color-settings li input[value="color-teal"]+label {
+    background-color: #009688;
+}
+
+.theme-color-settings li input[value="color-lime"]+label {
+    background-color: #cddc39;
+}
+
+.theme-color-settings li input[value="color-deeporange"]+label {
+    background-color: #ff6b22;
+}

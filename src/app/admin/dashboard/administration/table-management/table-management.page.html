@@ -1,0 +1,47 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <h1>Gestión de Mesas</h1>
+      <p>Añade, edita o elimina mesas</p>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-list lines="none">
+    <ion-item *ngFor="let table of allTables" [ngClass]="{'item-inactive': !table.isActive}">
+
+      <ion-icon name="restaurant-outline" slot="start" color="medium"></ion-icon>
+      <ion-label>{{ table.tableNumber }}</ion-label>
+
+      <ion-badge class="badge-status" slot="end" [color]="table.isActive ? 'success' : 'medium'">
+        {{ table.isActive ? 'Activa' : 'Inactiva' }}
+      </ion-badge>
+
+      <ion-buttons slot="end">
+        <ion-button fill="clear" color="medium" (click)="editTable(table)">
+          <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" [color]="table.isActive ? 'danger' : 'warning'" (click)="toggleTableStatus(table)">
+          <ion-icon slot="icon-only" [name]="table.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+
+    </ion-item>
+  </ion-list>
+
+  <p *ngIf="allTables.length === 0" class="empty-message">
+    No has añadido ninguna mesa todavía.
+  </p>
+
+</ion-content>
+
+<ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab-button (click)="addTable()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

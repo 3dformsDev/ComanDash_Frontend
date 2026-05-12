@@ -1,0 +1,89 @@
+<!-- HTML Template con errores integrados -->
+<ion-header class="ion-no-border">
+  <div class="banner-wrapper">
+    <div class="circle-1"></div>
+    <div class="inner-wrapper">
+      <ion-title class="ion-text-center">MINSIVA</ion-title>
+      <p class="ion-text-center">Aplicación para gestionar tu restaurante</p>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="account-area">
+    <h3>Bienvenido de vuelta</h3>
+    <p>Control total de comandas y gestión de pedidos.</p>
+
+    <!-- CAMPO DE USUARIO -->
+    <ion-item lines="full" class="ion-margin-bottom custom-input-item">
+      <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
+      <ion-input type="text" placeholder="Usuario" [value]="loginForm.get('username')?.value"
+        (ionInput)="loginForm.get('username')?.setValue($event.detail.value)" required>
+      </ion-input>
+    </ion-item>
+    <!-- Contenedor para el mensaje de error del usuario -->
+    <div *ngIf="formErrors.username" class="error-message ion-padding-start">
+      {{ formErrors.username }}
+    </div>
+
+    <!-- CAMPO DE CONTRASEÑA -->
+    <ion-item lines="full" class="ion-margin-bottom custom-input-item">
+      <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+      <ion-input [type]="showPassword ? 'text' : 'password'" [value]="loginForm.get('password')?.value"
+      (ionInput)="loginForm.get('password')?.setValue($event.detail.value)" placeholder="Contraseña"
+        required>
+      </ion-input>
+      <ion-button fill="clear" slot="end" (click)="togglePassword()" class="password-toggle">
+        <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
+      </ion-button>
+    </ion-item>
+    <!-- Contenedor para el mensaje de error de la contraseña -->
+    <div *ngIf="formErrors.password" class="error-message ion-padding-start">
+      {{ formErrors.password }}
+    </div>
+
+    <!-- CAMPO DE CÓDIGO DE COMPAÑÍA -->
+    <ion-item lines="full" class="ion-margin-bottom custom-input-item">
+      <ion-icon name="business-outline" slot="start" color="medium"></ion-icon>
+      <ion-input type="text" placeholder="Código de compañía" [value]="loginForm.get('business_code')?.value"
+      (ionInput)="loginForm.get('business_code')?.setValue($event.detail.value)" required>
+      </ion-input>
+    </ion-item>
+    <!-- Contenedor para el mensaje de error del código -->
+    <div *ngIf="formErrors.business_code" class="error-message ion-padding-start">
+      {{ formErrors.business_code }}
+    </div>
+
+    <!-- BOTÓN DE LOGIN -->
+    <ion-button expand="block" shape="round" class="ion-margin-top login-btn" (click)="login()"
+      [disabled]="loginForm.invalid">
+      INICIAR SESIÓN
+    </ion-button>
+
+    <ion-grid class="ion-no-padding options-grid">
+      <ion-row class="ion-align-items-center">
+        <ion-col size="auto" class="ion-no-padding">
+          <ion-item lines="none" class="checkbox-item">
+            <ion-checkbox slot="start" [checked]="true"></ion-checkbox>
+            <ion-label>Mantener sesión</ion-label>
+          </ion-item>
+        </ion-col>
+        <ion-col class="ion-text-end">
+          <ion-button fill="clear" size="small" class="forgot-btn">¿Olvidaste tu contraseña?</ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <div class="ion-text-center signup-text">
+      <ion-text>¿No tienes una cuenta?</ion-text>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar>
+    <ion-button expand="block" fill="clear" shape="round" routerLink="/signup">
+      CREAR UNA CUENTA
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

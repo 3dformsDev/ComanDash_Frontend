@@ -1,0 +1,216 @@
+// El :host sigue igual
+:host {
+    --background: transparent;
+}
+
+// NUEVO: Contenedor principal que usa flexbox para posicionar el footer
+.summary-container-sheet {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #f9fafb;
+}
+
+// AJUSTADO: El contenido ahora no tiene padding general, sino por secciones
+.modal-content-scrollable {
+    // El padding se aplica aquí para que no afecte el scroll
+    --padding-start: 1.5rem;
+    --padding-end: 1.5rem;
+    --padding-top: 1.5rem;
+}
+
+// NUEVO: Estilos para el pie de página fijo
+.modal-footer {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    background-color: #f9fafb; // Mismo fondo que el contenido
+    border: none;
+
+    // Elimina la sombra que Ionic agrega por defecto a los footers
+    &::before {
+        display: none;
+    }
+}
+
+// EL RESTO DE TUS ESTILOS PERMANECEN EXACTAMENTE IGUAL
+// ... (copia y pega aquí todos los demás estilos que ya tenías, desde .summary-header hasta .confirm-button)
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    .summary-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0
+    }
+
+    .close-button {
+        background: 0 0;
+        border: none;
+        cursor: pointer;
+        color: #9ca3af;
+        font-size: 1.5rem
+    }
+}
+
+.order-items-list {
+    max-height: 15rem;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding-right: .5rem
+}
+
+.order-items-list .empty-message {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem 0
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem
+}
+
+.order-item .item-image {
+    width: 3rem;
+    height: 3rem;
+    border-radius: .5rem;
+    object-fit: cover;
+    margin-right: .75rem
+}
+
+.order-item .item-details {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.order-item .item-details .item-name {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #1f2937;
+    margin: 0 0 2px;
+    /* -- Añade estas 3 líneas para truncar el texto -- */
+    white-space: nowrap;
+    /* Evita que el texto salte a otra línea */
+    overflow: hidden;
+    /* Oculta el texto que se desborda */
+    text-overflow: ellipsis;
+    /* Muestra "..." al final */
+}
+
+.order-item .item-details .item-price {
+    font-size: .875rem;
+    color: #6b7280;
+    margin: 0
+}
+
+.order-item .quantity-controls {
+    display: flex;
+    align-items: center;
+    background-color: #e5e7eb;
+    border-radius: 9999px;
+    padding: .25rem
+}
+
+.order-item .quantity-controls .quantity-btn {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background-color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.order-item .quantity-controls .quantity-number {
+    font-weight: 700;
+    width: 2rem;
+    text-align: center
+}
+
+.notes-section {
+    margin-top: .5rem;
+    width: 100%;
+}
+
+.notes-section .notes-label {
+    color: #4b5563;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.notes-section .notes-textarea {
+    margin-top: .25rem;
+    --border-radius: .5rem;
+    --padding-start: .5rem;
+    --padding-end: .5rem;
+    --background: #fff
+}
+
+.prepaid-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    padding: .75rem;
+    border-radius: .5rem;
+    box-shadow: 0 1px 2px 0 #0000000d;
+    width: 100%;
+}
+
+.prepaid-section .prepaid-label {
+    font-size: .875rem;
+    font-weight: 600;
+    color: #374151
+}
+
+.prepaid-section ion-toggle {
+    --background: #e5e7eb;
+    /* Track apagado */
+    --background-checked: #ffffff;
+    /* Track encendido → blanco */
+    --handle-background: #ffffff;
+    /* Handle apagado → blanco */
+    --handle-background-checked: #ff3131;
+    /* Handle encendido → rojo */
+    --border-radius: 9999px;
+    /* opcional: track bien redondeado */
+}
+
+.totals-section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1rem;
+    // margin-top: 1rem;
+    font-size: .875rem;
+    width: 100%;
+}
+
+.totals-section .total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: .5rem
+}
+
+.totals-section .grand-total {
+    font-size: 1.25rem;
+    font-weight: 700
+}
+
+.confirm-button {
+    width: 100%;
+    background-color: #ff3131;
+    color: #fff;
+    border-radius: .75rem;
+    padding: 1rem 0;
+    margin-top: 1.5rem;
+    font-weight: 700;
+    font-size: 1.125rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px #0000001a, 0 2px 4px -2px #0000001a
+}

@@ -1,0 +1,84 @@
+/*
+  SCSS actualizado para la vista de selección.
+  - Los colores estáticos del componente 'toggle' han sido reemplazados
+    por las variables --primary y --rgba-primary-2 de tu paleta.
+*/
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.transition-all {
+    transition: all 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.new-order-animation {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Estilos para el toggle de propina usando la nueva paleta de colores */
+.dot {
+    transition: transform 0.3s ease-in-out;
+}
+
+#tip-toggle:checked+.dot,
+#prepaid-toggle:checked+.dot,
+.status-toggle:checked+.dot {
+    transform: translateX(100%);
+    /* Color de toggle activo ahora es el rojo principal */
+    background-color: var(--primary, #ff3131);
+}
+
+#tip-toggle:checked~.block,
+#prepaid-toggle:checked~.block,
+.status-toggle:checked~.block {
+    /* El fondo del toggle activo ahora es una versión clara del rojo */
+    background-color: var(--rgba-primary-2, rgba(255, 49, 49, 0.2));
+}
+
+/* Estilos que se aplican solo cuando el dispositivo está en horizontal */
+@media (orientation: landscape) {
+
+    #selection-view {
+
+        /* Por ejemplo, podemos reducir el padding vertical en modo horizontal */
+        .p-8 {
+            padding-top: 1rem; // 16px
+            padding-bottom: 1rem; // 16px
+        }
+
+        /* Reducir el tamaño de la fuente del título */
+        h1 {
+            font-size: 1.5rem;
+            /* 24px */
+        }
+
+        /* Hacer los botones principales un poco menos altos */
+        ion-button {
+            --padding-top: 16px;
+            --padding-bottom: 16px;
+        }
+    }
+
+}

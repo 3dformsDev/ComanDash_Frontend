@@ -1,0 +1,85 @@
+<ion-header class="ion-no-border customer-view-header">
+
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
+    <div class="title-group" *ngIf="selectedOrders$ | async as orders">
+      <h1>{{ isEditMode ? 'Editando Comanda' : 'Nueva Comanda' }} {{orders.selectTabledOrder.orderType == 'dine_in' ?
+        `MESA ${orders.numberTable.tableNumber} ` : `Para llevar ${orders.customerName}`}}</h1>
+      <p>{{ isEditMode ? `Comanda #${orders.currentOrder?.orderNumber}` : 'Agrega productos al pedido' }}</p>
+    </div>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshData()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+
+  <div class="category-filters-container">
+    <div class="filters-scroll">
+      <ion-chip *ngFor="let category of allCategories" [ngClass]="{'chip-selected': currentFilter === category.id}"
+        (click)="selectFilter(category.id)">
+        <ion-label>{{ category.name }}</ion-label>
+      </ion-chip>
+    </div>
+  </div>
+</ion-header>
+
+
+<ion-content [fullscreen]="true" class="customer-view-content">
+
+  <div class="menu-item-card" *ngFor="let item of menuItems">
+    <img *ngIf="protectedImages.get(item.id); else noImage" [src]="protectedImages.get(item.id)" alt="{{ item.name }}"
+      class="item-image">
+
+    <ng-template #noImage>
+      <div class="item-image flex justify-center align-items-center">
+        <ion-icon name="fast-food-outline"></ion-icon>
+      </div>
+    </ng-template>
+
+    <div class="item-content">
+      <div class="item-details">
+        <h3>{{ item.name }}</h3>
+        <p>{{ item.price | currency:'COP':'$' }}</p>
+      </div>
+
+      <div class="item-actions">
+
+        <ion-button *ngIf="getItemQuantity(item) === 0" class="single-add-btn" (click)="addItem(item)">
+          <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+        </ion-button>
+
+        <div *ngIf="getItemQuantity(item) > 0" class="quantity-control">
+          <ion-button fill="clear" class="control-btn" (click)="removeItemById(item.id)">
+            <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+          </ion-button>
+          <span class="quantity-text">{{ getItemQuantity(item) }}</span>
+          <ion-button fill="clear" class="control-btn" (click)="addItem(item)">
+            <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</ion-content>
+
+
+<ion-footer class="ion-no-border customer-view-footer" *ngIf="orderCount > 0">
+  <ion-toolbar>
+    <button class="view-order-button" (click)="viewOrder()">
+      <div class="badge-container">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <ion-badge color="danger">{{ orderCount }}</ion-badge>
+      </div>
+      <span>{{ isEditMode ? 'Actualizar Pedido' : 'Ver Mi Pedido' }}</span>
+      <span class="total-preview">{{ orderTotal | currency:'COP':'$' }}</span>
+    </button>
+  </ion-toolbar>
+</ion-footer>

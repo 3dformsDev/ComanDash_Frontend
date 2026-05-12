@@ -1,0 +1,66 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/admin"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <h1>Gestión de Cajas</h1>
+      <p>Configura y opera tus cajas registradoras</p>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list lines="none">
+    <ion-item *ngFor="let box of allCashRegisters" [ngClass]="{'item-inactive': !box.isActive}">
+
+      <ion-label>
+        <h2 class="dark">{{ box.name }}</h2>
+        <p *ngIf="box.cashRegisterSession.isOpen">
+          Base: {{ box.cashRegisterSession.cashRegisterInfo?.openingBalance | currency:'COP':'$' }}
+        </p>
+      </ion-label>
+
+      <ion-badge class="badge-status" slot="end" [color]="(box.cashRegisterSession.isOpen) ? 'success' : 'medium'">
+        {{ (box.cashRegisterSession.isOpen) ? 'Abierta' : 'Cerrada' }}
+      </ion-badge>
+
+      <ion-buttons slot="end">
+        <ion-button *ngIf="(!box.cashRegisterSession.isOpen) && box.isActive" fill="clear" color="success"
+          [disabled]="isSessionOpenInLocation" (click)="openSession(box)">
+          <ion-icon slot="icon-only" name="play-outline"></ion-icon>
+        </ion-button>
+
+        <ion-button *ngIf="box.cashRegisterSession.isOpen" fill="clear" color="primary" (click)="closeSession(box)">
+          <ion-icon slot="icon-only" name="stop-circle-outline"></ion-icon>
+        </ion-button>
+
+        <ion-button fill="clear" color="medium" (click)="editCashRegister(box)">
+          <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+        </ion-button>
+
+        <ion-button fill="clear" [color]="box.isActive ? 'danger' : 'warning'" (click)="toggleRegisterStatus(box)">
+          <ion-icon slot="icon-only" [name]="box.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+
+    </ion-item>
+  </ion-list>
+
+  <ion-note color="medium" class="ion-padding-start" *ngIf="isSessionOpenInLocation && allCashRegisters.length > 0">
+    <p>
+      Ya hay una sesión abierta. Debes cerrarla para poder abrir otra caja.
+    </p>
+  </ion-note>
+
+  <p *ngIf="allCashRegisters.length === 0" class="empty-message">
+    No has configurado ninguna caja registradora.
+  </p>
+
+</ion-content>
+
+<ion-fab *ngIf="allCashRegisters.length == 0" vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab-button (click)="addCashRegister()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

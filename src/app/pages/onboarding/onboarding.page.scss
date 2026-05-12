@@ -1,0 +1,16 @@
+.mySwiper {
+  height: 100%;
+}
+
+.slide-info {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+.slide-info img {
+  max-width: 250px;
+  margin: 0 auto 20px;
+}

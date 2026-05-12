@@ -1,0 +1,64 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <h1>Gestión de Menú</h1>
+      <p>Añade, edita o elimina productos</p>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngFor="let group of groupedMenu | keyvalue" class="category-section">
+    <ion-list-header>
+      <h2>{{ group.key }}</h2>
+    </ion-list-header>
+
+    <ion-list lines="none">
+      <ion-item *ngFor="let item of group.value" [class.item-inactive]="!item.isActive"
+        [class.unavailable]="!item.isAvailable">
+
+        <ion-avatar slot="start">
+          <img class="product-avatar" *ngIf="protectedImages.get(item.id); else noImage" [src]="protectedImages.get(item.id)" />
+
+          <ng-template #noImage>
+            <div class="product-avatar flex justify-center align-items-center">
+              <ion-icon name="fast-food-outline"></ion-icon>
+            </div>
+          </ng-template>
+        </ion-avatar>
+
+        <ion-label>
+          <h3>{{ item.name }}</h3>
+          <p>{{ item.price | currency:'COP':'$' }}</p>
+        </ion-label>
+
+        <ion-badge class="badge-status" slot="end" [color]="item.isActive ? 'success' : 'medium'">
+          {{ item.isActive ? 'Activo' : 'Inactivo' }}
+        </ion-badge>
+
+        <div class="item-actions" slot="end">
+          <!-- <ion-toggle [checked]="item.isAvailable" (ionChange)="toggleAvailability(item, $event)" mode="ios"
+            title="Disponibilidad (hoy)"></ion-toggle> -->
+
+          <ion-button fill="clear" color="medium" (click)="editItem(item)">
+            <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+          </ion-button>
+
+          <ion-button fill="clear" [color]="item.isActive ? 'danger' : 'warning'" (click)="toggleProductStatus(item)">
+            <ion-icon slot="icon-only" [name]="item.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>
+
+
+<ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab-button (click)="addNewItem()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

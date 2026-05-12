@@ -1,0 +1,47 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <h1>Gestión de Categorías</h1>
+      <p>Añade, edita o elimina categorías</p>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list lines="none">
+    <ion-item *ngFor="let category of allCategories; let i = index" [ngClass]="{'item-inactive': !category.isActive}">
+
+      <ion-label>
+        <h2 class="dark">{{ category.name }}</h2>
+      </ion-label>
+
+      <ion-badge class="badge-status" slot="end" [color]="category.isActive ? 'success' : 'medium'">
+        {{ category.isActive ? 'Activa' : 'Inactiva' }}
+      </ion-badge>
+
+      <ion-buttons slot="end">
+        <ion-button fill="clear" color="medium" (click)="editCategory(category)">
+          <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" [color]="category.isActive ? 'danger' : 'warning'"
+          (click)="toggleCategoryStatus(category)">
+          <ion-icon slot="icon-only" [name]="category.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+
+    </ion-item>
+  </ion-list>
+
+  <p *ngIf="allCategories.length === 0" class="empty-message">
+    Aún no has añadido ninguna categoría.
+  </p>
+</ion-content>
+
+<ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab-button (click)="addCategory()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

@@ -1,0 +1,189 @@
+/* BÓRRAME: Ya no necesito estos estilos globales */
+ion-modal#payment-modal {
+    --height: fit-content;
+    --width: 90%;
+    --max-width: 400px;
+    --border-radius: 1rem;
+    --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    --backdrop-opacity: 0.6;
+}
+
+/* BÓRRAME TAMBIÉN: Este es el principal culpable */
+ion-modal#payment-modal ion-header,
+ion-modal#payment-modal ion-footer,
+ion-modal#payment-modal ion-content {
+    --background: white;
+}
+
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* max-height: 85vh; // Esta línea está bien */
+}
+
+ion-content {
+    flex: 1;
+    border-radius: 1rem;
+}
+
+.payment-container {
+    padding: 1.5rem;
+    background: white;
+}
+
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.items-summary-list {
+    max-height: 15rem;
+    /* Reducido para dejar más espacio */
+    overflow-y: auto;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.5rem;
+        color: #000000;
+        padding: 0.25rem 0;
+        font-weight: bold;
+    }
+}
+
+.costs-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    /* Añadido margen inferior */
+
+    .cost-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #000000;
+        font-size: 1.25rem;
+        font-weight: 700
+    }
+
+    .tip-control {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .grand-total {
+        font-size: 1.25rem;
+        /* Reducido ligeramente */
+        font-weight: 700;
+        color: #000000;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 0.75rem;
+        margin-top: 0.5rem;
+    }
+}
+
+ion-toggle {
+    --background: #e5e7eb;
+    --background-checked: #c7d2fe;
+    --handle-background: white;
+    --handle-background-checked: #4f46e5;
+    height: 1.5rem;
+    width: 2.5rem;
+}
+
+.payment-methods {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+    /* Reducido */
+
+    .payment-methods-title {
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .payment-options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .payment-method-btn {
+        --background: #f3f4f6;
+        --color: #1f2937;
+        --border-radius: 0.5rem;
+        height: 44px;
+        /* Reducido ligeramente */
+        font-size: 1rem;
+        text-transform: none;
+        margin: 0;
+
+        &.selected {
+            --background: #000000;
+            --color: white;
+            font-weight: 600;
+        }
+    }
+}
+
+ion-footer {
+    padding: 1rem 1.5rem;
+    /* Ajustado el padding */
+    background: white;
+    border-top: 1px solid #f3f4f6;
+    /* Añadida línea separadora */
+    flex-shrink: 0;
+    /* Evita que se comprima */
+
+    &::before {
+        display: none;
+    }
+
+    .confirm-payment-btn {
+        --background: #ff3131;
+        --color: white;
+        border-radius: .75rem;
+        height: 48px;
+        /* Reducido ligeramente */
+        font-size: 1rem;
+        /* Ajustado */
+        font-weight: bold;
+        text-transform: none;
+        margin: 0;
+        margin-bottom: 0.5rem;
+        /* Añadido margen inferior */
+    }
+
+    .cancel-btn {
+        margin: 0;
+        --color: #6b7280;
+        font-size: 0.9rem;
+        height: 40px;
+        /* Altura específica */
+    }
+}
+
+
+.modal-footer {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    background-color: #f9fafb; // Mismo fondo que el contenido
+    border: none;
+
+    // Elimina la sombra que Ionic agrega por defecto a los footers
+    &::before {
+        display: none;
+    }
+}

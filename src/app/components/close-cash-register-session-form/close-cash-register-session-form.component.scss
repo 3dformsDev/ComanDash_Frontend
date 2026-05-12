@@ -1,0 +1,126 @@
+/*
+ * Estilos para el Modal de Formulario de Producto
+ * -------------------------------------------------------------------
+ */
+
+// --- HEADER ---
+.custom-header ion-toolbar {
+    --background: var(--ion-background-color);
+    --border-width: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.header-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ion-text-color);
+    padding: 0 1rem;
+}
+
+.cancel-btn {
+    --color: var(--ion-color-medium);
+    font-weight: 500;
+    text-transform: none;
+    font-size: 1rem;
+}
+
+
+// --- CONTENIDO DEL FORMULARIO ---
+.form-content {
+    // Un fondo ligeramente distinto para que el formulario resalte
+    --background: #f7f8fa;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 16px;
+}
+
+.section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ion-color-medium);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+// --- GRUPOS DE INPUTS ---
+// Se eliminaron las reglas de .input-row y .half-width.
+// Ahora cada .input-group se comportará como un bloque, ocupando el 100% del ancho.
+.input-group {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+
+// --- ESTILO DE LOS ITEMS Y LABELS ---
+.custom-item {
+    --background: #ffffff;
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+    --border-radius: 12px;
+    --border-color: #e0e0e0;
+    --border-width: 1px;
+    --border-style: solid;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    overflow: visible; // Permite que el label "flote" correctamente
+    width: 100%;
+
+    // Estilo al estar enfocado
+    &.item-has-focus {
+        --border-color: var(--ion-color-primary);
+        box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.2);
+    }
+}
+
+.custom-label {
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+
+// --- ESTILO DE LOS INPUTS, SELECTS Y TEXTAREAS ---
+.custom-input,
+.custom-select,
+.custom-textarea {
+    --color: var(--ion-text-color);
+    font-size: 1rem;
+    margin-top: 8px; // Espacio para el label
+}
+
+.custom-select::part(icon) {
+    color: var(--ion-color-medium);
+}
+
+.currency-symbol {
+    color: var(--ion-color-medium);
+    font-weight: 500;
+    margin-right: 8px;
+}
+
+
+// --- BOTÓN DE GUARDAR ---
+.button-section {
+    padding-top: 10px;
+}
+
+.save-btn {
+    --background: var(--ion-color-primary);
+    --background-activated: var(--ion-color-primary-shade);
+    --background-hover: var(--ion-color-primary-tint);
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
+    --color: var(--ion-color-primary-contrast);
+
+    height: 48px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: none;
+}

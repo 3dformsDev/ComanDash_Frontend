@@ -1,0 +1,120 @@
+<ion-header class="ion-no-border kitchen-header">
+  <ion-toolbar class="">
+    <ion-title>
+      <h1>Comandas en Cocina</h1>
+      <p>Pedidos pendientes</p>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/dashboard">
+        <ion-icon slot="icon-only" name="home-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <div class="view-selector">
+    <button [class.active]="activeView === 'byOrder'" (click)="changeView('byOrder')">Por Comanda</button>
+    <button [class.active]="activeView === 'byProduct'" (click)="changeView('byProduct')">Por Producto</button>
+  </div>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando comandas pendientes...</p>
+  </div>
+
+
+  <div *ngIf="!isLoading">
+
+    <div *ngIf="activeView === 'byOrder'">
+      <p *ngIf="pendingOrders.length === 0" class="empty-message">
+        <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+        ¡Todo al día! No hay comandas pendientes.
+      </p>
+
+      <div *ngFor="let order of pendingOrders" class="order-card" [class]="getOrderCardClass(order)"
+        [class.card-updated]="order.justUpdated || order.wasModified">
+        <div class="card-header">
+          <div>
+            <h2 class="order-id">
+              Comanda #{{ order.orderNumber }} - Tomada por {{ order.waiter.fullName }}
+              <!-- <span *ngIf="order.justUpdated || order.wasModified" class="modified-tag">Modificado</span> -->
+            </h2>
+            <p class="order-info">{{
+              order.table
+              ? `Mesa ${order.table.tableNumber || order.table.name} ${order.customerName || ''}`
+              : `Para llevar - ${order.customerName || 'Sin nombre'}`
+              }}</p>
+          </div>
+          <div class="timer" [ngClass]="getTimerClass(order)">
+            {{ order.timerDisplay }}
+          </div>
+        </div>
+
+        <p *ngIf="order.kitchenNotes" class="order-notes">
+          <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+          <strong>Nota:</strong> {{ order.kitchenNotes }}
+        </p>
+
+        <ion-list lines="none">
+          <ion-item *ngFor="let item of order.orderItems" (click)="toggleItemReady(order, item)"
+            [class.ready]="item.isReady">
+            <span class="item-quantity">{{ item.quantity }}x</span>
+            <ion-label>{{item.product.category.name}} - {{ item.product.name }}</ion-label>
+            <ion-icon slot="end" [name]="item.isReady ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+          </ion-item>
+        </ion-list>
+
+        <ion-button expand="block" class="dispatch-btn" (click)="dispatchOrder(order.id)"
+          [disabled]="!isOrderReady(order)">
+          <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+          Despachar
+        </ion-button>
+      </div>
+    </div>
+    <div *ngIf="activeView === 'byProduct'">
+      <p *ngIf="aggregatedProducts.length === 0" class="empty-message">
+        <ion-icon name="fast-food-outline"></ion-icon>
+        No hay productos pendientes por preparar.
+      </p>
+
+      <div *ngFor="let product of aggregatedProducts" class="product-card">
+        <div class="product-header">
+          <div class="product-info">
+            <h3>{{product.category.name}} - {{ product.name }}</h3>
+
+            <div class="product-meta">
+              <p class="order-numbers">
+                <ion-icon name="document-text-outline"></ion-icon>
+                Para comandas: #{{ product.orders.join(', #') }}
+              </p>
+
+              <p *ngIf="product.notesCount > 0" class="notes-info">
+                <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+                {{ product.notesCount }} con notas
+              </p>
+            </div>
+
+          </div>
+          <div class="product-quantity">
+            {{ product.total }}
+          </div>
+        </div>
+
+        <!-- IMPLEMENTAR A FUTURO V2 -->
+        <!-- <div class="product-actions">
+          <button class="ready-btn" (click)="markProductAsReady(product.name)">
+            <ion-icon name="checkmark-done-outline"></ion-icon>
+            Listos
+          </button>
+          <button class="stock-out-btn" (click)="markProductAsOutOfStock(product.id)">
+            <ion-icon name="ban-outline"></ion-icon>
+            Agotado
+          </button>
+        </div> -->
+      </div>
+    </div>
+
+  </div>
+</ion-content>

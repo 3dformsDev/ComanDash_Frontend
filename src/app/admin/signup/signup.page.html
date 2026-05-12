@@ -1,0 +1,62 @@
+<ion-header class="ion-no-border">
+  <div class="banner-wrapper">
+    <div class="circle-1"></div>
+    <div class="inner-wrapper">
+      <ion-title class="ion-text-center">Foodia</ion-title>
+      <p class="ion-text-center">Restaurant App</p>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="account-area">
+    <h3>Create your account</h3>
+    <p>Lorem ipsum dolor sit amet</p>
+
+    <ion-item lines="full" class="ion-margin-bottom">
+      <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
+      <ion-input type="text" placeholder="Name" [(ngModel)]="signupData.name">
+      </ion-input>
+    </ion-item>
+
+    <ion-item lines="full" class="ion-margin-bottom">
+      <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
+      <ion-input type="email" placeholder="Email" inputmode="email" [(ngModel)]="signupData.email">
+      </ion-input>
+    </ion-item>
+
+    <ion-item lines="full" class="ion-margin-bottom">
+      <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+      <ion-input [type]="showPassword ? 'text' : 'password'" placeholder="Password" [(ngModel)]="signupData.password">
+      </ion-input>
+      <ion-button fill="clear" slot="end" (click)="togglePassword()" class="password-toggle">
+        <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
+      </ion-button>
+    </ion-item>
+
+    <ion-button expand="block" shape="round" class="ion-margin-top" (click)="signup()">
+      SIGN UP
+    </ion-button>
+
+    <ion-item lines="none" class="ion-margin-top terms-item">
+      <ion-checkbox slot="start" [checked]="true"></ion-checkbox>
+      <ion-label class="ion-text-wrap">
+        By tapping “Sign Up” you accept our
+        <a (click)="openTerms()">terms</a> and
+        <a (click)="openTerms()">Condition</a>
+      </ion-label>
+    </ion-item>
+
+    <div class="ion-text-center ion-margin-top">
+      <ion-text>Already have an account?</ion-text>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar>
+    <ion-button expand="block" fill="clear" shape="round" routerLink="/login">
+      SIGN IN
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

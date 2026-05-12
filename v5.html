@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Comandas</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .new-order-animation {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Estilos para el toggle de propina */
+        .dot {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #tip-toggle:checked+.dot,
+        #prepaid-toggle:checked+.dot,
+        .status-toggle:checked+.dot {
+            transform: translateX(100%);
+            background-color: #4f46e5;
+            /* indigo-600 */
+        }
+
+        #tip-toggle:checked~.block,
+        #prepaid-toggle:checked~.block,
+        .status-toggle:checked~.block {
+            background-color: #c7d2fe;
+            /* indigo-200 */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 antialiased">
+
+    <!-- Contenedor principal de la aplicación -->
+    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-lg relative">
+
+        <!-- VISTA DE SELECCIÓN INICIAL -->
+        <div id="selection-view">
+            <div class="flex flex-col h-screen justify-between p-8 bg-gray-50">
+                <div class="text-center pt-12">
+                    <i class="fas fa-concierge-bell text-5xl text-indigo-500 mb-4"></i>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Sistema de Comandas</h1>
+                    <p class="text-gray-500">Selecciona una opción para comenzar.</p>
+                </div>
+                <div class="w-full space-y-4">
+                    <button id="select-table-btn"
+                        class="w-full bg-white border border-gray-300 text-gray-700 rounded-xl py-6 flex items-center justify-center text-lg font-semibold hover:bg-gray-100 transition-all">
+                        <i class="fas fa-chair mr-3"></i>
+                        Seleccionar Mesa
+                    </button>
+                    <button id="takeaway-btn"
+                        class="w-full bg-white border border-gray-300 text-gray-700 rounded-xl py-6 flex items-center justify-center text-lg font-semibold hover:bg-gray-100 transition-all">
+                        <i class="fas fa-shopping-bag mr-3"></i>
+                        Para Llevar
+                    </button>
+                </div>
+                <div class="w-full space-y-4 pb-4">
+                    <div class="grid grid-cols-3 gap-4 w-full">
+                        <button id="go-to-waiter-view"
+                            class="flex flex-col items-center justify-center text-gray-600 hover:text-indigo-600 transition-all">
+                            <i class="fas fa-user-tie text-2xl"></i><span class="text-xs mt-1">Mesero</span>
+                        </button>
+                        <button id="go-to-kitchen-view"
+                            class="flex flex-col items-center justify-center text-gray-600 hover:text-indigo-600 transition-all">
+                            <i class="fas fa-utensils text-2xl"></i><span class="text-xs mt-1">Cocina</span>
+                        </button>
+                        <button id="go-to-summary-view"
+                            class="flex flex-col items-center justify-center text-gray-600 hover:text-indigo-600 transition-all">
+                            <i class="fas fa-chart-pie text-2xl"></i><span class="text-xs mt-1">Resumen</span>
+                        </button>
+                    </div>
+                    <button id="go-to-admin-view"
+                        class="w-full bg-gray-800 text-white rounded-xl py-3 flex items-center justify-center text-sm font-semibold hover:bg-gray-900 transition-all">
+                        <i class="fas fa-cogs mr-2"></i>
+                        Administrar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA DEL CLIENTE/MESA -->
+        <div id="customer-view" class="hidden">
+            <header class="p-4 border-b border-gray-200 sticky top-0 bg-white/80 backdrop-blur-sm z-10">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center"><button id="back-to-selection-btn" class="text-gray-500 mr-3"><i
+                                class="fas fa-arrow-left text-xl"></i></button>
+                        <div>
+                            <h1 id="order-title" class="text-xl font-bold text-gray-800"></h1>
+                            <p id="order-subtitle" class="text-sm text-gray-500"></p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <nav class="p-4 sticky top-[84px] bg-white/80 backdrop-blur-sm z-10">
+                <div id="category-filters" class="flex space-x-3 overflow-x-auto no-scrollbar"></div>
+            </nav>
+            <main id="menu-items" class="p-4 grid grid-cols-1 gap-4 pb-24"></main>
+            <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-20">
+                <button id="view-order-button"
+                    class="w-full bg-indigo-600 text-white rounded-xl py-3 px-4 flex justify-between items-center shadow-lg hidden">
+                    <div class="relative"><i class="fas fa-receipt text-xl"></i><span id="order-count-badge"
+                            class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </div>
+                    <span id="view-order-btn-text" class="font-semibold">Ver Mi Pedido</span>
+                    <span id="order-total-preview" class="font-bold">$0.00</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTAS DE GESTIÓN -->
+        <div id="admin-view" class="hidden">
+            <header class="p-4 border-b">
+                <div class="flex items-center"><button class="back-to-selection-common text-gray-500 mr-3"><i
+                            class="fas fa-arrow-left text-xl"></i></button>
+                    <h1 class="text-xl font-bold text-gray-800">Administración</h1>
+                </div>
+            </header>
+            <main class="p-4 space-y-3">
+                <button id="admin-menu-btn" class="w-full text-left bg-gray-50 p-4 rounded-lg flex items-center"><i
+                        class="fas fa-book-open text-indigo-500 w-6 mr-3"></i><span>Gestión de Menú</span></button>
+                <button id="admin-categories-btn"
+                    class="w-full text-left bg-gray-50 p-4 rounded-lg flex items-center"><i
+                        class="fas fa-tags text-indigo-500 w-6 mr-3"></i><span>Gestión de Categorías</span></button>
+                <button id="admin-tables-btn" class="w-full text-left bg-gray-50 p-4 rounded-lg flex items-center"><i
+                        class="fas fa-chair text-indigo-500 w-6 mr-3"></i><span>Gestión de Mesas</span></button>
+                <button id="admin-payments-btn" class="w-full text-left bg-gray-50 p-4 rounded-lg flex items-center"><i
+                        class="fas fa-credit-card text-indigo-500 w-6 mr-3"></i><span>Métodos de Pago</span></button>
+                <button id="admin-cashbox-btn" class="w-full text-left bg-gray-50 p-4 rounded-lg flex items-center"><i
+                        class="fas fa-cash-register text-indigo-500 w-6 mr-3"></i><span>Gestión de Cajas</span></button>
+            </main>
+        </div>
+
+        <div id="kitchen-view" class="hidden">
+            <header class="p-4 border-b sticky top-0 bg-white/80 backdrop-blur-sm z-10">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Comandas en Cocina</h1>
+                        <p class="text-sm text-gray-500">Pedidos pendientes.</p>
+                    </div><button class="back-to-selection-common bg-gray-200 px-3 py-2 rounded-lg"><i
+                            class="fas fa-home"></i></button>
+                </div>
+                <div class="mt-4 flex justify-center bg-gray-200 p-1 rounded-lg"><button id="kitchen-view-by-order"
+                        class="w-1/2 py-1 text-sm font-semibold rounded-md bg-white text-indigo-600 shadow">Por
+                        Comanda</button><button id="kitchen-view-by-product"
+                        class="w-1/2 py-1 text-sm font-semibold text-gray-600">Por Producto</button></div>
+            </header>
+            <main id="kitchen-orders-container" class="p-4 space-y-4"></main>
+            <main id="kitchen-products-container" class="p-4 space-y-4 hidden"></main>
+        </div>
+        <div id="waiter-view" class="hidden">
+            <header class="p-4 border-b">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Gestión de Comandas</h1>
+                        <p class="text-sm text-gray-500">Vista del Mesero</p>
+                    </div><button class="back-to-selection-common bg-gray-200 px-3 py-2 rounded-lg"><i
+                            class="fas fa-home"></i></button>
+                </div>
+            </header>
+            <nav class="p-4 sticky top-[84px] bg-white z-10">
+                <div id="waiter-status-tabs" class="grid grid-cols-5 gap-1 bg-gray-200 p-1 rounded-lg"></div>
+                <div class="relative mt-4"><input type="text" id="waiter-search-input" placeholder="Buscar..."
+                        class="w-full pl-10 pr-4 py-2 rounded-lg border"><i
+                        class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i></div>
+            </nav>
+            <main id="waiter-orders-container" class="p-4 space-y-4"></main>
+        </div>
+        <div id="summary-view" class="hidden">
+            <header class="p-4 border-b">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Resumen del Día</h1>
+                        <p id="summary-date" class="text-sm text-gray-500"></p>
+                    </div><button class="back-to-selection-common bg-gray-200 px-3 py-2 rounded-lg"><i
+                            class="fas fa-home"></i></button>
+                </div>
+            </header>
+            <main id="summary-content" class="p-4 space-y-6"></main>
+        </div>
+        <div id="menu-management-view" class="hidden">
+            <header class="p-4 border-b">
+                <div class="flex items-center"><button class="back-to-admin-common text-gray-500 mr-3"><i
+                            class="fas fa-arrow-left text-xl"></i></button>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Gestión de Menú</h1>
+                        <p class="text-sm text-gray-500">Añade, edita o elimina productos.</p>
+                    </div>
+                </div>
+            </header>
+            <main id="menu-management-content" class="p-4 space-y-4 pb-24"></main>
+            <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-20"><button id="add-new-item-btn"
+                    class="w-full bg-indigo-600 text-white rounded-xl py-3 flex justify-center items-center shadow-lg"><i
+                        class="fas fa-plus mr-2"></i>Añadir Producto</button></div>
+        </div>
+        <div id="category-management-view" class="hidden">
+            <header class="p-4 border-b">
+                <div class="flex items-center"><button class="back-to-admin-common text-gray-500 mr-3"><i
+                            class="fas fa-arrow-left text-xl"></i></button>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Gestión de Categorías</h1>
+                    </div>
+                </div>
+            </header>
+            <main id="category-management-content" class="p-4 space-y-4 pb-24"></main>
+            <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-20"><button
+                    id="add-new-category-btn"
+                    class="w-full bg-indigo-600 text-white rounded-xl py-3 flex justify-center items-center shadow-lg"><i
+                        class="fas fa-plus mr-2"></i>Añadir Categoría</button></div>
+        </div>
+        <div id="table-management-view" class="hidden">
+            <header class="p-4 border-b">
+                <div class="flex items-center"><button class="back-to-admin-common text-gray-500 mr-3"><i
+                            class="fas fa-arrow-left text-xl"></i></button>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Gestión de Mesas</h1>
+                    </div>
+                </div>
+            </header>
+            <main id="table-management-content" class="p-4 space-y-4 pb-24"></main>
+            <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-20"><button
+                    id="add-new-table-btn"
+                    class="w-full bg-indigo-600 text-white rounded-xl py-3 flex justify-center items-center shadow-lg"><i
+                        class="fas fa-plus mr-2"></i>Añadir Mesa</button></div>
+        </div>
+        <div id="payment-management-view" class="hidden">
+            <header class="p-4 border-b">
+                <div class="flex items-center"><button class="back-to-admin-common text-gray-500 mr-3"><i
+                            class="fas fa-arrow-left text-xl"></i></button>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Métodos de Pago</h1>
+                    </div>
+                </div>
+            </header>
+            <main id="payment-management-content" class="p-4 space-y-4 pb-24"></main>
+            <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-20"><button
+                    id="add-new-payment-btn"
+                    class="w-full bg-indigo-600 text-white rounded-xl py-3 flex justify-center items-center shadow-lg"><i
+                        class="fas fa-plus mr-2"></i>Añadir Método</button></div>
+        </div>
+        <div id="cashbox-management-view" class="hidden">
+            <header class="p-4 border-b">
+                <div class="flex items-center"><button class="back-to-admin-common text-gray-500 mr-3"><i
+                            class="fas fa-arrow-left text-xl"></i></button>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Gestión de Cajas</h1>
+                    </div>
+                </div>
+            </header>
+            <main id="cashbox-management-content" class="p-4 space-y-4 pb-24"></main>
+            <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 z-20"><button
+                    id="add-new-cashbox-btn"
+                    class="w-full bg-indigo-600 text-white rounded-xl py-3 flex justify-center items-center shadow-lg"><i
+                        class="fas fa-plus mr-2"></i>Añadir Caja</button></div>
+        </div>
+
+        <!-- MODALES -->
+        <div id="cancel-order-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center transition-all opacity-0 pointer-events-none">
+            <div class="bg-white rounded-2xl p-6 shadow-xl transform scale-95 w-11/12 max-w-sm text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full mx-auto flex items-center justify-center mb-4"><i
+                        class="fas fa-exclamation-triangle text-3xl text-red-500"></i></div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Cancelar Comanda</h3>
+                <p class="text-gray-500 mb-6">¿Estás seguro de que quieres cancelar la comanda <strong
+                        id="cancel-order-id-text"></strong>? Esta acción no se puede deshacer.</p>
+                <div class="flex gap-2"><button id="cancel-confirm-no"
+                        class="w-full bg-gray-200 rounded-lg py-3 font-semibold">No, mantener</button><button
+                        id="cancel-confirm-yes" class="w-full bg-red-500 text-white rounded-lg py-3 font-semibold">Sí,
+                        cancelar</button></div>
+            </div>
+        </div>
+        <div id="generic-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center transition-all opacity-0 pointer-events-none">
+            <div class="bg-white rounded-2xl p-6 shadow-xl transform scale-95 w-11/12 max-w-sm">
+                <h3 id="generic-modal-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
+                <form id="generic-form" class="space-y-4"><input type="hidden" id="generic-id">
+                    <div id="generic-form-inputs"></div>
+                    <div class="flex gap-2 pt-4"><button type="button" id="cancel-generic-btn"
+                            class="w-full bg-gray-200 rounded-lg py-3 font-semibold">Cancelar</button><button
+                            type="submit"
+                            class="w-full bg-indigo-600 text-white rounded-lg py-3 font-semibold">Guardar</button></div>
+                </form>
+            </div>
+        </div>
+        <div id="payment-summary-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center transition-all opacity-0 pointer-events-none">
+            <div class="bg-white rounded-2xl p-6 shadow-xl transform scale-95 w-11/12 max-w-sm">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Detalle de la Cuenta</h3>
+                <div id="payment-summary-items" class="max-h-40 overflow-y-auto space-y-2 border-b pb-3 mb-3 pr-2">
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-gray-600"><span>Subtotal</span><span
+                            id="payment-summary-subtotal">$0.00</span></div>
+                    <div class="flex justify-between items-center text-gray-600"><span>Propina (10%)</span>
+                        <div class="flex items-center"><span id="payment-summary-tip" class="mr-3">$0.00</span><label
+                                for="tip-toggle" class="flex items-center cursor-pointer">
+                                <div class="relative"><input type="checkbox" id="tip-toggle" class="sr-only" checked>
+                                    <div class="block bg-gray-200 w-10 h-6 rounded-full"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition">
+                                    </div>
+                                </div>
+                            </label></div>
+                    </div>
+                    <div class="flex justify-between text-2xl font-bold text-gray-800 pt-2 border-t mt-2"><span>TOTAL A
+                            PAGAR</span><span id="payment-summary-total">$0.00</span></div>
+                </div>
+                <div class="mt-6">
+                    <h4 class="text-sm font-semibold text-center text-gray-500 mb-3">Seleccionar Método de Pago</h4>
+                    <div id="payment-method-options" class="space-y-2"></div>
+                </div>
+                <div class="mt-6"><button id="confirm-payment-btn"
+                        class="w-full bg-green-500 text-white rounded-lg py-3 font-bold disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        disabled>Recibir Pago</button><button id="cancel-payment-btn"
+                        class="mt-2 w-full text-sm text-gray-500">Cancelar</button></div>
+            </div>
+        </div>
+        <div id="customer-name-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center transition-all opacity-0 pointer-events-none">
+            <div class="bg-white rounded-2xl p-6 shadow-xl w-11/12 max-w-sm">
+                <h3 id="customer-name-title" class="text-xl font-bold text-gray-800 mb-4"></h3><input type="text"
+                    id="customer-name-input" placeholder="Escribe el nombre aquí..."
+                    class="w-full px-4 py-2 rounded-lg border">
+                <p id="customer-name-error" class="text-red-500 text-sm mt-1 h-4"></p>
+                <div class="flex gap-2 mt-4"><button id="cancel-name-btn"
+                        class="w-full bg-gray-200 rounded-lg py-3 font-semibold">Cancelar</button><button
+                        id="confirm-name-btn"
+                        class="w-full bg-indigo-600 text-white rounded-lg py-3 font-semibold">Confirmar</button></div>
+            </div>
+        </div>
+        <div id="table-selection-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center transition-all opacity-0 pointer-events-none">
+            <div class="bg-white rounded-2xl p-6 text-center shadow-xl w-11/12 max-w-sm">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Selecciona una Mesa</h3>
+                <div id="table-grid" class="grid grid-cols-4 gap-3"></div><button id="close-table-modal-btn"
+                    class="mt-6 text-sm text-gray-500">Cancelar</button>
+            </div>
+        </div>
+        <div id="order-summary-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-30 flex items-end justify-center transition-all opacity-0 pointer-events-none">
+            <div class="bg-gray-50 w-full max-w-md rounded-t-2xl p-6 transform translate-y-full">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Resumen del Pedido</h2><button id="close-modal-button"
+                        class="text-gray-400"><i class="fas fa-times text-2xl"></i></button>
+                </div>
+                <div id="order-items-list" class="max-h-60 overflow-y-auto space-y-3 pr-2 mb-4"></div>
+                <div class="mt-4"><label for="order-notes" class="text-sm font-semibold text-gray-600">Notas para la
+                        cocina:</label><textarea id="order-notes" rows="2" class="w-full mt-1 p-2 border rounded-lg"
+                        placeholder="Ej: sin cebolla..."></textarea></div>
+                <div class="mt-4 flex justify-between items-center bg-white p-3 rounded-lg shadow-sm"><label
+                        for="prepaid-toggle" class="text-sm font-semibold text-gray-700 cursor-pointer">Cobro
+                        Anticipado</label><label for="prepaid-toggle" class="flex items-center cursor-pointer">
+                        <div class="relative"><input type="checkbox" id="prepaid-toggle" class="sr-only">
+                            <div class="block bg-gray-200 w-10 h-6 rounded-full"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
+                        </div>
+                    </label></div>
+                <div id="totals-section" class="border-t pt-4 mt-4 space-y-2">
+                    <div class="flex justify-between"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+                    <div class="flex justify-between"><span>Servicio (10%)</span><span id="service-fee">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xl font-bold"><span>Total</span><span
+                            id="total-amount">$0.00</span></div>
+                </div><button id="confirm-order-button"
+                    class="w-full bg-green-500 text-white rounded-xl py-4 mt-6 font-bold text-lg shadow-lg">Confirmar
+                    Pedido</button>
+            </div>
+        </div>
+        <div id="confirmation-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center transition-all opacity-0 pointer-events-none">
+            <div class="bg-white rounded-2xl p-8 text-center shadow-xl">
+                <div class="w-16 h-16 bg-green-100 rounded-full mx-auto flex items-center justify-center mb-4"><i
+                        class="fas fa-check text-3xl text-green-500"></i></div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">¡Éxito!</h3>
+                <p id="confirmation-message" class="text-gray-500"></p><button id="close-confirmation-button"
+                    class="mt-6 bg-indigo-600 text-white rounded-lg py-2 px-6">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let appData = {
+                categories: ['Entradas', 'Platos Fuertes', 'Bebidas', 'Postres', 'Sopas'],
+                items: [
+                    { id: 1, name: 'Aros de Cebolla', category: 'Entradas', price: 12000, image: 'https://placehold.co/600x400/f8b400/333?text=Aros', isAvailable: true },
+                    { id: 2, name: 'Alitas BBQ', category: 'Entradas', price: 18000, image: 'https://placehold.co/600x400/c0392b/fff?text=Alitas', isAvailable: true },
+                    { id: 3, name: 'Hamburguesa Clásica', category: 'Platos Fuertes', price: 25000, image: 'https://placehold.co/600x400/2c3e50/fff?text=Hamburguesa', isAvailable: true },
+                    { id: 4, name: 'Salmón a la Parrilla', category: 'Platos Fuertes', price: 35000, image: 'https://placehold.co/600x400/16a085/fff?text=Salmón', isAvailable: true },
+                    { id: 5, name: 'Pizza Pepperoni', category: 'Platos Fuertes', price: 28000, image: 'https://placehold.co/600x400/e74c3c/fff?text=Pizza', isAvailable: true },
+                    { id: 6, name: 'Limonada Natural', category: 'Bebidas', price: 7000, image: 'https://placehold.co/600x400/f1c40f/333?text=Limonada', isAvailable: true },
+                ],
+                tables: Array.from({ length: 16 }, (_, i) => ({ id: i + 1, name: `Mesa ${i + 1}` })),
+                paymentMethods: [{ id: 1, name: 'Efectivo' }, { id: 2, name: 'Tarjeta' }],
+                cashBoxes: [{ id: 1, name: 'Caja Principal', initialBalance: 50000, status: 'closed' }, { id: 2, name: 'Caja Barra', initialBalance: 20000, status: 'closed' }]
+            };
+
+            // --- ESTADO GLOBAL ---
+            let currentOrder = [];
+            let allKitchenOrders = [];
+            let activeCategory = appData.categories[0];
+            let activeWaiterTab = 'en-proceso';
+            let orderCounter = 1;
+            let currentOrderInfo = {};
+            let editingOrderId = null;
+            let orderToPayId = null;
+            let orderToCancelId = null;
+            let kitchenTimerInterval = null;
+            let changingModalityOrderId = null;
+
+            // --- ELEMENTOS DEL DOM ---
+            const views = { selection: document.getElementById('selection-view'), customer: document.getElementById('customer-view'), kitchen: document.getElementById('kitchen-view'), waiter: document.getElementById('waiter-view'), summary: document.getElementById('summary-view'), admin: document.getElementById('admin-view'), menuMgmt: document.getElementById('menu-management-view'), categoryMgmt: document.getElementById('category-management-view'), tableMgmt: document.getElementById('table-management-view'), paymentMgmt: document.getElementById('payment-management-view'), cashboxMgmt: document.getElementById('cashbox-management-view') };
+            const orderTitle = document.getElementById('order-title');
+            const orderSubtitle = document.getElementById('order-subtitle');
+            const tableSelectionModal = document.getElementById('table-selection-modal');
+            const customerNameModal = document.getElementById('customer-name-modal');
+            const customerNameInput = document.getElementById('customer-name-input');
+            const customerNameError = document.getElementById('customer-name-error');
+            const orderSummaryModal = document.getElementById('order-summary-modal');
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const backToSelectionBtn = document.getElementById('back-to-selection-btn');
+            const waiterStatusTabsContainer = document.getElementById('waiter-status-tabs');
+            const waiterSearchInput = document.getElementById('waiter-search-input');
+            const orderNotes = document.getElementById('order-notes');
+            const categoryFiltersContainer = document.getElementById('category-filters');
+            const menuItemsContainer = document.getElementById('menu-items');
+            const viewOrderButton = document.getElementById('view-order-button');
+            const confirmOrderButton = document.getElementById('confirm-order-button');
+            const kitchenOrdersContainer = document.getElementById('kitchen-orders-container');
+            const kitchenProductsContainer = document.getElementById('kitchen-products-container');
+            const waiterOrdersContainer = document.getElementById('waiter-orders-container');
+            const closeModalButton = document.getElementById('close-modal-button');
+            const orderItemsList = document.getElementById('order-items-list');
+            const genericModal = document.getElementById('generic-modal');
+            const genericForm = document.getElementById('generic-form');
+            const paymentSummaryModal = document.getElementById('payment-summary-modal');
+            const cancelOrderModal = document.getElementById('cancel-order-modal');
+
+            // --- LÓGICA DE NAVEGACIÓN Y VISTAS ---
+            const switchView = (viewName) => {
+                clearInterval(kitchenTimerInterval);
+                Object.values(views).forEach(view => view.classList.add('hidden'));
+                if (views[viewName]) {
+                    views[viewName].classList.remove('hidden');
+                    if (viewName === 'kitchen') { renderKitchenView(); kitchenTimerInterval = setInterval(updateKitchenTimers, 1000); }
+                    if (viewName === 'waiter') renderWaiterView();
+                    if (viewName === 'summary') renderSummaryView();
+                    if (viewName === 'menuMgmt') renderMenuManagementView();
+                    if (viewName === 'categoryMgmt') renderCategoryManagementView();
+                    if (viewName === 'tableMgmt') renderTableManagementView();
+                    if (viewName === 'paymentMgmt') renderPaymentManagementView();
+                    if (viewName === 'cashboxMgmt') renderCashboxManagementView();
+                }
+            };
+
+            const startOrder = (orderInfo) => {
+                currentOrderInfo = orderInfo;
+                orderTitle.textContent = orderInfo.type === 'mesa' ? orderInfo.number : 'Pedido Para Llevar';
+                orderSubtitle.textContent = orderInfo.name ? `Cliente: ${orderInfo.name}` : 'Agrega productos al pedido';
+                currentOrder = [];
+                editingOrderId = null;
+                updateTotals();
+                switchView('customer');
+            };
+
+            // --- FUNCIONES DE RENDERIZADO ---
+            const formatCurrency = (number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(number);
+
+            const renderCategories = () => {
+                categoryFiltersContainer.innerHTML = appData.categories.map(category => `<button class="category-btn px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${category === activeCategory ? 'bg-indigo-600 text-white shadow' : 'bg-gray-200 text-gray-700'}" data-category="${category}">${category}</button>`).join('');
+            };
+
+            const renderMenuItems = () => {
+                menuItemsContainer.innerHTML = appData.items
+                    .filter(item => item.category === activeCategory && item.isAvailable)
+                    .map(item => {
+                        const quantity = currentOrder.filter(orderItem => orderItem.id === item.id).length;
+                        return `
+                        <div class="flex items-center bg-white rounded-xl shadow p-3 space-x-4">
+                            <img src="${item.image}" alt="${item.name}" class="w-20 h-20 rounded-lg object-cover" onerror="this.onerror=null;this.src='https://placehold.co/200x200/cccccc/333?text=Error';">
+                            <div class="flex-1"><h3 class="font-bold text-gray-800">${item.name}</h3><p class="text-gray-500 text-sm">${formatCurrency(item.price)}</p></div>
+                            <div class="flex items-center gap-2">
+                                <button data-item-id="${item.id}" class="remove-from-order-btn bg-indigo-100 text-indigo-600 rounded-full h-10 w-10 flex items-center justify-center ${quantity > 0 ? '' : 'hidden'}"><i class="fas fa-minus"></i></button>
+                                <span class="font-bold text-lg w-5 text-center ${quantity > 0 ? '' : 'hidden'}">${quantity}</span>
+                                <button data-item-id="${item.id}" class="add-to-order-btn bg-indigo-100 text-indigo-600 rounded-full h-10 w-10 flex items-center justify-center"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                    `}).join('');
+            };
+
+            const getOrderInfoString = (order) => {
+                let base = order.orderInfo.type === 'mesa' ? order.orderInfo.number : 'Para Llevar';
+                if (order.orderInfo.name) base += ` (${order.orderInfo.name})`;
+                return base;
+            };
+
+            const renderKitchenView = () => {
+                const pendingOrders = allKitchenOrders.filter(order => order.status === 'recibido');
+                kitchenOrdersContainer.innerHTML = pendingOrders.length === 0 ? `<div class="text-center py-20"><i class="fas fa-check-circle text-6xl text-green-400 mb-4"></i><p class="text-gray-500 text-lg">¡Todo al día!</p></div>`
+                    : pendingOrders.map(order => {
+                        const allItemsReady = Object.values(order.items).every(item => item.isReady);
+                        return `
+                        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 ${order.modified ? 'border-orange-400' : 'border-yellow-400'} new-order-animation">
+                            <div class="flex justify-between items-start mb-2">
+                                <div><h3 class="font-bold text-lg">Comanda #${order.id}</h3><p class="text-sm font-semibold text-indigo-600">${getOrderInfoString(order)}</p></div>
+                                <div class="text-right">
+                                    <span class="kitchen-timer font-mono px-2 py-1 rounded text-white text-sm" data-created-at="${order.createdAt}"></span>
+                                    ${order.modified ? '<span class="text-xs font-bold bg-orange-100 text-orange-600 px-2 py-1 rounded-full mt-1 inline-block"><i class="fas fa-exclamation-circle mr-1"></i>MODIFICADO</span>' : ''}
+                                </div>
+                            </div>
+                            ${order.notes ? `<div class="my-2 p-2 bg-yellow-50 border-l-4 border-yellow-300 text-yellow-800 rounded-r-lg"><i class="fas fa-sticky-note mr-2"></i><strong>Nota:</strong> ${order.notes}</div>` : ''}
+                            <div class="flex justify-end mb-2">
+                                <button data-order-id="${order.id}" class="mark-all-ready-btn text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded-full font-semibold hover:bg-gray-300">
+                                    <i class="fas fa-check-double mr-1"></i>Marcar Todos
+                                </button>
+                            </div>
+                            <ul class="list-none mb-4 divide-y divide-gray-100">${Object.values(order.items).map(item => `
+                                <li data-order-id="${order.id}" data-item-id="${item.id}" class="item-ready-toggle flex justify-between items-center py-3 px-2 rounded-lg cursor-pointer ${item.isReady ? 'bg-green-50 text-gray-400 line-through' : 'hover:bg-gray-50'}">
+                                    <span><span class="font-bold text-lg mr-2">${item.quantity}x</span> ${item.name}</span>
+                                    <i class="fas ${item.isReady ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'} text-xl"></i>
+                                </li>`).join('')}</ul>
+                            <button data-order-id="${order.id}" class="dispatch-btn w-full rounded-lg py-2 font-bold transition-all ${allItemsReady ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}" ${!allItemsReady ? 'disabled' : ''}><i class="fas fa-check-double mr-2"></i>Despachar</button>
+                        </div>`}).join('');
+                updateKitchenTimers();
+            };
+
+            const renderKitchenByProductView = () => {
+                const productSummary = allKitchenOrders
+                    .filter(order => order.status === 'recibido')
+                    .flatMap(order => Object.values(order.items).map(item => ({ ...item, orderId: order.id })))
+                    .reduce((acc, item) => {
+                        if (!acc[item.name]) {
+                            acc[item.name] = { total: 0, orders: new Set(), id: item.id };
+                        }
+                        if (!item.isReady) {
+                            acc[item.name].total += item.quantity;
+                            acc[item.name].orders.add(item.orderId);
+                        }
+                        return acc;
+                    }, {});
+
+                kitchenProductsContainer.innerHTML = Object.keys(productSummary).length === 0 ? `<div class="text-center py-20"><i class="fas fa-check-circle text-6xl text-green-400 mb-4"></i><p class="text-gray-500 text-lg">No hay productos pendientes.</p></div>`
+                    : Object.entries(productSummary).filter(([, data]) => data.total > 0).map(([name, data]) => `
+                        <div class="bg-white rounded-xl shadow p-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-bold text-lg">${name}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Para comandas: #${[...data.orders].join(', #')}</p>
+                                </div>
+                                <p class="text-2xl font-bold bg-indigo-100 text-indigo-600 rounded-full w-12 h-12 flex items-center justify-center">${data.total}</p>
+                            </div>
+                             <div class="flex gap-2 mt-4">
+                                <button data-item-name="${name}" class="dispatch-all-product-btn w-full bg-green-100 text-green-700 font-semibold py-2 rounded-lg text-sm"><i class="fas fa-check-double mr-2"></i>Listos</button>
+                                <button data-item-id="${data.id}" class="out-of-stock-btn w-full bg-red-100 text-red-700 font-semibold py-2 rounded-lg text-sm"><i class="fas fa-ban mr-2"></i>Agotado</button>
+                            </div>
+                        </div>
+                    `).join('');
+            };
+
+            const updateKitchenTimers = () => {
+                document.querySelectorAll('.kitchen-timer').forEach(timerEl => {
+                    const createdAt = parseInt(timerEl.dataset.createdAt, 10);
+                    const elapsedSeconds = Math.floor((Date.now() - createdAt) / 1000);
+                    const minutes = Math.floor(elapsedSeconds / 60);
+                    const seconds = elapsedSeconds % 60;
+                    timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                    if (elapsedSeconds < 300) timerEl.className = 'kitchen-timer font-mono px-2 py-1 rounded text-white text-sm bg-green-500'; // 5 min
+                    else if (elapsedSeconds < 600) timerEl.className = 'kitchen-timer font-mono px-2 py-1 rounded text-white text-sm bg-yellow-500'; // 10 min
+                    else timerEl.className = 'kitchen-timer font-mono px-2 py-1 rounded text-white text-sm bg-red-500';
+                });
+            };
+
+            const renderWaiterView = () => {
+                renderWaiterTabs();
+                const statusMap = { 'en-proceso': ['recibido'], 'listas': ['despachado'], 'pagadas': ['pagado'], 'servidas': ['servido'], 'canceladas': ['cancelado'] };
+                const statusesToDisplay = statusMap[activeWaiterTab];
+                const searchTerm = waiterSearchInput.value.toLowerCase();
+                let filteredOrders = allKitchenOrders.filter(order => statusesToDisplay.includes(order.status) && (!searchTerm || order.id.toString().includes(searchTerm) || getOrderInfoString(order).toLowerCase().includes(searchTerm)));
+
+                waiterOrdersContainer.innerHTML = filteredOrders.length === 0 ? `<div class="text-center py-20"><i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i><p class="text-gray-500 text-lg">No hay comandas.</p></div>`
+                    : filteredOrders.map(order => {
+                        const style = {
+                            recibido: { border: 'border-yellow-400', icon: 'fa-hourglass-half', text: 'En Proceso' },
+                            despachado: { border: 'border-blue-400', icon: 'fa-bell-concierge', text: 'Lista para Servir' },
+                            servido: { border: 'border-green-400', icon: 'fa-hand-holding-usd', text: 'Entregado (Cobrar)' },
+                            pagado: { border: 'border-gray-300', icon: 'fa-check-double', text: 'Pagada' },
+                            cancelado: { border: 'border-red-400', icon: 'fa-times-circle', text: 'Cancelada' }
+                        }[order.status];
+                        const itemsReadyForPickup = Object.values(order.items).filter(item => item.isReady && !item.isServed);
+                        const actions = {
+                            recibido: `<div class="grid grid-cols-3 gap-2 mt-4"><button data-order-id="${order.id}" class="edit-btn col-span-1 bg-blue-500 text-white rounded-lg py-2 font-bold text-sm"><i class="fas fa-pencil-alt"></i></button><button data-order-id="${order.id}" class="change-modality-btn col-span-1 bg-gray-500 text-white rounded-lg py-2 font-bold text-sm"><i class="fas fa-exchange-alt"></i></button><button data-order-id="${order.id}" class="cancel-btn col-span-1 bg-red-500 text-white rounded-lg py-2 font-bold text-sm"><i class="fas fa-times"></i></button></div>`,
+                            despachado: `<button data-order-id="${order.id}" class="serve-btn w-full bg-green-500 text-white rounded-lg py-2 font-bold"><i class="fas fa-check mr-2"></i>Marcar Servido</button>`,
+                            servido: `<button data-order-id="${order.id}" class="pay-btn w-full bg-indigo-500 text-white rounded-lg py-2 font-bold"><i class="fas fa-dollar-sign mr-2"></i>Cobrar</button>`,
+                            pagado: `<p class="text-center text-sm text-gray-500">Pagado con: <strong>${order.paymentMethod}</strong></p>`,
+                            cancelado: ''
+                        };
+                        return `
+                        <div class="bg-white rounded-xl shadow-md p-4 border-l-4 ${style.border} ${order.status === 'cancelado' ? 'opacity-60' : ''}">
+                            <div class="flex justify-between items-start mb-3">
+                                <div><h3 class="font-bold text-lg">Comanda #${order.id}</h3><p class="text-sm font-semibold text-indigo-600">${getOrderInfoString(order)}</p></div>
+                                <div class="text-right"><span class="text-xs font-semibold bg-gray-200 text-gray-600 px-2 py-1 rounded-full"><i class="fas ${style.icon} mr-1"></i> ${style.text}</span><p class="text-xs text-gray-400 mt-1">${order.timestamp}</p></div>
+                            </div>
+                             ${order.notes ? `<div class="my-2 p-2 bg-yellow-50 text-sm text-yellow-800 rounded-lg"><i class="fas fa-sticky-note mr-2"></i>${order.notes}</div>` : ''}
+                            <ul class="list-none my-4 space-y-1">${Object.values(order.items).map(item => `<li class="text-sm text-gray-600 flex items-center ${item.isServed ? 'line-through text-gray-400' : ''}"><i class="fas fa-check-circle mr-2 ${item.isReady && !item.isServed ? 'text-green-500' : 'text-transparent'}"></i><span class="font-semibold">${item.quantity}x</span> ${item.name}</li>`).join('')}</ul>
+                            ${itemsReadyForPickup.length > 0 && order.status === 'recibido' ? `<button data-order-id="${order.id}" class="pickup-partial-btn w-full bg-blue-100 text-blue-700 rounded-lg py-2 font-bold mb-2"><i class="fas fa-box-open mr-2"></i>Recoger Adelanto (${itemsReadyForPickup.length})</button>` : ''}
+                            ${actions[order.status]}
+                        </div>`;
+                    }).join('');
+            };
+
+            const renderSummaryView = () => {
+                const summaryContent = document.getElementById('summary-content');
+                const validOrders = allKitchenOrders.filter(o => o.status !== 'cancelado');
+                const totalRevenue = validOrders.filter(o => o.status === 'pagado').reduce((total, order) => total + Object.values(order.items).reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.10, 0);
+                const productCounts = validOrders.flatMap(o => Object.values(o.items)).reduce((acc, item) => ({ ...acc, [item.name]: (acc[item.name] || 0) + item.quantity }), {});
+
+                document.getElementById('summary-date').textContent = new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                summaryContent.innerHTML = `
+                <section class="grid grid-cols-2 gap-4">
+                    <div class="bg-indigo-50 p-4 rounded-xl"><i class="fas fa-receipt text-indigo-500 text-2xl mb-2"></i><p class="text-sm">Comandas Válidas</p><p class="text-2xl font-bold">${validOrders.length}</p></div>
+                    <div class="bg-green-50 p-4 rounded-xl"><i class="fas fa-dollar-sign text-green-500 text-2xl mb-2"></i><p class="text-sm">Ingresos (Pagado)</p><p class="text-2xl font-bold">${formatCurrency(totalRevenue)}</p></div>
+                    <div class="bg-blue-50 p-4 rounded-xl"><i class="fas fa-chair text-blue-500 text-2xl mb-2"></i><p class="text-sm">En Mesas</p><p class="text-2xl font-bold">${validOrders.filter(o => o.orderInfo.type === 'mesa').length}</p></div>
+                    <div class="bg-yellow-50 p-4 rounded-xl"><i class="fas fa-shopping-bag text-yellow-500 text-2xl mb-2"></i><p class="text-sm">Para Llevar</p><p class="text-2xl font-bold">${validOrders.filter(o => o.orderInfo.type === 'llevar').length}</p></div>
+                </section>
+                <section>
+                    <h2 class="text-lg font-bold text-gray-700 mb-2">Productos Más Vendidos</h2>
+                    <div class="space-y-2">${Object.keys(productCounts).length > 0
+                        ? Object.entries(productCounts).sort(([, a], [, b]) => b - a).slice(0, 5).map(([name, count]) => `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg"><p class="font-semibold">${name}</p><p class="font-bold">x ${count}</p></div>`).join('')
+                        : `<p class="text-center text-gray-500 py-4">No hay datos de productos.</p>`}
+                    </div>
+                </section>`;
+            };
+
+            const renderGenericAdminView = (config) => {
+                const content = document.getElementById(`${config.type}-management-content`);
+                content.innerHTML = config.data.map(item => `
+                    <div class="flex items-center bg-white rounded-lg p-3 shadow-sm">
+                        <div class="flex-grow"><p class="font-semibold">${item.name}</p></div>
+                        <button data-id="${item.id}" class="edit-${config.type}-btn text-blue-500 px-3 py-2"><i class="fas fa-pencil-alt"></i></button>
+                        <button data-id="${item.id}" class="delete-${config.type}-btn text-red-500 px-3 py-2"><i class="fas fa-trash"></i></button>
+                    </div>
+                `).join('');
+            };
+            const renderMenuManagementView = () => {
+                const content = document.getElementById('menu-management-content');
+                content.innerHTML = appData.categories.map(category => `
+                    <div class="mb-4">
+                        <h3 class="font-bold text-lg text-gray-800 border-b pb-2 mb-2">${category}</h3>
+                        <div class="space-y-2">
+                            ${appData.items.filter(item => item.category === category).map(item => `
+                                <div class="flex items-center bg-white rounded-lg p-2 shadow-sm ${!item.isAvailable ? 'opacity-50' : ''}">
+                                    <img src="${item.image}" class="w-12 h-12 rounded-md object-cover mr-4">
+                                    <div class="flex-grow">
+                                        <p class="font-semibold">${item.name} ${!item.isAvailable ? '<span class="text-xs text-red-500 font-bold">(AGOTADO)</span>' : ''}</p>
+                                        <p class="text-sm text-gray-500">${formatCurrency(item.price)}</p>
+                                    </div>
+                                    <button data-id="${item.id}" class="toggle-availability-btn text-gray-500 px-3 py-2"><i class="fas ${item.isAvailable ? 'fa-toggle-on text-green-500' : 'fa-toggle-off'} text-2xl"></i></button>
+                                    <button data-id="${item.id}" class="edit-menu-btn text-blue-500 px-3 py-2"><i class="fas fa-pencil-alt"></i></button>
+                                    <button data-id="${item.id}" class="delete-menu-btn text-red-500 px-3 py-2"><i class="fas fa-trash"></i></button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            };
+            const renderCategoryManagementView = () => renderGenericAdminView({ type: 'category', data: appData.categories.map((c, i) => ({ id: i, name: c })) });
+            const renderTableManagementView = () => renderGenericAdminView({ type: 'table', data: appData.tables });
+            const renderPaymentManagementView = () => renderGenericAdminView({ type: 'payment', data: appData.paymentMethods });
+            const renderCashboxManagementView = () => {
+                const content = document.getElementById('cashbox-management-content');
+                content.innerHTML = appData.cashBoxes.map(box => `
+                    <div class="flex items-center bg-white rounded-lg p-3 shadow-sm">
+                        <div class="flex-grow">
+                            <p class="font-semibold">${box.name}</p>
+                            <p class="text-sm text-gray-500">Base: ${formatCurrency(box.initialBalance)}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-xs font-semibold mr-2 ${box.status === 'open' ? 'text-green-600' : 'text-red-600'}">${box.status === 'open' ? 'ABIERTA' : 'CERRADA'}</span>
+                            <label class="flex items-center cursor-pointer"><div class="relative"><input type="checkbox" data-id="${box.id}" class="sr-only status-toggle" ${box.status === 'open' ? 'checked' : ''}><div class="block bg-gray-200 w-10 h-6 rounded-full"></div><div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full"></div></div></label>
+                        </div>
+                        <button data-id="${box.id}" class="edit-cashbox-btn text-blue-500 px-3 py-2"><i class="fas fa-pencil-alt"></i></button>
+                        <button data-id="${box.id}" class="delete-cashbox-btn text-red-500 px-3 py-2"><i class="fas fa-trash"></i></button>
+                    </div>
+                `).join('');
+            };
+
+            // --- LÓGICA DE DATOS Y ESTADO ---
+            const groupOrderItems = (orderArray) => orderArray.reduce((acc, item) => ({ ...acc, [item.id]: { ...item, isReady: false, isServed: false, quantity: (acc[item.id]?.quantity || 0) + 1 } }), {});
+
+            const updateTotals = () => {
+                const subtotal = currentOrder.reduce((sum, item) => sum + item.price, 0);
+                const serviceFee = subtotal * 0.10;
+                const total = subtotal + serviceFee;
+                document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+                document.getElementById('service-fee').textContent = formatCurrency(serviceFee);
+                document.getElementById('total-amount').textContent = formatCurrency(total);
+                const totalItems = currentOrder.length;
+                viewOrderButton.classList.toggle('hidden', totalItems === 0);
+                if (totalItems > 0) {
+                    document.getElementById('order-count-badge').textContent = totalItems;
+                    document.getElementById('order-total-preview').textContent = formatCurrency(total);
+                }
+                document.getElementById('view-order-btn-text').textContent = editingOrderId ? 'Actualizar Pedido' : 'Ver Mi Pedido';
+            };
+
+            const toggleModal = (modal, show) => {
+                modal.classList.toggle('opacity-0', !show);
+                modal.classList.toggle('pointer-events-none', !show);
+                modal.querySelector('div').classList.toggle('scale-95', !show);
+            };
+
+            const toggleOrderSummary = (show) => {
+                if (show) {
+                    confirmOrderButton.textContent = editingOrderId ? 'Confirmar Cambios' : 'Confirmar y Enviar a Cocina';
+                    orderItemsList.innerHTML = currentOrder.length > 0 ? Object.entries(groupOrderItems(currentOrder)).map(([itemId, itemData]) => `
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <img src="${itemData.image}" alt="${itemData.name}" class="w-12 h-12 rounded-lg object-cover">
+                                <div><p class="font-semibold">${itemData.name}</p><p class="text-sm text-gray-500">${formatCurrency(itemData.price)}</p></div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center space-x-2 bg-gray-200 rounded-full p-1">
+                                    <button data-item-id="${itemId}" class="quantity-change-btn decrease-qty-btn w-6 h-6 rounded-full bg-white">-</button>
+                                    <span class="font-bold w-6 text-center">${itemData.quantity}</span>
+                                    <button data-item-id="${itemId}" class="quantity-change-btn increase-qty-btn w-6 h-6 rounded-full bg-white">+</button>
+                                </div>
+                            </div>
+                        </div>`).join('') : '<p class="text-center text-gray-500">Aún no hay productos.</p>';
+                    updateTotals();
+                }
+                orderSummaryModal.classList.toggle('opacity-0', !show);
+                orderSummaryModal.classList.toggle('pointer-events-none', !show);
+                orderSummaryModal.querySelector('div').classList.toggle('translate-y-full', !show);
+            };
+
+            const openGenericModal = (config) => {
+                genericForm.reset();
+                document.getElementById('generic-id').value = '';
+                document.getElementById('generic-modal-title').textContent = config.title;
+                const inputsContainer = document.getElementById('generic-form-inputs');
+
+                inputsContainer.innerHTML = config.fields.map(field => {
+                    if (field.type === 'select') {
+                        const options = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                        return `<div><label for="${field.id}" class="text-sm font-semibold text-gray-600">${field.label}</label><select id="${field.id}" class="w-full mt-1 px-4 py-2 rounded-lg border bg-white" required>${options}</select></div>`;
+                    }
+                    return `<div><label for="${field.id}" class="text-sm font-semibold text-gray-600">${field.label}</label><input type="${field.type}" id="${field.id}" class="w-full mt-1 px-4 py-2 rounded-lg border" required></div>`;
+                }).join('');
+
+                if (config.id !== null) {
+                    const item = config.data.find(i => i.id === config.id);
+                    document.getElementById('generic-id').value = item.id;
+                    config.fields.forEach(field => {
+                        document.getElementById(field.id).value = item[field.key];
+                    });
+                }
+                genericForm.onsubmit = config.callback;
+                toggleModal(genericModal, true);
+            };
+
+            const renderTableGrid = () => {
+                const tableGrid = document.getElementById('table-grid');
+                const occupiedTables = allKitchenOrders
+                    .filter(o => o.status !== 'servido' && o.status !== 'pagado' && o.orderInfo.type === 'mesa')
+                    .map(o => o.orderInfo.number);
+                tableGrid.innerHTML = appData.tables.map(table => {
+                    const isOccupied = occupiedTables.includes(table.name);
+                    return `<button data-table-name="${table.name}" class="table-number-btn h-14 font-bold rounded-lg ${isOccupied ? 'bg-indigo-500 text-white' : 'bg-gray-100 hover:bg-indigo-100'}">${table.name.replace('Mesa ', '')}</button>`
+                }).join('');
+            };
+
+            // --- EVENT LISTENERS ---
+            // Navegación principal
+            document.getElementById('go-to-admin-view').addEventListener('click', () => switchView('admin'));
+            document.getElementById('go-to-waiter-view').addEventListener('click', () => switchView('waiter'));
+            document.getElementById('go-to-kitchen-view').addEventListener('click', () => switchView('kitchen'));
+            document.getElementById('go-to-summary-view').addEventListener('click', () => switchView('summary'));
+            document.querySelectorAll('.back-to-selection-common').forEach(btn => btn.addEventListener('click', () => switchView('selection')));
+            document.querySelectorAll('.back-to-admin-common').forEach(btn => btn.addEventListener('click', () => switchView('admin')));
+            backToSelectionBtn.addEventListener('click', () => editingOrderId ? switchView('waiter') : switchView('selection'));
+
+            // Navegación Admin
+            document.getElementById('admin-menu-btn').addEventListener('click', () => switchView('menuMgmt'));
+            document.getElementById('admin-categories-btn').addEventListener('click', () => switchView('categoryMgmt'));
+            document.getElementById('admin-tables-btn').addEventListener('click', () => switchView('tableMgmt'));
+            document.getElementById('admin-payments-btn').addEventListener('click', () => switchView('paymentMgmt'));
+            document.getElementById('admin-cashbox-btn').addEventListener('click', () => switchView('cashboxMgmt'));
+
+            // Flujo de selección de pedido
+            document.getElementById('select-table-btn').addEventListener('click', () => { renderTableGrid(); toggleModal(tableSelectionModal, true); });
+            document.getElementById('close-table-modal-btn').addEventListener('click', () => toggleModal(tableSelectionModal, false));
+            document.getElementById('takeaway-btn').addEventListener('click', () => {
+                currentOrderInfo = { type: 'llevar' };
+                customerNameInput.value = '';
+                document.getElementById('customer-name-title').textContent = 'Nombre para el Pedido (Obligatorio)';
+                toggleModal(customerNameModal, true);
+            });
+            document.getElementById('table-grid').addEventListener('click', e => {
+                const tableBtn = e.target.closest('.table-number-btn');
+                if (tableBtn) {
+                    const tableName = tableBtn.dataset.tableName;
+                    toggleModal(tableSelectionModal, false);
+
+                    if (changingModalityOrderId) {
+                        const orderToChange = allKitchenOrders.find(o => o.id === changingModalityOrderId);
+                        if (orderToChange) {
+                            orderToChange.orderInfo.type = 'mesa';
+                            orderToChange.orderInfo.number = tableName;
+                            orderToChange.modified = true;
+                        }
+                        changingModalityOrderId = null;
+                        renderWaiterView();
+                        renderKitchenView();
+                        return;
+                    }
+
+                    const existingOrder = allKitchenOrders.find(o => o.orderInfo.type === 'mesa' && o.orderInfo.number === tableName && o.status !== 'servido' && o.status !== 'pagado');
+
+                    if (existingOrder) {
+                        const orderToEdit = allKitchenOrders.find(o => o.id === existingOrder.id);
+                        editingOrderId = orderToEdit.id;
+                        currentOrderInfo = orderToEdit.orderInfo;
+                        currentOrder = Object.values(orderToEdit.items).flatMap(item => Array(item.quantity).fill(appData.items.find(m => m.id === item.id)));
+                        orderNotes.value = orderToEdit.notes || '';
+                        orderTitle.textContent = `Editando Comanda #${orderToEdit.id}`;
+                        orderSubtitle.textContent = getOrderInfoString(orderToEdit);
+                        updateTotals();
+                        switchView('customer');
+                    } else {
+                        currentOrderInfo = { type: 'mesa', number: tableName };
+                        customerNameInput.value = '';
+                        document.getElementById('customer-name-title').textContent = 'Nombre del Cliente (Opcional)';
+                        toggleModal(customerNameModal, true);
+                    }
+                }
+            });
+            document.getElementById('confirm-name-btn').addEventListener('click', () => {
+                const name = customerNameInput.value.trim();
+                const orderToChange = allKitchenOrders.find(o => o.id === changingModalityOrderId);
+
+                if (orderToChange) {
+                    if (!name) {
+                        customerNameError.textContent = 'El nombre es obligatorio.'; return;
+                    }
+                    orderToChange.orderInfo.type = 'llevar';
+                    orderToChange.orderInfo.name = name;
+                    delete orderToChange.orderInfo.number;
+                    orderToChange.modified = true;
+                    changingModalityOrderId = null;
+                    renderWaiterView();
+                    renderKitchenView();
+                } else {
+                    if (currentOrderInfo.type === 'llevar' && !name) {
+                        customerNameError.textContent = 'El nombre es obligatorio.'; return;
+                    }
+                    currentOrderInfo.name = name;
+                    startOrder(currentOrderInfo);
+                }
+                customerNameError.textContent = '';
+                toggleModal(customerNameModal, false);
+            });
+            document.getElementById('cancel-name-btn').addEventListener('click', () => {
+                if (currentOrderInfo.type === 'llevar' && !changingModalityOrderId) { toggleModal(customerNameModal, false); }
+                else { customerNameError.textContent = ''; currentOrderInfo.name = ''; toggleModal(customerNameModal, false); if (!changingModalityOrderId) startOrder(currentOrderInfo); }
+                changingModalityOrderId = null;
+            });
+
+            // Lógica de la vista de cliente
+            categoryFiltersContainer.addEventListener('click', e => { if (e.target.classList.contains('category-btn')) { activeCategory = e.target.dataset.category; renderCategories(); renderMenuItems(); } });
+            menuItemsContainer.addEventListener('click', e => {
+                const addBtn = e.target.closest('.add-to-order-btn');
+                if (addBtn) {
+                    const itemToAdd = appData.items.find(item => item.id === parseInt(addBtn.dataset.itemId));
+                    if (itemToAdd) {
+                        currentOrder.push(itemToAdd);
+                        renderMenuItems();
+                        updateTotals();
+                    }
+                }
+                const removeBtn = e.target.closest('.remove-from-order-btn');
+                if (removeBtn) {
+                    const itemId = parseInt(removeBtn.dataset.itemId);
+                    const itemIndex = currentOrder.findIndex(i => i.id === itemId);
+                    if (itemIndex > -1) {
+                        currentOrder.splice(itemIndex, 1);
+                        renderMenuItems();
+                        updateTotals();
+                    }
+                }
+            });
+
+            // Lógica del resumen del pedido
+            viewOrderButton.addEventListener('click', () => toggleOrderSummary(true));
+            closeModalButton.addEventListener('click', () => toggleOrderSummary(false));
+            orderSummaryModal.addEventListener('click', e => e.target === orderSummaryModal && toggleOrderSummary(false));
+            orderItemsList.addEventListener('click', e => {
+                const btn = e.target.closest('.quantity-change-btn');
+                if (btn) {
+                    const itemId = parseInt(btn.dataset.itemId);
+                    const itemIndex = currentOrder.findIndex(item => item.id === itemId);
+                    if (itemIndex > -1) {
+                        if (btn.classList.contains('increase-qty-btn')) currentOrder.push(currentOrder[itemIndex]);
+                        else currentOrder.splice(itemIndex, 1);
+                    }
+                    toggleOrderSummary(true);
+                }
+            });
+
+            confirmOrderButton.addEventListener('click', () => {
+                if (currentOrder.length === 0) return;
+                const messageContainer = document.getElementById('confirmation-message');
+                const isPrepaid = document.getElementById('prepaid-toggle').checked;
+
+                if (editingOrderId) {
+                    const orderToUpdate = allKitchenOrders.find(o => o.id === editingOrderId);
+                    if (orderToUpdate) { orderToUpdate.items = groupOrderItems(currentOrder); orderToUpdate.notes = orderNotes.value.trim(); orderToUpdate.modified = true; }
+                    messageContainer.textContent = `Comanda #${editingOrderId} ha sido actualizada.`;
+                    toggleOrderSummary(false);
+                    toggleModal(confirmationModal, true);
+                } else {
+                    const newOrder = { id: orderCounter++, orderInfo: currentOrderInfo, items: groupOrderItems(currentOrder), status: 'recibido', notes: orderNotes.value.trim(), modified: false, isPrepaid: isPrepaid, createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) };
+                    allKitchenOrders.push(newOrder);
+                    toggleOrderSummary(false);
+                    if (isPrepaid) {
+                        orderToPayId = newOrder.id;
+                        togglePaymentSummaryModal(true);
+                    } else {
+                        messageContainer.textContent = 'Tu comanda ha sido enviada a la cocina.';
+                        toggleModal(confirmationModal, true);
+                    }
+                }
+
+                editingOrderId = null;
+                orderNotes.value = '';
+                document.getElementById('prepaid-toggle').checked = false;
+            });
+
+            document.getElementById('close-confirmation-button').addEventListener('click', () => { toggleModal(confirmationModal, false); switchView('selection'); });
+
+            kitchenOrdersContainer.addEventListener('click', e => {
+                const dispatchBtn = e.target.closest('.dispatch-btn');
+                if (dispatchBtn) { const order = allKitchenOrders.find(o => o.id === parseInt(dispatchBtn.dataset.orderId)); if (order) { order.status = 'despachado'; renderKitchenView(); } }
+
+                const itemToggle = e.target.closest('.item-ready-toggle');
+                if (itemToggle) {
+                    const orderId = parseInt(itemToggle.dataset.orderId);
+                    const itemId = parseInt(itemToggle.dataset.itemId);
+                    const order = allKitchenOrders.find(o => o.id === orderId);
+                    if (order && order.items[itemId]) {
+                        order.items[itemId].isReady = !order.items[itemId].isReady;
+                        renderKitchenView();
+                    }
+                }
+                const markAllBtn = e.target.closest('.mark-all-ready-btn');
+                if (markAllBtn) {
+                    const orderId = parseInt(markAllBtn.dataset.orderId);
+                    const order = allKitchenOrders.find(o => o.id === orderId);
+                    if (order) {
+                        Object.values(order.items).forEach(item => {
+                            item.isReady = true;
+                        });
+                        renderKitchenView();
+                    }
+                }
+            });
+
+            document.getElementById('kitchen-view-by-order').addEventListener('click', (e) => {
+                e.target.classList.add('bg-white', 'text-indigo-600', 'shadow');
+                document.getElementById('kitchen-view-by-product').classList.remove('bg-white', 'text-indigo-600', 'shadow');
+                kitchenOrdersContainer.classList.remove('hidden');
+                kitchenProductsContainer.classList.add('hidden');
+                renderKitchenView();
+            });
+
+            document.getElementById('kitchen-view-by-product').addEventListener('click', e => {
+                e.target.classList.add('bg-white', 'text-indigo-600', 'shadow');
+                document.getElementById('kitchen-view-by-order').classList.remove('bg-white', 'text-indigo-600', 'shadow');
+                kitchenOrdersContainer.classList.add('hidden');
+                kitchenProductsContainer.classList.remove('hidden');
+                renderKitchenByProductView();
+            });
+            kitchenProductsContainer.addEventListener('click', e => {
+                const outOfStockBtn = e.target.closest('.out-of-stock-btn');
+                if (outOfStockBtn) {
+                    const itemId = parseInt(outOfStockBtn.dataset.itemId);
+                    const item = appData.items.find(i => i.id === itemId);
+                    if (item) {
+                        item.isAvailable = false;
+                        renderKitchenByProductView();
+                    }
+                }
+                const dispatchAllBtn = e.target.closest('.dispatch-all-product-btn');
+                if (dispatchAllBtn) {
+                    const itemName = dispatchAllBtn.dataset.itemName;
+                    allKitchenOrders.forEach(order => {
+                        if (order.status === 'recibido') {
+                            Object.values(order.items).forEach(item => {
+                                if (item.name === itemName) {
+                                    item.isReady = true;
+                                }
+                            });
+                        }
+                    });
+                    renderKitchenByProductView();
+                }
+            });
+
+
+            const renderWaiterTabs = () => {
+                waiterStatusTabsContainer.innerHTML = [{ id: 'en-proceso', label: 'En Proceso' }, { id: 'listas', label: 'Listas' }, { id: 'servidas', label: 'Servidas' }, { id: 'pagadas', label: 'Pagadas' }, { id: 'canceladas', label: 'Canceladas' }
+                ].map(tab => `<button data-tab-id="${tab.id}" class="waiter-tab-btn text-xs font-semibold py-2 rounded-md ${tab.id === activeWaiterTab ? 'bg-white text-indigo-600 shadow' : 'text-gray-600'}">${tab.label}</button>`).join('');
+            };
+            waiterStatusTabsContainer.addEventListener('click', e => { if (e.target.closest('.waiter-tab-btn')) { activeWaiterTab = e.target.closest('.waiter-tab-btn').dataset.tabId; renderWaiterView(); } });
+            waiterSearchInput.addEventListener('keyup', renderWaiterView);
+            waiterOrdersContainer.addEventListener('click', e => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                const orderId = parseInt(btn.dataset.orderId);
+                const order = allKitchenOrders.find(o => o.id === orderId);
+                if (!order) return;
+
+                if (btn.classList.contains('serve-btn')) {
+                    order.status = 'servido';
+                    if (order.isPrepaid) {
+                        order.status = 'pagado';
+                    }
+                    renderWaiterView();
+                }
+                else if (btn.classList.contains('pay-btn')) {
+                    orderToPayId = orderId;
+                    togglePaymentSummaryModal(true);
+                }
+                else if (btn.classList.contains('edit-btn')) {
+                    editingOrderId = orderId;
+                    currentOrderInfo = order.orderInfo;
+                    currentOrder = Object.values(order.items).flatMap(item => Array(item.quantity).fill(appData.items.find(m => m.id === item.id)));
+                    orderNotes.value = order.notes || '';
+                    orderTitle.textContent = `Editando Comanda #${orderId}`;
+                    orderSubtitle.textContent = getOrderInfoString(order);
+                    updateTotals();
+                    switchView('customer');
+                }
+                else if (btn.classList.contains('cancel-btn')) {
+                    orderToCancelId = orderId;
+                    document.getElementById('cancel-order-id-text').textContent = `#${orderId}`;
+                    toggleModal(cancelOrderModal, true);
+                }
+                else if (btn.classList.contains('pickup-partial-btn')) {
+                    Object.values(order.items).forEach(item => {
+                        if (item.isReady && !item.isServed) {
+                            item.isServed = true;
+                        }
+                    });
+                    renderWaiterView();
+                }
+                else if (btn.classList.contains('change-modality-btn')) {
+                    changingModalityOrderId = orderId;
+                    if (order.orderInfo.type === 'mesa') {
+                        // Cambiar a para llevar
+                        customerNameInput.value = order.orderInfo.name || '';
+                        document.getElementById('customer-name-title').textContent = 'Nombre para el Pedido (Obligatorio)';
+                        toggleModal(customerNameModal, true);
+                    } else {
+                        // Cambiar a mesa
+                        renderTableGrid();
+                        toggleModal(tableSelectionModal, true);
+                    }
+                }
+            });
+
+            const togglePaymentSummaryModal = (show) => {
+                if (show) {
+                    const order = allKitchenOrders.find(o => o.id === orderToPayId);
+                    if (!order) return;
+
+                    const itemsContainer = document.getElementById('payment-summary-items');
+                    itemsContainer.innerHTML = Object.values(order.items).map(item => `
+                        <div class="flex justify-between text-sm">
+                            <span>${item.quantity}x ${item.name}</span>
+                            <span>${formatCurrency(item.price * item.quantity)}</span>
+                        </div>
+                    `).join('');
+
+                    const subtotal = Object.values(order.items).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    const tip = subtotal * 0.10;
+
+                    document.getElementById('payment-summary-subtotal').textContent = formatCurrency(subtotal);
+                    document.getElementById('payment-summary-tip').textContent = formatCurrency(tip);
+                    document.getElementById('tip-toggle').checked = true;
+                    document.getElementById('payment-summary-total').textContent = formatCurrency(subtotal + tip);
+                    document.getElementById('confirm-payment-btn').disabled = true;
+
+                    const paymentOptions = document.getElementById('payment-method-options');
+                    paymentOptions.innerHTML = appData.paymentMethods.map(p => `<button data-method="${p.name}" class="payment-option-btn w-full text-left bg-gray-50 p-3 rounded-lg hover:bg-gray-100">${p.name}</button>`).join('');
+                }
+                toggleModal(paymentSummaryModal, show);
+            };
+
+            document.getElementById('tip-toggle').addEventListener('change', (e) => {
+                const order = allKitchenOrders.find(o => o.id === orderToPayId);
+                const subtotal = Object.values(order.items).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const tip = subtotal * 0.10;
+                const total = e.target.checked ? subtotal + tip : subtotal;
+                document.getElementById('payment-summary-total').textContent = formatCurrency(total);
+            });
+
+            paymentSummaryModal.addEventListener('click', e => {
+                const optionBtn = e.target.closest('.payment-option-btn');
+                if (optionBtn) {
+                    document.querySelectorAll('.payment-option-btn').forEach(btn => {
+                        btn.classList.remove('bg-indigo-600', 'text-white');
+                        btn.classList.add('bg-gray-50');
+                    });
+                    optionBtn.classList.add('bg-indigo-600', 'text-white');
+                    optionBtn.classList.remove('bg-gray-50');
+                    document.getElementById('confirm-payment-btn').disabled = false;
+                }
+
+                const confirmBtn = e.target.closest('#confirm-payment-btn');
+                if (confirmBtn && !confirmBtn.disabled) {
+                    const selectedMethod = document.querySelector('.payment-option-btn.bg-indigo-600');
+                    if (selectedMethod) {
+                        const order = allKitchenOrders.find(o => o.id === orderToPayId);
+                        if (order) {
+                            order.paymentMethod = selectedMethod.dataset.method;
+                            if (!order.isPrepaid) {
+                                order.status = 'pagado';
+                            }
+                        }
+                        togglePaymentSummaryModal(false);
+
+                        if (order && order.isPrepaid) {
+                            const messageContainer = document.getElementById('confirmation-message');
+                            messageContainer.textContent = 'Comanda enviada a cocina y pagada por anticipado.';
+                            toggleModal(confirmationModal, true);
+                        } else {
+                            renderWaiterView();
+                        }
+                    }
+                }
+
+                if (e.target.closest('#cancel-payment-btn')) {
+                    togglePaymentSummaryModal(false);
+                }
+            });
+
+            document.getElementById('cancel-confirm-yes').addEventListener('click', () => {
+                const order = allKitchenOrders.find(o => o.id === orderToCancelId);
+                if (order) {
+                    order.status = 'cancelado';
+                }
+                toggleModal(cancelOrderModal, false);
+                renderWaiterView();
+            });
+            document.getElementById('cancel-confirm-no').addEventListener('click', () => {
+                toggleModal(cancelOrderModal, false);
+            });
+
+            // Lógica de gestión de menú
+            document.getElementById('add-new-item-btn').addEventListener('click', () => {
+                openGenericModal({
+                    title: 'Añadir Producto', id: null, data: appData.items,
+                    fields: [
+                        { id: 'generic-name', label: 'Nombre', type: 'text', key: 'name' },
+                        { id: 'generic-category', label: 'Categoría', type: 'select', key: 'category', options: appData.categories },
+                        { id: 'generic-price', label: 'Precio', type: 'number', key: 'price' },
+                        { id: 'generic-image', label: 'URL Imagen', type: 'text', key: 'image' }
+                    ],
+                    callback: (e) => {
+                        e.preventDefault();
+                        const id = parseInt(document.getElementById('generic-id').value);
+                        const newItemData = { name: document.getElementById('generic-name').value, category: document.getElementById('generic-category').value, price: parseFloat(document.getElementById('generic-price').value), image: document.getElementById('generic-image').value, isAvailable: true };
+                        if (id) { const index = appData.items.findIndex(i => i.id === id); appData.items[index] = { ...appData.items[index], ...newItemData }; }
+                        else { const newId = appData.items.length > 0 ? Math.max(...appData.items.map(i => i.id)) + 1 : 1; appData.items.push({ id: newId, ...newItemData }); }
+                        renderMenuManagementView();
+                        toggleModal(genericModal, false);
+                    }
+                });
+            });
+
+            document.getElementById('menu-management-content').addEventListener('click', e => {
+                const editBtn = e.target.closest('.edit-menu-btn');
+                if (editBtn) {
+                    openGenericModal({
+                        title: 'Editar Producto', id: parseInt(editBtn.dataset.id), data: appData.items,
+                        fields: [
+                            { id: 'generic-name', label: 'Nombre', type: 'text', key: 'name' },
+                            { id: 'generic-category', label: 'Categoría', type: 'select', key: 'category', options: appData.categories },
+                            { id: 'generic-price', label: 'Precio', type: 'number', key: 'price' },
+                            { id: 'generic-image', label: 'URL Imagen', type: 'text', key: 'image' }
+                        ],
+                        callback: (e) => {
+                            e.preventDefault();
+                            const id = parseInt(document.getElementById('generic-id').value);
+                            const newItemData = { name: document.getElementById('generic-name').value, category: document.getElementById('generic-category').value, price: parseFloat(document.getElementById('generic-price').value), image: document.getElementById('generic-image').value };
+                            const index = appData.items.findIndex(i => i.id === id);
+                            appData.items[index] = { ...appData.items[index], ...newItemData };
+                            renderMenuManagementView();
+                            toggleModal(genericModal, false);
+                        }
+                    });
+                }
+
+                const deleteBtn = e.target.closest('.delete-menu-btn');
+                if (deleteBtn) {
+                    if (confirm('¿Estás seguro?')) {
+                        appData.items = appData.items.filter(i => i.id !== parseInt(deleteBtn.dataset.id));
+                        renderMenuManagementView();
+                    }
+                }
+
+                const toggleBtn = e.target.closest('.toggle-availability-btn');
+                if (toggleBtn) {
+                    const itemId = parseInt(toggleBtn.dataset.id);
+                    const item = appData.items.find(i => i.id === itemId);
+                    if (item) {
+                        item.isAvailable = !item.isAvailable;
+                        renderMenuManagementView();
+                    }
+                }
+            });
+
+            document.getElementById('cancel-generic-btn').addEventListener('click', () => toggleModal(genericModal, false));
+
+            // Lógica de gestión de categorías, mesas y pagos
+            const setupAdminListeners = (config) => {
+                document.getElementById(`add-new-${config.type}-btn`).addEventListener('click', () => {
+                    openGenericModal({
+                        title: `Añadir ${config.name}`, id: null, data: config.data, fields: config.fields, callback: config.addCallback
+                    });
+                });
+
+                document.getElementById(`${config.type}-management-content`).addEventListener('click', e => {
+                    const editBtn = e.target.closest(`.edit-${config.type}-btn`);
+                    if (editBtn) {
+                        openGenericModal({
+                            title: `Editar ${config.name}`, id: parseInt(editBtn.dataset.id), data: config.data, fields: config.fields, callback: config.editCallback
+                        });
+                    }
+                    const deleteBtn = e.target.closest(`.delete-${config.type}-btn`);
+                    if (deleteBtn) {
+                        if (confirm('¿Estás seguro?')) {
+                            config.deleteCallback(parseInt(deleteBtn.dataset.id));
+                        }
+                    }
+                });
+            };
+
+            setupAdminListeners({
+                type: 'category', name: 'Categoría', data: appData.categories.map((c, i) => ({ id: i, name: c })),
+                fields: [{ id: 'generic-name', label: 'Nombre', type: 'text', key: 'name' }],
+                addCallback: e => { e.preventDefault(); appData.categories.push(document.getElementById('generic-name').value); renderCategoryManagementView(); toggleModal(genericModal, false); },
+                editCallback: e => { e.preventDefault(); const id = parseInt(document.getElementById('generic-id').value); appData.categories[id] = document.getElementById('generic-name').value; renderCategoryManagementView(); toggleModal(genericModal, false); },
+                deleteCallback: id => { appData.categories.splice(id, 1); renderCategoryManagementView(); }
+            });
+
+            setupAdminListeners({
+                type: 'table', name: 'Mesa', data: appData.tables,
+                fields: [{ id: 'generic-name', label: 'Nombre', type: 'text', key: 'name' }],
+                addCallback: e => { e.preventDefault(); const newId = appData.tables.length > 0 ? Math.max(...appData.tables.map(i => i.id)) + 1 : 1; appData.tables.push({ id: newId, name: document.getElementById('generic-name').value }); renderTableManagementView(); toggleModal(genericModal, false); },
+                editCallback: e => { e.preventDefault(); const id = parseInt(document.getElementById('generic-id').value); appData.tables.find(t => t.id === id).name = document.getElementById('generic-name').value; renderTableManagementView(); toggleModal(genericModal, false); },
+                deleteCallback: id => { appData.tables = appData.tables.filter(t => t.id !== id); renderTableManagementView(); }
+            });
+
+            setupAdminListeners({
+                type: 'payment', name: 'Método de Pago', data: appData.paymentMethods,
+                fields: [{ id: 'generic-name', label: 'Nombre', type: 'text', key: 'name' }],
+                addCallback: e => { e.preventDefault(); const newId = appData.paymentMethods.length > 0 ? Math.max(...appData.paymentMethods.map(i => i.id)) + 1 : 1; appData.paymentMethods.push({ id: newId, name: document.getElementById('generic-name').value }); renderPaymentManagementView(); toggleModal(genericModal, false); },
+                editCallback: e => { e.preventDefault(); const id = parseInt(document.getElementById('generic-id').value); appData.paymentMethods.find(p => p.id === id).name = document.getElementById('generic-name').value; renderPaymentManagementView(); toggleModal(genericModal, false); },
+                deleteCallback: id => { appData.paymentMethods = appData.paymentMethods.filter(p => p.id !== id); renderPaymentManagementView(); }
+            });
+
+            setupAdminListeners({
+                type: 'cashbox', name: 'Caja', data: appData.cashBoxes,
+                fields: [
+                    { id: 'generic-name', label: 'Nombre de la Caja', type: 'text', key: 'name' },
+                    { id: 'generic-balance', label: 'Base Inicial', type: 'number', key: 'initialBalance' }
+                ],
+                addCallback: e => {
+                    e.preventDefault();
+                    const newId = appData.cashBoxes.length > 0 ? Math.max(...appData.cashBoxes.map(i => i.id)) + 1 : 1;
+                    appData.cashBoxes.push({
+                        id: newId,
+                        name: document.getElementById('generic-name').value,
+                        initialBalance: parseFloat(document.getElementById('generic-balance').value),
+                        status: 'closed'
+                    });
+                    renderCashboxManagementView();
+                    toggleModal(genericModal, false);
+                },
+                editCallback: e => {
+                    e.preventDefault();
+                    const id = parseInt(document.getElementById('generic-id').value);
+                    const box = appData.cashBoxes.find(t => t.id === id);
+                    box.name = document.getElementById('generic-name').value;
+                    box.initialBalance = parseFloat(document.getElementById('generic-balance').value);
+                    renderCashboxManagementView();
+                    toggleModal(genericModal, false);
+                },
+                deleteCallback: id => { appData.cashBoxes = appData.cashBoxes.filter(t => t.id !== id); renderCashboxManagementView(); }
+            });
+
+            document.getElementById('cashbox-management-content').addEventListener('click', e => {
+                const toggle = e.target.closest('.status-toggle');
+                if (toggle) {
+                    const boxId = parseInt(toggle.dataset.id);
+                    const box = appData.cashBoxes.find(b => b.id === boxId);
+                    if (box) {
+                        box.status = toggle.checked ? 'open' : 'closed';
+                        renderCashboxManagementView();
+                    }
+                }
+            });
+
+
+            // --- INICIALIZACIÓN ---
+            const init = () => {
+                renderCategories();
+                renderMenuItems();
+                switchView('selection');
+            };
+
+            init();
+        });
+    </script>
+</body>
+
+</html>

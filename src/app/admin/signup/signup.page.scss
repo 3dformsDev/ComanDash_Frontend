@@ -1,0 +1,82 @@
+// Estos estilos son muy similares a los de la página de login.
+// En un proyecto real, es buena idea moverlos a un archivo global (global.scss)
+// o a un archivo de estilos compartidos para no repetir código.
+
+.banner-wrapper {
+    background: var(--ion-color-primary);
+    color: var(--ion-color-primary-contrast);
+    padding: 40px 20px;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    position: relative;
+    overflow: hidden;
+
+    .inner-wrapper {
+        position: relative;
+        z-index: 2;
+    }
+
+    ion-title {
+        font-size: 3rem;
+        font-weight: bold;
+        font-family: 'Roboto Slab', serif;
+    }
+
+    p {
+        margin-top: 0;
+        font-size: 1rem;
+    }
+
+    .circle-1 {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        top: -50px;
+        right: -70px;
+        z-index: 1;
+    }
+}
+
+.account-area {
+    margin-top: 20px;
+
+    h3 {
+        font-weight: bold;
+        font-size: 1.5rem;
+    }
+
+    p {
+        color: var(--ion-color-medium);
+        margin-bottom: 30px;
+    }
+
+    ion-item {
+        --background: #f2f2f2;
+        --border-radius: 10px;
+        --padding-start: 10px;
+    }
+
+    // Estilos para la sección de términos y condiciones
+    .terms-item {
+        --background: transparent; // Hacemos el fondo del item transparente
+
+        ion-checkbox {
+            --size: 20px;
+            margin-right: 10px;
+        }
+
+        ion-label a {
+            color: var(--ion-color-primary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+    }
+}
+
+ion-footer {
+    ion-toolbar {
+        --background: transparent;
+    }
+}

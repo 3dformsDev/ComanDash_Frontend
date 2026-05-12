@@ -1,0 +1,160 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Generar Reportes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="selector-container">
+    <ion-item lines="full">
+      <ion-label position="stacked" class="mb-2">Fecha de Inicio</ion-label>
+      <ion-datetime-button datetime="datetimeStart"></ion-datetime-button>
+    </ion-item>
+
+    <ion-item lines="full">
+      <ion-label position="stacked" class="mb-2">Fecha de Fin</ion-label>
+      <ion-datetime-button datetime="datetimeEnd"></ion-datetime-button>
+    </ion-item>
+
+    <ion-button (click)="generateReport()" [disabled]="isLoading" expand="block" class="ion-margin-top">
+      <ion-spinner *ngIf="isLoading" name="crescent" slot="start"></ion-spinner>
+      {{ isLoading ? 'Generando...' : 'Generar Reporte' }}
+    </ion-button>
+  </div>
+
+  <div *ngIf="reportData" class="report-container">
+
+    <ion-toolbar class="export-toolbar">
+      <ion-title size="small">Resultados</ion-title>
+      <div class="kpi-card">
+        <ion-label class="kpi-title">Ventas Totales</ion-label>
+        <h1 class="kpi-value">
+          {{ grandTotalSales | currency:'COP':'$' }}
+        </h1>
+      </div>
+      <!-- <ion-buttons slot="end">
+        <ion-button fill="clear" color="success" (click)="exportExcel()">
+          <ion-icon slot="icon-only" name="grid-outline"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="danger" (click)="exportPDF()">
+          <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons> -->
+    </ion-toolbar>
+
+    <!-- <div class="chart-container">
+      <ion-toolbar class="chart-header">
+        <ion-title size="small">Ventas por Día</ion-title>
+      </ion-toolbar>
+      <div class="chart-wrapper">
+        <canvas id="dailyChart"></canvas>
+        <p *ngIf="!reportData.dailySales.length" class="empty-message">No hay datos diarios.</p>
+      </div>
+    </div> -->
+    <div *ngIf="reportPeaks" class="chart-container">
+      <ion-toolbar class="chart-header">
+        <ion-title size="small">Tráfico por Hora del Día (0-23h)</ion-title>
+      </ion-toolbar>
+      <div class="chart-wrapper">
+        <canvas id="peakHoursChart"></canvas>
+        <p *ngIf="!reportPeaks.peakHours.length" class="empty-message">No hay datos de tráfico.</p>
+      </div>
+    </div>
+
+    <div *ngIf="reportPeaks" class="chart-container">
+      <ion-toolbar class="chart-header">
+        <ion-title size="small">Tráfico por Día de la Semana</ion-title>
+      </ion-toolbar>
+      <div class="chart-wrapper">
+        <canvas id="peakDaysChart"></canvas>
+        <p *ngIf="!reportPeaks.peakDays.length" class="empty-message">No hay datos de tráfico.</p>
+      </div>
+    </div>
+
+    <div class="list-container">
+    </div>
+
+    <div class="chart-container">
+      <ion-toolbar class="chart-header">
+        <ion-title size="small">Ventas por Día</ion-title>
+      </ion-toolbar>
+      <div class="chart-wrapper">
+        <canvas id="dailyChart"></canvas>
+        <p *ngIf="!reportData.dailySales.length" class="empty-message">No hay datos diarios.</p>
+      </div>
+    </div>
+
+    <div class="list-container">
+      <ion-toolbar class="chart-header">
+        <ion-title size="small">Productos Vendidos</ion-title>
+      </ion-toolbar>
+
+      <ion-list lines="full">
+
+        <ion-item *ngFor="let row of reportData.tableRows">
+
+          <ion-label>
+            <h2 class="item-title">{{ row.productName }}</h2>
+            <p class="item-subtitle">{{ row.category }}</p>
+          </ion-label>
+
+          <div slot="end" class="item-totals">
+            <ion-text color="primary">
+              <h3 class="item-total-price">{{ row.total | currency:'COP':'$' }}</h3>
+            </ion-text>
+            <ion-note class="item-quantity">{{ row.quantity }} Unidades</ion-note>
+          </div>
+        </ion-item>
+
+        <p *ngIf="reportData.tableRows.length === 0" class="empty-message ion-padding">
+          No se encontraron productos vendidos.
+        </p>
+
+      </ion-list>
+    </div>
+
+    <!-- <div class="table-container">
+      <div class="table-responsive">
+        <table>
+          <tbody>
+            <tr *ngFor="let row of reportData.tableRows">
+              <td>{{ row.productName }}</td>
+              <td>{{ row.category }}</td>
+              <td>{{ row.quantity }}</td>
+              <td>{{ row.total | currency:'COP':'$' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p *ngIf="reportData.tableRows.length === 0" class="empty-message ion-padding">
+        No se encontraron productos vendidos.
+      </p>
+    </div> -->
+  </div>
+
+  <p *ngIf="!reportData && !isLoading" class="empty-message">
+    Selecciona un rango de fechas y presiona "Generar Reporte".
+  </p>
+
+</ion-content>
+
+<!-- MODALES FUERA DEL ION-CONTENT -->
+<ion-modal [keepContentsMounted]="true" #modalStart>
+  <ng-template>
+    <ion-datetime id="datetimeStart" presentation="date" [(ngModel)]="startDate" [max]="endDate"
+      (ionChange)="onStartDateChange($event)">
+    </ion-datetime>
+  </ng-template>
+</ion-modal>
+
+<ion-modal [keepContentsMounted]="true" #modalEnd>
+  <ng-template>
+    <ion-datetime id="datetimeEnd" presentation="date" [(ngModel)]="endDate" [min]="startDate" [max]="maxDate"
+      (ionChange)="onEndDateChange($event)">
+    </ion-datetime>
+  </ng-template>
+</ion-modal>

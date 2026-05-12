@@ -1,0 +1,267 @@
+// Estilos para el header de la vista del mesero
+// ... (tu código SCSS del header se mantiene igual aquí arriba) ...
+ion-header.waiter-header {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+
+    ion-toolbar {
+        --background: #ffffff;
+        --padding-start: 16px;
+        --padding-end: 16px;
+        --padding-top: 8px;
+        --padding-bottom: 8px;
+        border-bottom: 1px solid var(--ion-color-step-150, #e0e0e0);
+
+        .toolbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .title-group {
+            h1 {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #1f2937;
+                margin: 0;
+                line-height: 1.2;
+            }
+
+            p {
+                font-size: 0.875rem;
+                color: #6b7280;
+                margin: 0;
+            }
+        }
+
+        .home-button {
+            --background: #f3f4f6;
+            --border-radius: 8px;
+            --padding-start: 12px;
+            --padding-end: 12px;
+            height: 40px;
+            width: 40px;
+
+            ion-icon {
+                font-size: 20px;
+                color: #4b5563;
+            }
+        }
+    }
+
+    .sub-header-nav {
+        padding: 16px;
+        background: #ffffff;
+    }
+
+    .filter-tabs {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+        background-color: #f3f4f6;
+        padding: 4px;
+        border-radius: 8px;
+
+        button {
+            background-color: transparent;
+            border: none;
+            padding: 8px 4px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4b5563;
+            transition: all 0.3s ease;
+
+            &.tab-selected {
+                background-color: #ffffff;
+                color: #4f46e5;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+        }
+    }
+
+    .search-container {
+        position: relative;
+        margin-top: 16px;
+
+        ion-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 20px;
+        }
+
+        input {
+            width: 100%;
+            border: 1px solid var(--ion-color-step-200, #cccccc);
+            border-radius: 8px;
+            padding: 10px 16px 10px 40px;
+            font-size: 1rem;
+            outline: none;
+
+            &:focus {
+                border-color: var(--ion-color-primary, #3880ff);
+            }
+        }
+    }
+}
+
+
+/* ✅ =============================================== */
+/* ✅ ESTILOS CORREGIDOS SEGÚN LAS NUEVAS CAPTURAS  */
+/* ✅ =============================================== */
+
+.empty-state {
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--ion-color-medium);
+
+    ion-icon {
+        font-size: 4rem;
+    }
+
+    p {
+        margin-top: 8px;
+        font-size: 1rem;
+    }
+}
+
+ion-item.order-card-item {
+    --background: transparent;
+    --inner-padding-end: 0;
+    --padding-start: 0;
+    margin-bottom: 16px;
+}
+
+.order-card {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    border-left: 4px solid;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.order-info {
+    .order-id {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .customer-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #4f46e5;
+        margin: 0;
+    }
+}
+
+.order-status {
+    text-align: right;
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background-color: #f3f4f6;
+        color: #4b5563;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+
+        ion-icon {
+            font-size: 12px;
+        }
+    }
+
+    .timestamp {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+}
+
+.order-items-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+
+    li {
+        font-size: 0.875rem;
+        color: #4b5563;
+        padding: 2px 0;
+
+        .item-quantity {
+            font-weight: 600;
+        }
+    }
+}
+
+/* ✅ NUEVO: Estilos para los botones de acción */
+.order-actions {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ion-color-step-150, #e0e0e0);
+    display: flex;
+    gap: 8px;
+
+    // Estilo para los botones de acción pequeños ('en proceso')
+    .action-btn {
+        flex: 1;
+        --border-radius: 8px;
+        height: 40px;
+
+        ion-icon {
+            font-size: 1.2rem;
+        }
+    }
+
+    // Estilo para los botones grandes (ej. 'listas', 'servidas')
+    ion-button[expand="block"] {
+        flex: 1;
+        --border-radius: 8px;
+        font-weight: 700;
+        height: 44px;
+    }
+}
+
+.button-as-served {
+    --background: #93e9be;
+    --background-hover: #9ce0be;
+    --background-activated: #88f4be;
+    --background-focused: #88f4be;
+
+    --color: #22c55e;
+
+    --border-radius: 0;
+    --border-color: #000;
+    --border-style: solid;
+    --border-width: 1px;
+
+    --box-shadow: 0 2px 6px 0 rgb(0, 0, 0, 0.25);
+
+    --ripple-color: deeppink;
+
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+}
+
+cdk-virtual-scroll-viewport {
+    height: 100%;
+    width: 100%;
+}

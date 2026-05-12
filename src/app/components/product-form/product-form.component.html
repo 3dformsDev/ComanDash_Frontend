@@ -1,0 +1,101 @@
+<ion-header class="custom-header">
+  <ion-toolbar>
+    <ion-title class="header-title">
+      {{ mode === 'new' ? 'Nuevo Producto' : 'Editar Producto' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" class="cancel-btn" (click)="dismiss()">
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        Cancelar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  <div class="form-container">
+    <div class="form-section">
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Nombre del producto *</ion-label>
+          <ion-input type="text" [(ngModel)]="product.name" class="custom-input"
+            placeholder="Ingresa el nombre del producto">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Precio de venta *</ion-label>
+          <ion-input type="tel" [ngModel]="product.price | number:'1.0-0':'es-CO'"
+            (ionInput)="formatValue($event, 'price')" class="custom-input" placeholder="0">
+            <div slot="start" class="currency-symbol">$</div>
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Costo *</ion-label>
+          <ion-input type="tel" [ngModel]="product.cost | number:'1.0-0':'es-CO'"
+            (ionInput)="formatValue($event, 'cost')" class="custom-input" placeholder="0">
+            <div slot="start" class="currency-symbol">$</div>
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Categoría *</ion-label>
+          <ion-select placeholder="Selecciona una categoría" [(ngModel)]="product.categoryId" class="custom-select"
+            interface="popover">
+            <ion-select-option *ngFor="let cat of categories" [value]="cat.id">
+              {{ cat.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+      <div class="input-group image-section">
+        <ion-label position="stacked" class="custom-label">Imagen del Producto</ion-label>
+
+        <!-- Input file oculto para web -->
+        <input #fileInput type="file" accept="image/*" style="display: none"
+          (change)="handleWebFileSelection($event)" />
+
+        <div *ngIf="selectedImagePreview" class="image-preview-container">
+          <img [src]="protectedImages.get(product.id) || selectedImagePreview" alt="Previsualización de producto" class="image-preview" />
+          <ion-fab-button class="remove-image-btn" size="small" (click)="clearImage()">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-fab-button>
+        </div>
+
+        <ion-button expand="block" fill="outline" (click)="selectImage()" class="select-image-btn">
+          <ion-icon [name]="getSelectImageIcon()" slot="start"></ion-icon>
+          {{ getSelectImageButtonText() }}
+        </ion-button>
+
+        <!-- Indicador de plataforma (opcional, para debug) -->
+        <p class="platform-indicator" *ngIf="false">
+          Plataforma: {{ isNative ? 'Nativo (Cámara/Galería)' : 'Web (Selector de archivos)' }}
+        </p>
+      </div>
+
+      <div class="input-group">
+        <ion-item class="custom-item textarea-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Descripción</ion-label>
+          <ion-textarea [(ngModel)]="product.description" class="custom-textarea"
+            placeholder="Descripción opcional del producto..." rows="3">
+          </ion-textarea>
+        </ion-item>
+      </div>
+    </div>
+
+    <div class="button-section">
+      <ion-button expand="block" class="save-btn" (click)="save()" [disabled]="!isFormValid()">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Guardar Producto
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

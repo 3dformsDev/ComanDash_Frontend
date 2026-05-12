@@ -1,0 +1,44 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Métodos de Pago</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-list lines="none">
+    <ion-item *ngFor="let method of allPaymentMethods" [ngClass]="{'item-inactive': !method.isActive}">
+
+      <ion-icon name="card-outline" slot="start" color="medium"></ion-icon>
+      <ion-label>{{ method.name }}</ion-label>
+
+      <ion-badge class="badge-status" slot="end" [color]="method.isActive ? 'success' : 'medium'">
+        {{ method.isActive ? 'Activo' : 'Inactivo' }}
+      </ion-badge>
+
+      <ion-buttons slot="end">
+        <ion-button fill="clear" color="medium" (click)="editMethod(method)">
+          <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" [color]="method.isActive ? 'danger' : 'warning'" (click)="toggleMethodStatus(method)">
+          <ion-icon slot="icon-only" [name]="method.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+
+    </ion-item>
+  </ion-list>
+
+  <p *ngIf="allPaymentMethods.length === 0" class="empty-message">
+    No has añadido ningún método de pago.
+  </p>
+
+</ion-content>
+
+<ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab-button (click)="addMethod()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

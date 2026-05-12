@@ -1,0 +1,52 @@
+<ion-header class="custom-header">
+  <ion-toolbar>
+    <ion-title class="header-title">
+      {{ mode === 'new' ? 'Nuevo Método de Pago' : 'Editar Método de Pago' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" class="cancel-btn" (click)="dismiss()">
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        Cancelar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+  <div class="form-container">
+    <div class="form-section">
+
+      <!-- Campo para el Nombre -->
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Nombre del método *</ion-label>
+          <ion-input type="text" [(ngModel)]="paymentMethod.name" class="custom-input"
+            placeholder="Ej: Efectivo, Tarjeta Visa">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <!-- CAMBIO: Este es el selector para el tipo de método de pago -->
+      <div class="input-group">
+        <ion-item class="custom-item" lines="none">
+          <ion-label position="stacked" class="custom-label">Tipo *</ion-label>
+          <ion-select placeholder="Selecciona un tipo" [(ngModel)]="paymentMethod.type" class="custom-select"
+            interface="popover">
+            <!-- Iteramos sobre el objeto de tipos definido en el TS -->
+            <ion-select-option *ngFor="let key of getObjectKeys(paymentMethodTypes)" [value]="key">
+              {{ getTypeLabel(key) }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+    </div>
+
+    <div class="button-section">
+      <ion-button expand="block" class="save-btn" (click)="save()" [disabled]="!isFormValid()">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Guardar Método
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

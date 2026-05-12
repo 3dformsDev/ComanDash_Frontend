@@ -1,0 +1,71 @@
+<div class="summary-container-sheet">
+
+  <ion-content class="modal-content-scrollable">
+    <div class="summary-header">
+      <h2 class="summary-title">Resumen del Pedido</h2>
+      <button class="close-button" (click)="dismiss()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </button>
+    </div>
+
+    <div class="order-items-list">
+      <p *ngIf="groupedOrderItems.length === 0" class="empty-message">Aún no hay productos.</p>
+      <div class="order-item" *ngFor="let item of groupedOrderItems">
+        <img *ngIf="protectedImages.get(item.id); else noImage" [src]="protectedImages.get(item.id)"
+          alt="{{ item.name }}" class="item-image">
+
+        <ng-template #noImage>
+          <div class="item-image flex justify-center align-items-center">
+            <ion-icon name="fast-food-outline"></ion-icon>
+          </div>
+        </ng-template>
+        <div class="item-details">
+          <p class="item-name font-bold">{{item.category.name}} - {{ item.name }}</p>
+          <p class="item-price">{{ item.price | currency:'COP':'$':'1.0-0' }}</p>
+        </div>
+        <div class="quantity-controls">
+          <button class="quantity-btn" (click)="removeItem(item)">
+            <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
+          </button>
+          <span class="quantity-number">{{ item.quantity }}</span>
+          <button class="quantity-btn" (click)="addItem(item)">
+            <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ion-content>
+
+  <ion-footer class="modal-footer">
+    <div class="notes-section">
+      <label class="notes-label">Notas para la cocina:</label>
+      <ion-textarea class="notes-textarea" rows="2" placeholder="Ej: sin cebolla..." [(ngModel)]="kitchenNotes">
+
+      </ion-textarea>
+    </div>
+
+    <div class="prepaid-section">
+      <label class="prepaid-label">Cobro Anticipado</label>
+      <ion-toggle [(ngModel)]="isPrepaid" mode="ios" [disabled]="isEditMode"></ion-toggle>
+    </div>
+
+    <div class="totals-section">
+      <!-- <div class="total-row">
+        <span class="text-bold">Subtotal</span>
+        <span>{{ subtotal | currency:'COP':'$':'1.0-0' }}</span>
+      </div> -->
+      <!-- <div class="total-row">
+        <span class="text-bold">Servicio (10%)</span>
+        <span>{{ serviceFee | currency:'COP':'$':'1.0-0' }}</span>
+      </div> -->
+      <div class="total-row grand-total">
+        <span>Total</span>
+        <span>{{ total | currency:'COP':'$':'1.0-0' }}</span>
+      </div>
+    </div>
+    <button #confirmButton expand="block" class="confirm-button" (click)="confirmOrder()"
+      [disabled]="groupedOrderItems.length === 0">
+      {{ isPrepaid ? 'Continuar al Pago' : 'Confirmar y Enviar a Cocina' }}
+    </button>
+  </ion-footer>
+</div>
