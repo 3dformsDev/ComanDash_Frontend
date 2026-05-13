@@ -8,6 +8,7 @@ import { Platform, ToastController } from '@ionic/angular';
 import { PwaUpdateService } from '@services/pwa-update.service';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs';
+import { SessionActivityService } from './core/services/session-activity.service';
 
 
 register();
@@ -19,10 +20,11 @@ register();
 })
 export class AppComponent {
   constructor(
-    private platform: Platform,
-    private toastController: ToastController,
-    private swUpdate: SwUpdate
-  ) { }
+  private platform: Platform,
+  private toastController: ToastController,
+  private swUpdate: SwUpdate,
+  private sessionActivityService: SessionActivityService
+) { }
 
   async ngOnInit() {
     // ✅ Unificamos toda la lógica de actualización aquí.
@@ -43,6 +45,7 @@ export class AppComponent {
     if (Capacitor.isNativePlatform()) {
       await this.initializeApp();
     }
+    this.sessionActivityService.startMonitoring();
   }
   /**
    * Contiene la configuración inicial para plataformas nativas.

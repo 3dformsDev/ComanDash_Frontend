@@ -236,21 +236,23 @@ export class NotificationService {
     this.showErrorToast(userMessage);
   }
 
-  // =======================================================
+    // =======================================================
   // LÓGICA COMPARTIDA
   // =======================================================
   private sendTokenToBackend(token: string, locationId: number) {
+
     if (this.tokenSent) {
       console.log('⚠️ Token ya fue enviado anteriormente');
       return;
     }
 
     if (!locationId) {
-      console.error("❌ Intento de enviar token sin locationId.");
+      console.error('❌ Intento de enviar token sin locationId.');
       return;
     }
 
     const url = `${environment.apiUrl}/v1/notifications/store-token`;
+
     const payload = {
       token,
       locationId,
@@ -258,22 +260,57 @@ export class NotificationService {
       timestamp: new Date().toISOString()
     };
 
-    console.log('📤 Enviando token al backend:', { locationId, platform: payload.platform });
+    console.log(
+      '📤 Enviando token al backend:',
+      {
+        locationId,
+        platform: payload.platform
+      }
+    );
 
     this.http.post(url, payload).subscribe({
+
       next: (response) => {
-        console.log('✅ Token del dispositivo enviado al backend exitosamente:', response);
+
+        console.log(
+          '✅ Token del dispositivo enviado al backend exitosamente:',
+          response
+        );
+
         this.tokenSent = true;
-        this.showSuccessToast('Notificaciones configuradas correctamente');
+
+        this.showSuccessToast(
+          'Notificaciones configuradas correctamente'
+        );
       },
+
       error: (err) => {
-        console.error('💥 Error al enviar el token al backend:', err);
-        this.showErrorToast('Error al registrar dispositivo para notificaciones');
-      },
+
+        console.error(
+          '💥 Error al enviar el token al backend:',
+          err
+        );
+
+        // Si el usuario ya perdió autenticación,
+        // evitamos mostrar un toast innecesario.
+        if (err?.status === 401) {
+
+          console.warn(
+            '⚠️ Registro de notificaciones cancelado por sesión expirada.'
+          );
+
+          return;
+        }
+
+        this.showErrorToast(
+          'Error al registrar dispositivo para notificaciones'
+        );
+      }
     });
   }
 
   private async showInAppNotification(title: string | undefined, body: string | undefined) {
+
     if (!title || !body) return;
 
     const toast = await this.toastController.create({
@@ -288,10 +325,12 @@ export class NotificationService {
         }
       ]
     });
+
     await toast.present();
   }
 
   private async showErrorToast(message: string) {
+
     const toast = await this.toastController.create({
       message,
       duration: 4000,
@@ -304,16 +343,19 @@ export class NotificationService {
         }
       ]
     });
+
     await toast.present();
   }
 
   private async showSuccessToast(message: string) {
+
     const toast = await this.toastController.create({
       message,
       duration: 3000,
       position: 'top',
       color: 'success'
     });
+
     await toast.present();
   }
 
