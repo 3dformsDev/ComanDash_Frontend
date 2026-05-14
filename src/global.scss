@@ -412,7 +412,7 @@ ion-modal#table-modal app-table-selection {
 }
 
 
-/* Hacemos transparentes los fondos de header, footer y content 
+/* Hacemos transparentes los fondos de header, footer y content
      para que tomen el color blanco del modal */
 ion-modal#table-modal ion-header,
 ion-modal#table-modal ion-footer,
@@ -632,3 +632,18 @@ ion-modal#name-of-client-modal .confirm-button {
 // ion-modal#payment-modal ion-content {
 //     --background: white;
 // }
+
+
+
+.session-timeout-alert {
+
+  .alert-button-role-confirm {
+    color: #2dd36f !important;
+    font-weight: 600;
+  }
+
+  .alert-button-role-destructive {
+    color: #eb445a !important;
+    font-weight: 600;
+  }
+}

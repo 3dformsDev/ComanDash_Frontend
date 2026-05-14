@@ -1,4 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
+import { AlertController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { fromEvent, merge, Subscription, interval } from 'rxjs';
 import { throttleTime } from 'rxjs/operators';
@@ -9,17 +10,21 @@ import * as AuthActions from '@store/auth/actions/auth.actions';
 })
 export class SessionActivityService {
 
-  private readonly SESSION_TIMEOUT_MS = 4 * 60 * 60 * 1000; // 4 horas
-  private readonly WARNING_TIMEOUT_MS = 3.5 * 60 * 60 * 1000; // 3h 30m
+  // Configuración de tiempos en milisegundos
+  private readonly SESSION_TIMEOUT_MS = 2 * 60 * 1000;
+private readonly WARNING_TIMEOUT_MS = 1 * 60 * 1000;
 
   private activitySubscription?: Subscription;
   private checkSubscription?: Subscription;
 
   private warningShown = false;
+  private warningAlertPresented = false;
+  private warningAlert: HTMLIonAlertElement | null = null;
 
   constructor(
     private ngZone: NgZone,
-    private store: Store
+    private store: Store,
+    private alertController: AlertController
   ) { }
 
   startMonitoring(): void {
@@ -52,8 +57,24 @@ export class SessionActivityService {
   }
 
   stopMonitoring(): void {
-    this.activitySubscription?.unsubscribe();
-    this.checkSubscription?.unsubscribe();
+
+  this.activitySubscription?.unsubscribe();
+  this.checkSubscription?.unsubscribe();
+
+  this.resetSessionState();
+  }
+
+  resetSessionState(): void {
+
+  this.warningShown = false;
+  this.warningAlertPresented = false;
+
+  if (this.warningAlert) {
+    this.warningAlert.dismiss();
+    this.warningAlert = null;
+  }
+
+  localStorage.removeItem('last_activity');
   }
 
   private updateLastActivity(): void {
@@ -83,7 +104,9 @@ export class SessionActivityService {
 
       this.warningShown = true;
 
-      console.warn('La sesión expirará pronto por inactividad.');
+      this.ngZone.run(() => {
+       this.presentSessionWarning();
+      });
     }
 
     // Logout definitivo
@@ -91,10 +114,20 @@ export class SessionActivityService {
 
       console.warn('Sesión cerrada por inactividad.');
 
-      this.ngZone.run(() => {
-        this.store.dispatch(AuthActions.logout());
-      });
+      this.ngZone.run(async () => {
+
+    // Cerrar modal si sigue abierto
+    if (this.warningAlert) {
+      await this.warningAlert.dismiss();
+      this.warningAlert = null;
     }
+
+    this.warningShown = false;
+    this.warningAlertPresented = false;
+
+    this.store.dispatch(AuthActions.logout());
+  });
+}
   }
 
   private validateExistingSession(): void {
@@ -120,4 +153,59 @@ export class SessionActivityService {
 
     console.log('Sesión válida. Restaurando monitoreo.');
   }
+
+  private async presentSessionWarning(): Promise<void> {
+
+  if (this.warningAlertPresented) {
+    return;
+  }
+
+  this.warningAlertPresented = true;
+
+  this.warningAlert = await this.alertController.create({
+    header: 'Sesión próxima a expirar',
+    message: 'Tu sesión se cerrará pronto por inactividad.',
+    backdropDismiss: false,
+    cssClass: 'session-timeout-alert',
+    buttons: [
+      {
+        text: 'Cerrar sesión',
+        role: 'destructive',
+        handler: () => {
+
+          this.warningAlertPresented = false;
+          this.warningAlert = null;
+
+          this.store.dispatch(AuthActions.logout());
+
+          return true;
+        }
+      },
+      {
+        text: 'Continuar sesión',
+        role: 'confirm',
+        handler: () => {
+
+          this.updateLastActivity();
+
+          this.warningShown = false;
+          this.warningAlertPresented = false;
+          this.warningAlert = null;
+
+          console.log('✅ Sesión extendida por el usuario.');
+
+          return true;
+        }
+      }
+    ]
+  });
+
+  await this.warningAlert.present();
+
+  this.warningAlert.onDidDismiss().then(() => {
+
+    this.warningAlertPresented = false;
+    this.warningAlert = null;
+  });
+}
 }

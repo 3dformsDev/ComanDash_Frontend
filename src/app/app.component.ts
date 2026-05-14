@@ -45,7 +45,7 @@ export class AppComponent {
     if (Capacitor.isNativePlatform()) {
       await this.initializeApp();
     }
-    this.sessionActivityService.startMonitoring();
+    // this.sessionActivityService.startMonitoring();
   }
   /**
    * Contiene la configuración inicial para plataformas nativas.
