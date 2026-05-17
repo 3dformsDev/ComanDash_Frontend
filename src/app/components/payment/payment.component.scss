@@ -1,189 +1,365 @@
-/* BÓRRAME: Ya no necesito estos estilos globales */
-ion-modal#payment-modal {
-    --height: fit-content;
-    --width: 90%;
-    --max-width: 400px;
-    --border-radius: 1rem;
-    --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    --backdrop-opacity: 0.6;
-}
-
-/* BÓRRAME TAMBIÉN: Este es el principal culpable */
-ion-modal#payment-modal ion-header,
-ion-modal#payment-modal ion-footer,
-ion-modal#payment-modal ion-content {
-    --background: white;
-}
-
 :host {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    /* max-height: 85vh; // Esta línea está bien */
+
+  --modal-height-desktop: 92vh;
+  --modal-width-desktop: 680px;
+
 }
 
-ion-content {
-    flex: 1;
-    border-radius: 1rem;
+/* ===================================================== */
+/* ION MODAL */
+/* ===================================================== */
+
+ion-content.payment-modal-content {
+
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+
+}
+
+.payment-layout {
+
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+}
+
+/* ===================================================== */
+/* TOP SECTION */
+/* ===================================================== */
+
+.top-section {
+
+  flex: 0 0 40%;
+  min-height: 280px;
+
+  border-bottom: 1px solid #e5e5e5;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
 }
 
 .payment-container {
-    padding: 1.5rem;
-    background: white;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 24px;
+
 }
 
-
 .modal-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-align: center;
-    color: #1f2937;
-    margin-bottom: 1rem;
+
+  font-size: 2rem;
+  font-weight: 700;
+
+  margin: 0 0 20px 0;
+
+  text-align: center;
+
+  flex-shrink: 0;
+
 }
 
 .items-summary-list {
-    max-height: 15rem;
-    /* Reducido para dejar más espacio */
-    overflow-y: auto;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 0.75rem;
-    margin-bottom: 0.75rem;
 
-    .summary-item {
-        display: flex;
-        justify-content: space-between;
-        font-size: 1.5rem;
-        color: #000000;
-        padding: 0.25rem 0;
-        font-weight: bold;
-    }
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding-right: 6px;
+
 }
+
+/* ===================================================== */
+/* ITEMS */
+/* ===================================================== */
+
+.summary-item {
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 16px;
+
+  padding: 14px 0;
+
+  border-bottom: 1px solid #ececec;
+
+  font-size: 1rem;
+  font-weight: 600;
+
+}
+
+/* ===================================================== */
+/* BOTTOM SECTION */
+/* ===================================================== */
+
+.bottom-section {
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+}
+
+.bottom-scrollable-content {
+
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding: 20px 24px;
+
+}
+
+/* ===================================================== */
+/* ACTION BUTTONS */
+/* ===================================================== */
+
+.adjustment-actions {
+
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+
+  margin-bottom: 24px;
+
+}
+
+.adjustment-btn {
+
+  width: 95px;
+  height: 52px;
+
+  font-size: 1.7rem;
+  font-weight: 800;
+
+  --border-radius: 16px;
+
+}
+
+.add-btn {
+
+  --background: #16b34a;
+
+}
+
+.remove-btn {
+
+  --background: #eb2020;
+
+}
+
+/* ===================================================== */
+/* COSTS */
+/* ===================================================== */
 
 .costs-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    /* Añadido margen inferior */
 
-    .cost-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: #000000;
-        font-size: 1.25rem;
-        font-weight: 700
-    }
+  margin-bottom: 24px;
 
-    .tip-control {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .grand-total {
-        font-size: 1.25rem;
-        /* Reducido ligeramente */
-        font-weight: 700;
-        color: #000000;
-        border-top: 1px solid #e5e7eb;
-        padding-top: 0.75rem;
-        margin-top: 0.5rem;
-    }
 }
 
-ion-toggle {
-    --background: #e5e7eb;
-    --background-checked: #c7d2fe;
-    --handle-background: white;
-    --handle-background-checked: #4f46e5;
-    height: 1.5rem;
-    width: 2.5rem;
+.cost-row {
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 16px;
+
+  padding: 12px 0;
+
 }
 
-.payment-methods {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 1rem;
-    /* Reducido */
+.adjustment-row span {
 
-    .payment-methods-title {
-        text-align: center;
-        color: #6b7280;
-        font-size: 0.875rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-    }
+  font-size: 1rem;
+  font-weight: 600;
 
-    .payment-options-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .payment-method-btn {
-        --background: #f3f4f6;
-        --color: #1f2937;
-        --border-radius: 0.5rem;
-        height: 44px;
-        /* Reducido ligeramente */
-        font-size: 1rem;
-        text-transform: none;
-        margin: 0;
-
-        &.selected {
-            --background: #000000;
-            --color: white;
-            font-weight: 600;
-        }
-    }
 }
 
-ion-footer {
-    padding: 1rem 1.5rem;
-    /* Ajustado el padding */
-    background: white;
-    border-top: 1px solid #f3f4f6;
-    /* Añadida línea separadora */
-    flex-shrink: 0;
-    /* Evita que se comprima */
+.adjustment-info {
 
-    &::before {
-        display: none;
-    }
+  flex: 1;
 
-    .confirm-payment-btn {
-        --background: #ff3131;
-        --color: white;
-        border-radius: .75rem;
-        height: 48px;
-        /* Reducido ligeramente */
-        font-size: 1rem;
-        /* Ajustado */
-        font-weight: bold;
-        text-transform: none;
-        margin: 0;
-        margin-bottom: 0.5rem;
-        /* Añadido margen inferior */
-    }
+  overflow-wrap: break-word;
 
-    .cancel-btn {
-        margin: 0;
-        --color: #6b7280;
-        font-size: 0.9rem;
-        height: 40px;
-        /* Altura específica */
-    }
 }
 
+.adjustment-value-container {
 
-.modal-footer {
-    padding: 0 1.5rem 1.5rem 1.5rem;
-    background-color: #f9fafb; // Mismo fondo que el contenido
-    border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-    // Elimina la sombra que Ionic agrega por defecto a los footers
-    &::before {
-        display: none;
-    }
+  flex-shrink: 0;
+
+}
+
+.remove-adjustment-btn {
+
+  margin: 0;
+
+  --padding-start: 0;
+  --padding-end: 0;
+
+  font-size: 0.9rem;
+
+}
+
+.grand-total {
+
+  font-size: 1.4rem;
+  font-weight: 800;
+
+  padding-top: 18px;
+
+}
+
+/* ===================================================== */
+/* PAYMENT METHODS */
+/* ===================================================== */
+
+.payment-methods-title {
+
+  text-align: center;
+
+  margin-bottom: 18px;
+
+  color: #666;
+
+}
+
+.payment-options-container {
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+}
+
+.payment-method-btn {
+
+  width: 100%;
+
+  --background: #f2f2f2;
+  --border-radius: 12px;
+
+  height: 52px;
+
+  font-weight: 600;
+
+}
+
+.payment-method-btn.selected {
+
+  --background: #dfefff;
+  border: 2px solid #3880ff;
+
+}
+
+/* ===================================================== */
+/* FIXED ACTIONS */
+/* ===================================================== */
+
+.fixed-actions {
+
+  flex-shrink: 0;
+
+  padding: 20px 24px;
+
+  border-top: 1px solid #ececec;
+
+  background: #ffffff;
+
+}
+
+.confirm-payment-btn {
+
+  margin-bottom: 10px;
+
+  height: 54px;
+
+  font-weight: 700;
+
+}
+
+.cancel-btn {
+
+  font-weight: 600;
+
+}
+
+/* ===================================================== */
+/* TABLET */
+/* ===================================================== */
+
+@media (max-width: 1024px) {
+
+  .top-section {
+
+    flex: 0 0 38%;
+
+  }
+
+}
+
+/* ===================================================== */
+/* MOBILE */
+/* ===================================================== */
+
+@media (max-width: 768px) {
+
+  .top-section {
+
+    flex: 0 0 34%;
+    min-height: 200px;
+
+  }
+
+  .payment-container {
+
+    padding: 18px;
+
+  }
+
+  .bottom-scrollable-content {
+
+    padding: 18px;
+
+  }
+
+  .fixed-actions {
+
+    padding: 18px;
+
+  }
+
+  .modal-title {
+
+    font-size: 1.6rem;
+
+  }
+
+  .summary-item {
+
+    font-size: 0.95rem;
+
+  }
+
 }

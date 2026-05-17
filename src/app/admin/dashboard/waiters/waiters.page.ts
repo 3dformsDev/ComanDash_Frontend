@@ -427,7 +427,6 @@ export class WaitersPage implements OnInit {
             orderId: order.id,
             movementType: 'sale',
             paymentMethodId: data.paymentMethodId,
-
             adjustments: data.adjustments || [],
           })
           .subscribe({
@@ -443,6 +442,8 @@ export class WaitersPage implements OnInit {
               }
 
               this.applyFilters();
+
+              this.showReceiptDownloadAlert(order.id);
             },
             error: (err) => {
               // ❌ Error: Este bloque se ejecuta si la petición falla (códigos 4xx, 5xx).
@@ -534,5 +535,33 @@ export class WaitersPage implements OnInit {
 
   trackByOrder(index: number, item: Order) {
     return item.id; // 👈 usa el id único de la orden
+  }
+  async showReceiptDownloadAlert(orderId: number) {
+    const alert = await this.alertController.create({
+      header: 'Pago realizado',
+      message: '¿Deseas descargar el recibo?',
+      cssClass: 'receipt-download-alert',
+      buttons: [
+        {
+          text: 'NO',
+          role: 'cancel',
+        },
+        {
+          text: 'SÍ DESCARGAR',
+          handler: () => {
+            this._ordersService.downloadReceipt(orderId).subscribe({
+              next: () => {
+                console.log('Recibo descargado correctamente');
+              },
+              error: (err) => {
+                console.error('Error descargando recibo', err);
+              },
+            });
+          },
+        },
+      ],
+    });
+
+    await alert.present();
   }
 }

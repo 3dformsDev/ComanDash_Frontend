@@ -1,17 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppState } from '@capacitor/app';
-import { AlertController, LoadingController, ModalController } from '@ionic/angular';
+import {
+  AlertController,
+  LoadingController,
+  ModalController,
+} from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { CategoriesService, CategoryI } from '@services/categories.service';
 import { ProductI, ProductsService } from '@services/products.service';
-import { filter, firstValueFrom, map, Observable, Subject, take, takeUntil, tap } from 'rxjs';
+import {
+  filter,
+  firstValueFrom,
+  map,
+  Observable,
+  Subject,
+  take,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { OrderSummaryComponent } from 'src/app/components/order-summary/order-summary.component';
 import * as OrdersActions from '@store/orders/actions/orders.actions';
 import { Actions, ofType } from '@ngrx/effects';
 import { ToastService } from '@services/toast.service';
 import { Order, OrderItem, OrdersState } from '@store/orders/orders.state';
 import { selectOrdersFeature } from '@store/orders/selectors/orders.selector';
+import { OrderService } from '@services/order.service';
 
 interface GroupedProduct extends ProductI {
   id: number;
@@ -44,7 +58,9 @@ export class OrdersPage implements OnInit {
 
   // Filtra la lista de platillos según la categoría seleccionada
   get menuItems() {
-    return this.allProducts.filter(item => item.categoryId === this.currentFilter);
+    return this.allProducts.filter(
+      (item) => item.categoryId === this.currentFilter,
+    );
   }
 
   // Calcula el número total de items en la orden
@@ -54,9 +70,12 @@ export class OrdersPage implements OnInit {
 
   // Calcula el costo total de la orden
   get orderTotal(): number {
-    return this.currentOrder.reduce((total, item) => total + (parseFloat(item.price.toString()) * item.quantity), 0);
+    return this.currentOrder.reduce(
+      (total, item) =>
+        total + parseFloat(item.price.toString()) * item.quantity,
+      0,
+    );
   }
-
 
   // --- CICLO DE VIDA Y MÉTODOS ---
 
@@ -68,8 +87,10 @@ export class OrdersPage implements OnInit {
     private actions$: Actions,
     private toastService: ToastService,
     private router: Router,
-    private loadingCtrl: LoadingController
-  ) { }
+    private loadingCtrl: LoadingController,
+    private _ordersService: OrderService,
+    private alertController: AlertController,
+  ) {}
 
   ngOnInit() {
     this.selectedOrders$ = this.store.select(selectOrdersFeature);
@@ -78,9 +99,13 @@ export class OrdersPage implements OnInit {
 
   async ionViewWillEnter() {
     try {
-      this.allCategories = await firstValueFrom(this._categoryService.getCategory(true));
-      this.allProducts = await firstValueFrom(this._productService.getProducts(true));
-      this.allProducts.forEach(product => {
+      this.allCategories = await firstValueFrom(
+        this._categoryService.getCategory(true),
+      );
+      this.allProducts = await firstValueFrom(
+        this._productService.getProducts(true),
+      );
+      this.allProducts.forEach((product) => {
         if (product.imageUrl) {
           this.loadProtectedImage(product.id);
         }
@@ -95,7 +120,6 @@ export class OrdersPage implements OnInit {
       console.error('Error al cargar las productos:', error);
     }
   }
-
 
   ionViewWillLeave() {
     // 1. Limpiamos el estado GLOBAL (NgRx Store)
@@ -129,7 +153,9 @@ export class OrdersPage implements OnInit {
   // orders.page.ts
 
   public addItem(item: ProductI): void {
-    const existingItemIndex = this.currentOrder.findIndex(p => p.id === item.id);
+    const existingItemIndex = this.currentOrder.findIndex(
+      (p) => p.id === item.id,
+    );
 
     if (existingItemIndex > -1) {
       // Si el producto ya existe...
@@ -162,21 +188,21 @@ export class OrdersPage implements OnInit {
    * @param item El objeto del producto a quitar.
    */
   /**
- * Quita una unidad de un producto, manejando la cantidad.
- */
+   * Quita una unidad de un producto, manejando la cantidad.
+   */
   public removeItem(item: GroupedProduct): void {
-    const existingItem = this.currentOrder.find(p => p.id === item.id);
+    const existingItem = this.currentOrder.find((p) => p.id === item.id);
 
     if (!existingItem) return; // No hacer nada si no existe
 
     if (existingItem.quantity > 1) {
       // Si hay más de uno, solo reducimos la cantidad
-      this.currentOrder = this.currentOrder.map(p =>
-        p.id === item.id ? { ...p, quantity: p.quantity - 1 } : p
+      this.currentOrder = this.currentOrder.map((p) =>
+        p.id === item.id ? { ...p, quantity: p.quantity - 1 } : p,
       );
     } else {
       // Si solo queda uno, lo eliminamos del array
-      this.currentOrder = this.currentOrder.filter(p => p.id !== item.id);
+      this.currentOrder = this.currentOrder.filter((p) => p.id !== item.id);
     }
     console.log('Orden actual (agrupada):', this.currentOrder);
   }
@@ -185,7 +211,7 @@ export class OrdersPage implements OnInit {
    * Quita una unidad de un producto por ID (para uso en templates)
    */
   public removeItemById(itemId: number): void {
-    const existingItem = this.currentOrder.find(p => p.id === itemId);
+    const existingItem = this.currentOrder.find((p) => p.id === itemId);
     if (existingItem) {
       this.removeItem(existingItem);
     }
@@ -197,16 +223,18 @@ export class OrdersPage implements OnInit {
    * @returns La cantidad de ese producto en la orden.
    */
   public getItemQuantity(item: ProductI): number {
-    const orderItem = this.currentOrder.find(p => p.id === item.id);
+    const orderItem = this.currentOrder.find((p) => p.id === item.id);
     return orderItem ? orderItem.quantity : 0;
   }
 
   /**
-  * Método actualizado para abrir el modal
-  */
+   * Método actualizado para abrir el modal
+   */
   public async viewOrder(): Promise<void> {
     // ✅ PASO CLAVE: Obtenemos el estado de la orden ANTES de crear el modal.
-    const orderState = await firstValueFrom(this.store.select(selectOrdersFeature));
+    const orderState = await firstValueFrom(
+      this.store.select(selectOrdersFeature),
+    );
     let isAlreadyPaid = false;
 
     // ✅ Guardamos los items originales si estamos en modo edición
@@ -258,48 +286,61 @@ export class OrdersPage implements OnInit {
     console.log(`Valor de role ${role}`);
 
     if (role === 'confirmed') {
-
       // ✅ PASO 1: Obtener el estado actual de la orden desde el store
-      this.store.select(selectOrdersFeature).pipe(take(1)).subscribe(async orderState => {
+      this.store
+        .select(selectOrdersFeature)
+        .pipe(take(1))
+        .subscribe(async (orderState) => {
+          if (this.isEditMode) {
+            await this.showLoading('Actualizando comanda...');
 
-        if (this.isEditMode) {
-          await this.showLoading('Actualizando comanda...');
+            // ✅ PASO 2: Fusionar la orden original con los nuevos datos del modal
+            const originalOrder = orderState.currentOrder!;
+            const updatedOrderData: Partial<Order> = {
+              ...originalOrder, // Mantiene todos los datos originales (tableId, customerName, etc.)
+              ...data, // Sobrescribe con los nuevos datos (orderItems, kitchenNotes)
+            };
 
-          // ✅ PASO 2: Fusionar la orden original con los nuevos datos del modal
-          const originalOrder = orderState.currentOrder!;
-          const updatedOrderData: Partial<Order> = {
-            ...originalOrder, // Mantiene todos los datos originales (tableId, customerName, etc.)
-            ...data,          // Sobrescribe con los nuevos datos (orderItems, kitchenNotes)
-          };
+            console.log('¡Pedido actualizado!', updatedOrderData);
+            this.store.dispatch(
+              OrdersActions.updateOrder({
+                orderId: this.currentOrderId!,
+                order: updatedOrderData,
+              }),
+            );
+          } else {
+            console.log(data);
 
-          console.log('¡Pedido actualizado!', updatedOrderData);
-          this.store.dispatch(OrdersActions.updateOrder({
-            orderId: this.currentOrderId!,
-            order: updatedOrderData
-          }));
-
-        } else {
-          console.log(data);
-          
-          await this.showLoading('Enviando comanda...');
-          console.log('¡Pedido confirmado!', data);
-          this.store.dispatch(OrdersActions.createOrder({ order: {...data, paymentDetails:{
-            paymentMethodId: data.paymentMethodId,
-            notesPayment: data.notesPayment
-          }} }));
-        }
-      });
+            await this.showLoading('Enviando comanda...');
+            console.log('¡Pedido confirmado!', data);
+            this.store.dispatch(
+              OrdersActions.createOrder({
+                order: {
+                  ...data,
+                  paymentDetails: {
+                    paymentMethodId: data.paymentMethodId,
+                    notesPayment: data.notesPayment,
+                  },
+                },
+              }),
+            );
+          }
+        });
 
       this.currentOrder = []; // Limpia la orden después de confirmar
     }
-  }
+  } //aqui?
 
   async refreshData() {
     try {
-      this.allCategories = await firstValueFrom(this._categoryService.getCategory(true))
-      this.allProducts = await firstValueFrom(this._productService.getProducts(true));
+      this.allCategories = await firstValueFrom(
+        this._categoryService.getCategory(true),
+      );
+      this.allProducts = await firstValueFrom(
+        this._productService.getProducts(true),
+      );
 
-      this.allProducts.forEach(product => {
+      this.allProducts.forEach((product) => {
         if (product.imageUrl) {
           this.loadProtectedImage(product.id);
         }
@@ -312,47 +353,86 @@ export class OrdersPage implements OnInit {
   // ✅ NUEVO: Configurar listeners para las acciones
   private setupOrderActionListeners(): void {
     // Escuchar éxito
-    this.actions$.pipe(
-      ofType(OrdersActions.createOrderSuccess),
-      tap(async ({ order }) => {
-        await this.hideLoading();
+    this.actions$
+      .pipe(
+        ofType(OrdersActions.createOrderSuccess),
+        tap(async ({ order }) => {
+          await this.hideLoading();
 
-        this.toastService.presentToast(
-          `¡Pedido #${order.id || 'N/A'} creado exitosamente!`,
-          'success'
-        );
+          this.toastService.presentToast(
+            `¡Pedido #${order.id || 'N/A'} creado exitosamente!`,
+            'success',
+          );
 
-        this.currentOrder = [];
-        // Redirigir después de un breve delay
-        setTimeout(() => {
-          this.router.navigate(['/dashboard']);
-        }, 100);
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe();
+          this.currentOrder = [];
+
+          if (order.isAdvancePayment) {
+            const alert = await this.alertController.create({
+              header: 'Pago realizado',
+              message: '¿Deseas descargar el recibo?',
+              cssClass: 'receipt-download-alert',
+              buttons: [
+                {
+                  text: 'NO',
+                  role: 'cancel',
+                },
+                {
+                  text: 'SÍ DESCARGAR',
+                  handler: () => {
+                    this._ordersService.downloadReceipt(order.id!).subscribe({
+                      next: () => {
+                        console.log('Recibo descargado');
+                      },
+                      error: (err: any) => {
+                        console.error(err);
+                      },
+                    });
+                  },
+                },
+              ],
+            });
+
+            await alert.present();
+          }
+
+          // Redirigir después de un breve delay
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']);
+          }, 100);
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe();
 
     // ✅ PASO 3: Añadir listener para el éxito de la ACTUALIZACIÓN
-    this.actions$.pipe(
-      ofType(OrdersActions.updateOrderSuccess),
-      tap(async ({ order }) => {
-        await this.hideLoading();
-        this.toastService.presentToast(`¡Pedido #${order.orderNumber || 'N/A'} actualizado!`, 'success');
-        this.router.navigate(['/dashboard/waiters']); // O a donde quieras redirigir
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe();
+    this.actions$
+      .pipe(
+        ofType(OrdersActions.updateOrderSuccess),
+        tap(async ({ order }) => {
+          await this.hideLoading();
+          this.toastService.presentToast(
+            `¡Pedido #${order.orderNumber || 'N/A'} actualizado!`,
+            'success',
+          );
+          this.router.navigate(['/dashboard/waiters']); // O a donde quieras redirigir
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe();
 
     // Escuchar errores
-    this.actions$.pipe(
-      ofType(OrdersActions.createOrderFailure),
-      tap(({ error }: any) => {
-        this.toastService.presentToast(
-          `Error al crear el pedido: ${error.error.message}`,
-          'danger'
-        );
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe();
+    this.actions$
+      .pipe(
+        ofType(OrdersActions.createOrderFailure),
+        tap(({ error }: any) => {
+          this.toastService.presentToast(
+            `Error al crear el pedido: ${error.error.message}`,
+            'danger',
+          );
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe();
   }
 
   loadProtectedImage(productId: number) {
@@ -361,8 +441,11 @@ export class OrdersPage implements OnInit {
         this.protectedImages.set(productId, imageUrl);
       },
       error: (error) => {
-        console.error(`Error al cargar la imagen protegida para el producto ${productId}:`, error);
-      }
+        console.error(
+          `Error al cargar la imagen protegida para el producto ${productId}:`,
+          error,
+        );
+      },
     });
   }
 
@@ -373,7 +456,7 @@ export class OrdersPage implements OnInit {
     }
     this.loadingIndicator = await this.loadingCtrl.create({
       message,
-      spinner: 'crescent'
+      spinner: 'crescent',
     });
     await this.loadingIndicator.present();
   }
@@ -387,26 +470,33 @@ export class OrdersPage implements OnInit {
 
   // ✅ 7. Añade este nuevo método
   private populateOrderForEditing(): void {
-    this.store.select(selectOrdersFeature).pipe(
-      take(1),
-      filter(orderState => !!orderState.currentOrder)
-    ).subscribe(orderState => {
-      const orderToEdit = orderState.currentOrder!;
-      console.log('Cargando orden para editar:', orderToEdit);
+    this.store
+      .select(selectOrdersFeature)
+      .pipe(
+        take(1),
+        filter((orderState) => !!orderState.currentOrder),
+      )
+      .subscribe((orderState) => {
+        const orderToEdit = orderState.currentOrder!;
+        console.log('Cargando orden para editar:', orderToEdit);
 
-      if (orderToEdit.id) {
-        this.isEditMode = true;
-        this.currentOrderId = orderToEdit.id;
-      }
+        if (orderToEdit.id) {
+          this.isEditMode = true;
+          this.currentOrderId = orderToEdit.id;
+        }
 
-      // Mapeamos directamente a la estructura agrupada
-      const groupedItems = orderToEdit.orderItems.map(item => {
-        const product = this.allProducts.find(p => p.id === item.productId);
-        // Creamos el objeto con su cantidad correcta
-        return { ...product!, quantity: item.quantity };
-      }).filter(item => item.id); // Filtramos por si algún producto no fue encontrado
+        // Mapeamos directamente a la estructura agrupada
+        const groupedItems = orderToEdit.orderItems
+          .map((item) => {
+            const product = this.allProducts.find(
+              (p) => p.id === item.productId,
+            );
+            // Creamos el objeto con su cantidad correcta
+            return { ...product!, quantity: item.quantity };
+          })
+          .filter((item) => item.id); // Filtramos por si algún producto no fue encontrado
 
-      this.currentOrder = groupedItems;
-    });
+        this.currentOrder = groupedItems;
+      });
   }
 }

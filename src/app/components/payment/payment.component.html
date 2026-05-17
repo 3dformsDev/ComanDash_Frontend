@@ -1,42 +1,181 @@
-<ion-content>
-  <div class="payment-container">
-    <h3 class="modal-title">{{ pageTitle }}</h3>
+<ion-content class="payment-modal-content">
 
-    <div class="items-summary-list">
-      <div *ngFor="let item of orderItems" class="summary-item">
-        <span>{{ item.quantity }}x {{item.category.name}} - {{ item.name }}</span>
-        <span>${{ (item.price * item.quantity) | number:'1.0-0' }}</span>
+  <div class="payment-layout">
+
+    <!-- ===================================================== -->
+    <!-- TOP SECTION -->
+    <!-- ===================================================== -->
+
+    <div class="top-section">
+
+      <div class="payment-container">
+
+        <h3 class="modal-title">
+          {{ pageTitle }}
+        </h3>
+
+        <div class="items-summary-list">
+
+          <div
+            *ngFor="let item of orderItems"
+            class="summary-item">
+
+            <span>
+              {{ item.quantity }}x {{item.category.name}} - {{ item.name }}
+            </span>
+
+            <span>
+              ${{ (item.price * item.quantity) | number:'1.0-0' }}
+            </span>
+
+          </div>
+
+        </div>
+
       </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- BOTTOM SECTION -->
+    <!-- ===================================================== -->
+
+    <div class="bottom-section">
+
+      <div class="bottom-scrollable-content">
+
+        <!-- ACTION BUTTONS -->
+
+        <div class="adjustment-actions">
+
+          <ion-button
+            class="adjustment-btn remove-btn"
+            (click)="openAdjustmentModal('discount')">
+
+               -
+
+          </ion-button>
+
+          <ion-button
+            class="adjustment-btn add-btn"
+            (click)="openAdjustmentModal('charge')">
+
+             +
+
+          </ion-button>
+
+        </div>
+
+        <!-- ADJUSTMENTS -->
+
+        <div class="costs-summary">
+
+          <div
+            class="cost-row adjustment-row"
+            *ngFor="let adjustment of adjustments; let i = index">
+
+            <div class="adjustment-info">
+
+              <span>
+                {{ adjustment.description }}
+              </span>
+
+            </div>
+
+            <div class="adjustment-value-container">
+
+              <span
+                [class.text-success]="adjustment.type === 'charge'"
+                [class.text-danger]="adjustment.type === 'discount'">
+
+                {{ adjustment.type === 'charge' ? '+' : '-' }}
+
+                ${{ adjustment.amount | number:'1.0-0' }}
+
+              </span>
+
+              <ion-button
+                fill="clear"
+                class="remove-adjustment-btn"
+                (click)="removeAdjustment(i)">
+
+                ✕
+
+              </ion-button>
+
+            </div>
+
+          </div>
+
+          <div class="cost-row grand-total">
+
+            <span>
+              {{ isRefund ? 'TOTAL A DEVOLVER' : 'TOTAL A PAGAR' }}
+            </span>
+
+            <span>
+              ${{ total | number:'1.0-0' }}
+            </span>
+
+          </div>
+
+        </div>
+
+        <!-- PAYMENT METHODS -->
+
+        <div class="payment-methods">
+
+          <h4 class="payment-methods-title">
+            Seleccionar Método de Pago
+          </h4>
+
+          <div class="payment-options-container">
+
+            <ion-button
+              *ngFor="let method of allPaymentMethods"
+              fill="clear"
+              class="payment-method-btn"
+              [class.selected]="selectedPaymentMethod === method.id"
+              (click)="selectPaymentMethod(method.id)">
+
+              {{ method.name }}
+
+            </ion-button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- FIXED ACTIONS -->
+
+      <div class="fixed-actions">
+
+        <ion-button
+          expand="full"
+          class="confirm-payment-btn"
+          [disabled]="!selectedPaymentMethod || (isEditMode && paymentDifference === 0)"
+          (click)="confirmPayment()">
+
+          {{ isRefund ? 'Procesar Devolución' : 'Recibir Pago' }}
+
+        </ion-button>
+
+        <ion-button
+          expand="full"
+          fill="clear"
+          class="cancel-btn"
+          (click)="dismiss()">
+
+          Cancelar
+
+        </ion-button>
+
+      </div>
+
     </div>
 
   </div>
+
 </ion-content>
-
-<ion-footer class="ion-no-border">
-  <div class="costs-summary">
-    <div class="cost-row grand-total">
-      <span>{{ isRefund ? 'TOTAL A DEVOLVER' : 'TOTAL A PAGAR' }}</span>
-
-      <span>${{ total | number:'1.0-0' }}</span>
-    </div>
-  </div>
-
-  <div class="payment-methods">
-    <h4 class="payment-methods-title">Seleccionar Método de Pago</h4>
-    <div class="payment-options-container">
-      <ion-button *ngFor="let method of allPaymentMethods" fill="clear" class="payment-method-btn"
-        [class.selected]="selectedPaymentMethod === method.id" (click)="selectPaymentMethod(method.id)">
-        {{ method.name }}
-      </ion-button>
-    </div>
-  </div>
-
-  <ion-button expand="full" class="confirm-payment-btn"
-    [disabled]="!selectedPaymentMethod || (isEditMode && paymentDifference === 0)" (click)="confirmPayment()">
-    {{ isRefund ? 'Procesar Devolución' : 'Recibir Pago' }}
-  </ion-button>
-
-  <ion-button expand="full" fill="clear" class="cancel-btn" (click)="dismiss()">
-    Cancelar
-  </ion-button>
-</ion-footer>

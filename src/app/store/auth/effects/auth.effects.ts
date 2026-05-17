@@ -12,8 +12,8 @@ import { ROOT_EFFECTS_INIT } from '@ngrx/effects';
 import { Preferences } from '@capacitor/preferences';
 import { SocketService } from '@services/socket.service';
 import { NotificationService } from '@services/notification.service';
+import { SessionActivityService } from 'src/app/core/services/session-activity.service';@Injectable()
 
-@Injectable()
 export class AuthEffects {
 
     init$ = createEffect(() =>
@@ -92,11 +92,17 @@ export class AuthEffects {
             exhaustMap(({ user, token }) =>
                 this.authService.saveAuthData(token, user).pipe(
                     tap(() => {
+
                         this.socketService.connect(token);
+
                         this.notificationService.init();
+
+                        this.sessionActivityService.startMonitoring();
+
                         this.toastService.presentToast('¡Bienvenido!', 'success');
+
                         this.router.navigate(['/dashboard']);
-                    }),
+                      }),
                 )
             )
         ), { dispatch: false }
@@ -129,9 +135,14 @@ export class AuthEffects {
                     ),
                     // 4. Ejecuta todas las demás tareas de limpieza y navegación.
                     tap(() => {
-                        this.socketService.disconnect();
-                        this.notificationService.shutdown();
-                        this.router.navigate(['/login']);
+
+                      this.sessionActivityService.stopMonitoring();
+
+                      this.socketService.disconnect();
+
+                      this.notificationService.shutdown();
+
+                      this.router.navigate(['/login']);
                     })
                 )
             )
@@ -162,11 +173,12 @@ export class AuthEffects {
     }
 
     constructor(
-        private actions$: Actions,
-        private authService: AuthService,
-        private toastService: ToastService,
-        private router: Router,
-        private socketService: SocketService,
-        private notificationService: NotificationService
-    ) { }
+    private actions$: Actions,
+    private authService: AuthService,
+    private toastService: ToastService,
+    private router: Router,
+    private socketService: SocketService,
+    private notificationService: NotificationService,
+    private sessionActivityService: SessionActivityService
+) { }
 }
