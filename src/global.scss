@@ -31,339 +31,338 @@
 
 /* Variables de la nueva paleta para Ionic */
 :root {
-    /* Colores principales usando tu paleta */
-    --ion-color-primary: #ff3131;
-    --ion-color-primary-rgb: 255, 49, 49;
-    --ion-color-primary-contrast: #ffffff;
-    --ion-color-primary-contrast-rgb: 255, 255, 255;
-    --ion-color-primary-shade: #e82929;
-    --ion-color-primary-tint: #ff4444;
+  /* Colores principales usando tu paleta */
+  --ion-color-primary: #ff3131;
+  --ion-color-primary-rgb: 255, 49, 49;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #e82929;
+  --ion-color-primary-tint: #ff4444;
 
-    /* Colores secundarios */
-    --ion-color-secondary: #FF6B53;
-    --ion-color-secondary-rgb: 255, 107, 83;
-    --ion-color-secondary-contrast: #ffffff;
-    --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  /* Colores secundarios */
+  --ion-color-secondary: #ff6b53;
+  --ion-color-secondary-rgb: 255, 107, 83;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
 
-    /* Colores de estado usando tu paleta */
-    --ion-color-success: #FF6B53;
-    --ion-color-success-rgb: 40, 167, 69;
-    --ion-color-success-contrast: #ffffff;
+  /* Colores de estado usando tu paleta */
+  --ion-color-success: #ff6b53;
+  --ion-color-success-rgb: 40, 167, 69;
+  --ion-color-success-contrast: #ffffff;
 
-    --ion-color-warning: #ffc107;
-    --ion-color-warning-rgb: 255, 193, 7;
-    --ion-color-warning-contrast: #000000;
+  --ion-color-warning: #ffc107;
+  --ion-color-warning-rgb: 255, 193, 7;
+  --ion-color-warning-contrast: #000000;
 
-    --ion-color-danger: #ff3131;
-    --ion-color-danger-rgb: 255, 49, 49;
-    --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger: #ff3131;
+  --ion-color-danger-rgb: 255, 49, 49;
+  --ion-color-danger-contrast: #ffffff;
 
-    /* Colores neutros de tu paleta */
-    --ion-color-dark: #000000;
-    --ion-color-dark-rgb: 0, 0, 0;
-    --ion-color-dark-contrast: #ffffff;
+  /* Colores neutros de tu paleta */
+  --ion-color-dark: #000000;
+  --ion-color-dark-rgb: 0, 0, 0;
+  --ion-color-dark-contrast: #ffffff;
 
-    --ion-color-medium: #8a8a8a;
-    --ion-color-medium-rgb: 138, 138, 138;
-    --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium: #8a8a8a;
+  --ion-color-medium-rgb: 138, 138, 138;
+  --ion-color-medium-contrast: #ffffff;
 
-    --ion-color-light: #d5d5d5;
-    --ion-color-light-rgb: 213, 213, 213;
-    --ion-color-light-contrast: #000000;
+  --ion-color-light: #d5d5d5;
+  --ion-color-light-rgb: 213, 213, 213;
+  --ion-color-light-contrast: #000000;
 
-    /* Colores de texto */
-    --ion-text-color: #2f2f2f;
-    --ion-text-color-rgb: 47, 47, 47;
+  /* Colores de texto */
+  --ion-text-color: #2f2f2f;
+  --ion-text-color-rgb: 47, 47, 47;
 
-    /* Fondo */
-    --ion-background-color: #ffffff;
-    --ion-background-color-rgb: 255, 255, 255;
+  /* Fondo */
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
 }
 
 /* Estilos para el banner del header - MÁS COMPACTO */
 .banner-wrapper {
-    background: var(--ion-color-primary);
-    color: var(--ion-color-primary-contrast);
-    padding: 25px 20px 20px 20px;
-    /* Reducido de 40px */
-    border-bottom-left-radius: 30px;
-    border-bottom-right-radius: 30px;
-    position: relative;
-    overflow: hidden;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  padding: 25px 20px 20px 20px;
+  /* Reducido de 40px */
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+  position: relative;
+  overflow: hidden;
 }
 
 .inner-wrapper {
-    position: relative;
-    z-index: 2;
+  position: relative;
+  z-index: 2;
 }
 
 .banner-wrapper ion-title {
-    font-size: 2.5rem;
-    /* Reducido de 3rem */
-    font-weight: bold;
-    font-family: 'Roboto Slab', serif;
+  font-size: 2.5rem;
+  /* Reducido de 3rem */
+  font-weight: bold;
+  font-family: "Roboto Slab", serif;
 }
 
 .banner-wrapper p {
-    margin-top: 0;
-    font-size: 0.9rem;
-    /* Reducido de 1rem */
+  margin-top: 0;
+  font-size: 0.9rem;
+  /* Reducido de 1rem */
 }
 
 /* Círculo decorativo del fondo */
 .circle-1 {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    background: rgb(255, 255, 255);
-    border-radius: 50%;
-    top: -50px;
-    right: -70px;
-    z-index: 1;
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: rgb(255, 255, 255);
+  border-radius: 50%;
+  top: -50px;
+  right: -70px;
+  z-index: 1;
 }
 
 /* Estilos para el contenedor del formulario - MÁS COMPACTO */
 .account-area {
-    margin-top: 15px;
-    /* Reducido de 20px */
+  margin-top: 15px;
+  /* Reducido de 20px */
 }
 
 .account-area h3 {
-    font-weight: bold;
-    font-size: 1.4rem;
-    /* Reducido de 1.5rem */
-    margin-bottom: 8px;
-    /* Reducido margen */
-    color: var(--ion-text-color);
+  font-weight: bold;
+  font-size: 1.4rem;
+  /* Reducido de 1.5rem */
+  margin-bottom: 8px;
+  /* Reducido margen */
+  color: var(--ion-text-color);
 }
 
 .account-area p {
-    color: var(--ion-color-medium);
-    margin-bottom: 20px;
-    /* Reducido de 30px */
-    font-size: 0.9rem;
-    /* Más compacto */
-    line-height: 1.3;
+  color: var(--ion-color-medium);
+  margin-bottom: 20px;
+  /* Reducido de 30px */
+  font-size: 0.9rem;
+  /* Más compacto */
+  line-height: 1.3;
 }
 
 /* Estilos mejorados para los inputs - MÁS COMPACTOS */
 .custom-input-item {
-    --background: #ffffff;
-    --border-radius: 16px;
-    --padding-start: 16px;
-    --padding-end: 16px;
-    --inner-padding-end: 16px;
-    --border-width: 0;
-    --min-height: 52px;
-    /* Reducido de 64px */
-    margin-bottom: 12px;
-    /* Reducido de 16px */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid #d5d5d5;
-    /* Usando el gris de tu paleta */
-    transition: all 0.3s ease;
+  --background: #ffffff;
+  --border-radius: 16px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 16px;
+  --border-width: 0;
+  --min-height: 52px;
+  /* Reducido de 64px */
+  margin-bottom: 12px;
+  /* Reducido de 16px */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d5d5d5;
+  /* Usando el gris de tu paleta */
+  transition: all 0.3s ease;
 }
 
 .custom-input-item:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .custom-input-item.item-has-focus {
-    border-color: var(--ion-color-primary);
-    box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.2);
+  border-color: var(--ion-color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.2);
 }
 
 .custom-input-item ion-label {
-    --color: var(--ion-color-medium);
-    font-weight: 500;
-    font-size: 0.9rem;
+  --color: var(--ion-color-medium);
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .custom-input-item ion-input {
-    --color: var(--ion-text-color);
-    --placeholder-color: var(--ion-color-medium);
-    font-size: 0.95rem;
-    /* Ligeramente reducido */
-    font-weight: 400;
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  font-size: 0.95rem;
+  /* Ligeramente reducido */
+  font-weight: 400;
 }
 
 .custom-input-item ion-icon[slot="start"] {
-    margin-right: 12px;
-    font-size: 1.2rem;
-    color: var(--ion-color-medium);
+  margin-right: 12px;
+  font-size: 1.2rem;
+  color: var(--ion-color-medium);
 }
 
 /* Botón toggle de contraseña */
 .password-toggle {
-    --color: var(--ion-color-medium);
-    --background: transparent;
-    --padding-start: 8px;
-    --padding-end: 8px;
+  --color: var(--ion-color-medium);
+  --background: transparent;
+  --padding-start: 8px;
+  --padding-end: 8px;
 }
 
 /* Botón de login más compacto */
 .login-btn {
-    margin-top: 15px !important;
-    /* Reducido margen */
-    margin-bottom: 15px;
-    --background: var(--ion-color-primary);
-    --color: var(--ion-color-primary-contrast);
+  margin-top: 15px !important;
+  /* Reducido margen */
+  margin-bottom: 15px;
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
 }
 
 .login-btn:hover {
-    --background: var(--ion-color-primary-shade);
+  --background: var(--ion-color-primary-shade);
 }
 
 /* Sección de opciones más compacta */
 .options-grid {
-    margin-top: 10px !important;
-    /* Reducido margen */
-    margin-bottom: 15px;
+  margin-top: 10px !important;
+  /* Reducido margen */
+  margin-bottom: 15px;
 }
 
 .checkbox-item {
-    --padding-start: 0;
-    --inner-padding-end: 0;
+  --padding-start: 0;
+  --inner-padding-end: 0;
 }
 
 /* Mejoras para el checkbox */
 .account-area ion-checkbox {
-    --size: 18px;
-    /* Reducido de 20px */
-    margin-right: 8px;
-    /* Reducido de 10px */
-    --checkmark-color: var(--ion-color-primary-contrast);
-    --background-checked: var(--ion-color-primary);
-    --border-color-checked: var(--ion-color-primary);
+  --size: 18px;
+  /* Reducido de 20px */
+  margin-right: 8px;
+  /* Reducido de 10px */
+  --checkmark-color: var(--ion-color-primary-contrast);
+  --background-checked: var(--ion-color-primary);
+  --border-color-checked: var(--ion-color-primary);
 }
 
 /* Texto de registro más compacto */
 .signup-text {
-    margin-top: 15px !important;
-    /* Reducido margen */
-    margin-bottom: 10px;
+  margin-top: 15px !important;
+  /* Reducido margen */
+  margin-bottom: 10px;
 }
 
 .signup-text ion-text {
-    font-size: 0.9rem;
-    color: var(--ion-text-color);
+  font-size: 0.9rem;
+  color: var(--ion-text-color);
 }
 
 /* Botones más pequeños */
 .forgot-btn {
-    font-size: 0.85rem !important;
-    --color: var(--ion-color-primary);
+  font-size: 0.85rem !important;
+  --color: var(--ion-color-primary);
 }
 
 .forgot-btn:hover {
-    --color: var(--ion-color-primary-shade);
+  --color: var(--ion-color-primary-shade);
 }
 
 /* Footer */
 ion-footer ion-toolbar {
-    --background: transparent;
-    --min-height: 50px;
-    /* Más compacto */
+  --background: transparent;
+  --min-height: 50px;
+  /* Más compacto */
 }
 
 /* Animación sutil para los inputs */
 @keyframes inputFocus {
-    from {
-        transform: scale(1);
-    }
+  from {
+    transform: scale(1);
+  }
 
-    to {
-        transform: scale(1.02);
-    }
+  to {
+    transform: scale(1.02);
+  }
 }
 
 .custom-input-item.item-has-focus {
-    animation: inputFocus 0.2s ease-out;
+  animation: inputFocus 0.2s ease-out;
 }
 
 /* Responsividad */
 @media (max-width: 576px) {
-    .banner-wrapper {
-        padding: 20px 16px 15px 16px;
-        /* Más compacto en móviles */
-    }
+  .banner-wrapper {
+    padding: 20px 16px 15px 16px;
+    /* Más compacto en móviles */
+  }
 
-    .banner-wrapper ion-title {
-        font-size: 2.2rem;
-        /* Reducido */
-    }
+  .banner-wrapper ion-title {
+    font-size: 2.2rem;
+    /* Reducido */
+  }
 
-    .account-area {
-        margin-top: 12px;
-    }
+  .account-area {
+    margin-top: 12px;
+  }
 
-    .custom-input-item {
-        --min-height: 48px;
-        /* Más compacto */
-        margin-bottom: 10px;
-    }
+  .custom-input-item {
+    --min-height: 48px;
+    /* Más compacto */
+    margin-bottom: 10px;
+  }
 
-    .account-area h3 {
-        font-size: 1.3rem;
-    }
+  .account-area h3 {
+    font-size: 1.3rem;
+  }
 }
 
 /* Para pantallas con poca altura */
 @media (max-height: 667px) {
-    .banner-wrapper {
-        padding: 18px 16px 12px 16px;
-    }
+  .banner-wrapper {
+    padding: 18px 16px 12px 16px;
+  }
 
-    .banner-wrapper ion-title {
-        font-size: 2.1rem;
-    }
+  .banner-wrapper ion-title {
+    font-size: 2.1rem;
+  }
 
-    .account-area {
-        margin-top: 10px;
-    }
+  .account-area {
+    margin-top: 10px;
+  }
 
-    .custom-input-item {
-        --min-height: 46px;
-        margin-bottom: 8px;
-    }
+  .custom-input-item {
+    --min-height: 46px;
+    margin-bottom: 8px;
+  }
 
-    .login-btn {
-        margin-top: 10px !important;
-        margin-bottom: 10px;
-    }
+  .login-btn {
+    margin-top: 10px !important;
+    margin-bottom: 10px;
+  }
 
-    .options-grid {
-        margin-top: 8px !important;
-        margin-bottom: 10px;
-    }
+  .options-grid {
+    margin-top: 8px !important;
+    margin-bottom: 10px;
+  }
 
-    .signup-text {
-        margin-top: 10px !important;
-        margin-bottom: 5px;
-    }
+  .signup-text {
+    margin-top: 10px !important;
+    margin-bottom: 5px;
+  }
 }
 
 .error-message {
-    color: var(--ion-color-danger);
-    font-size: 0.8em;
-    padding-top: 4px;
+  color: var(--ion-color-danger);
+  font-size: 0.8em;
+  padding-top: 4px;
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
 }
 
 .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* ... (Aquí irían tus otras animaciones y estilos generales como .dot, etc.) */
-
 
 /* ================================================= */
 /* ==      ESTILOS PARA OTROS MODALES (INTACTOS)    == */
@@ -371,184 +370,180 @@ body {
 
 /* Estos son los estilos que pediste no eliminar. Se quedan por si los usas en otro lugar. */
 .table-selection-modal {
-    --backdrop-opacity: 0.6 !important;
+  --backdrop-opacity: 0.6 !important;
 }
 
 ion-modal#example-modal {
-    --width: fit-content;
-    --min-width: 250px;
-    --height: fit-content;
-    --border-radius: 6px;
-    --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+  --width: fit-content;
+  --min-width: 250px;
+  --height: fit-content;
+  --border-radius: 6px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
 }
 
 ion-modal#example-modal h1 {
-    margin: 20px 20px 10px 20px;
+  margin: 20px 20px 10px 20px;
 }
-
 
 /* ================================================= */
 /* == ESTILOS DEFINITIVOS PARA EL MODAL DE MESAS  == */
 /* ================================================= */
 
 ion-modal#table-modal {
-    /* Define la altura máxima y activa el efecto "diálogo" */
-    --height: 70vh;
-    --max-height: 600px;
-    --width: fit-content;
-    --min-width: 340px;
-    --border-radius: 24px;
-    --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    --backdrop-opacity: 0.6;
+  /* Define la altura máxima y activa el efecto "diálogo" */
+  --height: 70vh;
+  --max-height: 600px;
+  --width: fit-content;
+  --min-width: 340px;
+  --border-radius: 24px;
+  --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  --backdrop-opacity: 0.6;
 }
 
 /* --- NUEVA REGLA PARA EL LAYOUT DEL COMPONENTE --- */
 /* Esto asegura que el componente ocupe todo el espacio del modal
      y que el footer se posicione correctamente en la parte inferior. */
 ion-modal#table-modal app-table-selection {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
-
 
 /* Hacemos transparentes los fondos de header, footer y content
      para que tomen el color blanco del modal */
 ion-modal#table-modal ion-header,
 ion-modal#table-modal ion-footer,
 ion-modal#table-modal ion-content {
-    --background: transparent;
+  --background: transparent;
 }
 
 /* Estilos para el título fijo */
 ion-modal#table-modal .modal-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    padding-top: 16px !important;
-    text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  padding-top: 16px !important;
+  text-align: center;
 }
 
 /* Espaciado para las columnas */
 ion-modal#table-modal ion-col {
-    padding: 6px;
+  padding: 6px;
 }
 
 /* Estilo de los botones de mesa */
 ion-modal#table-modal .table-button {
-    --background: #f3f4f6;
-    --color: #1f2937;
-    --border-radius: 12px;
-    height: 60px;
-    width: 100%;
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0;
+  --background: #f3f4f6;
+  --color: #1f2937;
+  --border-radius: 12px;
+  height: 60px;
+  width: 100%;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
 }
 
 /* Estilo del botón de cancelar fijo */
 ion-modal#table-modal .cancel-button {
-    --color: #6b7280;
-    font-weight: 500;
-    text-transform: none;
+  --color: #6b7280;
+  font-weight: 500;
+  text-transform: none;
 }
-
 
 /* ================================================= */
 /* ==   ESTILOS PARA EL MODAL DE NOMBRE DE CLIENTE  == */
 /* ================================================= */
 
 ion-modal#name-of-client-modal {
-    --height: fit-content;
-    --width: 90%;
-    --max-width: 400px;
-    --border-radius: 24px;
-    --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    --backdrop-opacity: 0.6;
+  --height: fit-content;
+  --width: 90%;
+  --max-width: 400px;
+  --border-radius: 24px;
+  --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  --backdrop-opacity: 0.6;
 
-    /* Asegura que el contenido tenga un padding si no lo tiene ya el div */
-    --padding-start: 16px;
-    --padding-end: 16px;
-    --padding-top: 16px;
-    /* Ajusta si es necesario */
-    --padding-bottom: 16px;
-    /* Ajusta si es necesario */
+  /* Asegura que el contenido tenga un padding si no lo tiene ya el div */
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 16px;
+  /* Ajusta si es necesario */
+  --padding-bottom: 16px;
+  /* Ajusta si es necesario */
 }
 
 /* Hacemos transparentes los fondos para que se vea el color del modal */
 ion-modal#name-of-client-modal ion-header,
 ion-modal#name-of-client-modal ion-footer {
-    --background: transparent;
+  --background: transparent;
 }
 
 /* Título del modal */
 ion-modal#name-of-client-modal .modal-title {
-    font-size: 1.25rem;
-    /* 20px */
-    font-weight: 700;
-    color: #1f2937;
-    padding-top: 16px !important;
-    text-align: center;
+  font-size: 1.25rem;
+  /* 20px */
+  font-weight: 700;
+  color: #1f2937;
+  padding-top: 16px !important;
+  text-align: center;
 }
 
 /* CORRECCIÓN: Estilo personalizado para el campo de texto (ion-input) */
 ion-modal#name-of-client-modal .custom-input {
-    --background: #ffffff;
-    --padding-start: 16px;
-    --padding-end: 16px;
-    --padding-top: 12px;
-    --padding-bottom: 12px;
-    margin-top: 8px;
-    --border-color: #d1d5db;
-    --border-style: solid;
-    --border-width: 1px;
-    --border-radius: 12px;
-    --color: #1f2937;
-    --placeholder-color: #9ca3af;
+  --background: #ffffff;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  margin-top: 8px;
+  --border-color: #d1d5db;
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 12px;
+  --color: #1f2937;
+  --placeholder-color: #9ca3af;
 }
 
 /* Si aún no se ve el borde, puedes intentar con esta regla más específica */
 ion-modal#name-of-client-modal .custom-input .input-wrapper {
-    border: 1px solid var(--border-color, #d1d5db);
-    border-radius: var(--border-radius, 12px);
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: var(--border-radius, 12px);
 }
-
 
 /* Mensaje de error */
 ion-modal#name-of-client-modal .error-message {
-    color: #ef4444;
-    /* text-red-500 */
-    font-size: 0.875rem;
-    /* 14px */
-    padding-left: 16px;
-    min-height: 20px;
-    margin-top: 4px;
+  color: #ef4444;
+  /* text-red-500 */
+  font-size: 0.875rem;
+  /* 14px */
+  padding-left: 16px;
+  min-height: 20px;
+  margin-top: 4px;
 }
 
 /* Botón de cancelar */
 ion-modal#name-of-client-modal .cancel-button {
-    --background: #e5e7eb;
-    /* bg-gray-200 */
-    --color: #1f2937;
-    --border-radius: 12px;
-    font-weight: 600;
-    --box-shadow: none;
+  --background: #e5e7eb;
+  /* bg-gray-200 */
+  --color: #1f2937;
+  --border-radius: 12px;
+  font-weight: 600;
+  --box-shadow: none;
 }
 
 /* Botón de confirmar */
 ion-modal#name-of-client-modal .confirm-button {
-    --background: #ff3131;
-    /* bg-indigo-600 */
-    --color: #ffffff;
-    --border-radius: 12px;
-    font-weight: 600;
-    --box-shadow: none;
+  --background: #ff3131;
+  /* bg-indigo-600 */
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: 600;
+  --box-shadow: none;
 }
 
 ion-modal#name-of-client-modal .custom-input.ion-focused,
 ion-modal#name-of-client-modal .custom-input.ion-valid.ion-focused {
-    --border-color: #ff3131;
-    /* Mismo azul que el botón de confirmar */
+  --border-color: #ff3131;
+  /* Mismo azul que el botón de confirmar */
 }
 
 /*
@@ -556,43 +551,42 @@ ion-modal#name-of-client-modal .custom-input.ion-valid.ion-focused {
  * Usamos la propiedad 'gap' en la fila para crear el espacio.
 */
 ion-modal#name-of-client-modal ion-footer ion-row {
-    gap: 12px;
-    /* Puedes ajustar este valor (ej: 8px, 16px) */
+  gap: 12px;
+  /* Puedes ajustar este valor (ej: 8px, 16px) */
 }
-
 
 /* Estilos para los botones (sin cambios) */
 ion-modal#name-of-client-modal .cancel-button {
-    --background: #e5e7eb;
-    --color: #1f2937;
-    --border-radius: 12px;
-    font-weight: 600;
+  --background: #e5e7eb;
+  --color: #1f2937;
+  --border-radius: 12px;
+  font-weight: 600;
 }
 
 ion-modal#name-of-client-modal .confirm-button {
-    --background: #ff3131;
-    --color: #ffffff;
-    --border-radius: 12px;
-    font-weight: 600;
+  --background: #ff3131;
+  --color: #ffffff;
+  --border-radius: 12px;
+  font-weight: 600;
 }
 
 /* ================================================= */
 /* ==   ESTILOS PARA EL MODAL DE RESUMEN DE PEDIDO  == */
 /* ================================================= */
 .order-summary-modal {
-    // MODIFICADO: Alinea el modal en la parte inferior
-    --align-items: flex-end;
+  // MODIFICADO: Alinea el modal en la parte inferior
+  --align-items: flex-end;
 
-    // MODIFICADO: Establece una altura máxima para que no ocupe toda la pantalla
-    // --height: 85vh; // Ocupará como máximo el 85% del alto de la pantalla
+  // MODIFICADO: Establece una altura máxima para que no ocupe toda la pantalla
+  // --height: 85vh; // Ocupará como máximo el 85% del alto de la pantalla
 
-    // El ancho y la sombra se mantienen
-    --width: 100%;
-    --max-width: 500px; // Un poco más ancho para pantallas grandes
-    --box-shadow: 0 -5px 25px -5px rgb(0 0 0 / 0.1);
+  // El ancho y la sombra se mantienen
+  --width: 100%;
+  --max-width: 500px; // Un poco más ancho para pantallas grandes
+  --box-shadow: 0 -5px 25px -5px rgb(0 0 0 / 0.1);
 
-    // MODIFICADO: El borde se gestiona en el componente para que solo sea arriba
-    --border-radius: 1rem;
+  // MODIFICADO: El borde se gestiona en el componente para que solo sea arriba
+  --border-radius: 1rem;
 }
 
 /* ================================================= */
@@ -633,10 +627,7 @@ ion-modal#name-of-client-modal .confirm-button {
 //     --background: white;
 // }
 
-
-
 .session-timeout-alert {
-
   .alert-button-role-confirm {
     color: #2dd36f !important;
     font-weight: 600;
@@ -645,5 +636,76 @@ ion-modal#name-of-client-modal .confirm-button {
   .alert-button-role-destructive {
     color: #eb445a !important;
     font-weight: 600;
+  }
+}
+
+/* ===================================================== */
+/* PAYMENT MODAL */
+/* ===================================================== */
+
+ion-modal.payment-modal-class {
+  --width: 680px;
+  --height: 92vh;
+
+  --border-radius: 22px;
+}
+
+/* ===================================================== */
+/* TABLET */
+/* ===================================================== */
+
+@media (max-width: 1024px) {
+  ion-modal.payment-modal-class {
+    --width: 640px;
+    --height: 88vh;
+  }
+}
+
+/* ===================================================== */
+/* MOBILE */
+/* ===================================================== */
+
+@media (max-width: 768px) {
+  ion-modal.payment-modal-class {
+    --width: 95%;
+    --height: 92vh;
+  }
+}
+
+/* ===================================================== */
+/* RECEIPT DOWNLOAD ALERT */
+/* ===================================================== */
+
+.receipt-download-alert {
+  .alert-wrapper {
+    border-radius: 18px !important;
+    padding: 12px !important;
+  }
+
+  .alert-head {
+    text-align: center !important;
+    padding-bottom: 8px !important;
+  }
+
+  .alert-title {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+  }
+
+  .alert-message {
+    text-align: center !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+
+  .alert-button-group {
+    justify-content: center !important;
+    padding-top: 10px !important;
+  }
+
+  .alert-button {
+    font-weight: 700 !important;
+    min-width: 120px;
   }
 }

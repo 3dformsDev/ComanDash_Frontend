@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, Input, OnInit, ViewChild, AfterViewInit, NgZone } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  NgZone,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { PaymentComponent } from '../payment/payment.component';
@@ -10,7 +18,7 @@ import { ProductsService } from '@services/products.service';
   templateUrl: './order-summary.component.html',
   styleUrls: ['./order-summary.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class OrderSummaryComponent implements OnInit, AfterViewInit {
   @Input() orderItems: any[] = [];
@@ -27,7 +35,10 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   public protectedImages = new Map<number, string>();
 
   get subtotal() {
-    return this.orderItems.reduce((acc, item) => acc + parseFloat(item.price), 0);
+    return this.orderItems.reduce(
+      (acc, item) => acc + parseFloat(item.price),
+      0,
+    );
   }
   get serviceFee() {
     // return this.subtotal * 0.10;
@@ -40,8 +51,8 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   constructor(
     private modalCtrl: ModalController,
     private elementRef: ElementRef,
-    private _productService: ProductsService
-  ) { }
+    private _productService: ProductsService,
+  ) {}
 
   ngOnInit() {
     this.groupItems();
@@ -71,7 +82,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
 
   groupItems() {
     const grouped = new Map();
-    this.orderItems.forEach(item => {
+    this.orderItems.forEach((item) => {
       if (grouped.has(item.id)) {
         grouped.get(item.id).quantity++;
       } else {
@@ -80,12 +91,11 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
     });
     this.groupedOrderItems = Array.from(grouped.values());
     // Cargar imagen protegida para cada producto que tenga imagen
-    this.groupedOrderItems.forEach(product => {
+    this.groupedOrderItems.forEach((product) => {
       if (product.imageUrl) {
         this.loadProtectedImage(product.id);
       }
     });
-
   }
 
   addItem(item: any) {
@@ -94,7 +104,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   }
 
   removeItem(item: any) {
-    const index = this.orderItems.findIndex(i => i.id === item.id);
+    const index = this.orderItems.findIndex((i) => i.id === item.id);
     if (index > -1) {
       // ✅ Crea un nuevo array excluyendo el elemento
       this.orderItems = this.orderItems.filter((_, i) => i !== index);
@@ -130,7 +140,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
             items: this.groupedOrderItems.reduce((obj, item) => {
               obj[item.id] = item;
               return obj;
-            }, {})
+            }, {}),
           },
           originalOrderItems: this.originalOrderItems,
           isEditMode: this.isEditMode,
@@ -149,7 +159,12 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
           kitchenNotes: this.kitchenNotes,
           ...data,
         };
-        await this.modalCtrl.dismiss(finalOrderWithPayment, 'confirmed', this.modalId);
+
+        await this.modalCtrl.dismiss(
+          finalOrderWithPayment,
+          'confirmed',
+          this.modalId,
+        );
       }
     } else {
       // --- CASO B: CONFIRMAR DIRECTAMENTE (SIN PAGO) ---
@@ -253,8 +268,11 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
         this.protectedImages.set(productId, imageUrl);
       },
       error: (error) => {
-        console.error(`Error al cargar la imagen protegida para el producto ${productId}:`, error);
-      }
+        console.error(
+          `Error al cargar la imagen protegida para el producto ${productId}:`,
+          error,
+        );
+      },
     });
   }
 
@@ -265,7 +283,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
     }
 
     const originalMap = new Map<number, number>();
-    this.originalOrderItems.forEach(item => {
+    this.originalOrderItems.forEach((item) => {
       originalMap.set(item.productId, item.quantity);
     });
 
@@ -285,24 +303,37 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
     }
 
     const originalQuantities = new Map<number, number>();
-    this.originalOrderItems.forEach(item => {
+    this.originalOrderItems.forEach((item) => {
       originalQuantities.set(item.productId, item.quantity);
     });
 
-    const newQuantities = new Map<number, { quantity: number; price: number }>();
-    this.groupedOrderItems.forEach(item => {
-      newQuantities.set(item.id, { quantity: item.quantity, price: parseFloat(item.price) });
+    const newQuantities = new Map<
+      number,
+      { quantity: number; price: number }
+    >();
+    this.groupedOrderItems.forEach((item) => {
+      newQuantities.set(item.id, {
+        quantity: item.quantity,
+        price: parseFloat(item.price),
+      });
     });
 
     let difference = 0;
-    const allProductIds = new Set([...originalQuantities.keys(), ...newQuantities.keys()]);
+    const allProductIds = new Set([
+      ...originalQuantities.keys(),
+      ...newQuantities.keys(),
+    ]);
 
-    allProductIds.forEach(id => {
+    allProductIds.forEach((id) => {
       const originalQty = originalQuantities.get(id) || 0;
       const newQtyData = newQuantities.get(id);
       const newQty = newQtyData ? newQtyData.quantity : 0;
       // Busca el precio en los items nuevos primero, si no, en los originales.
-      const price = newQtyData ? newQtyData.price : (parseFloat(this.originalOrderItems.find(i => i.productId === id)?.unitPrice) || 0);
+      const price = newQtyData
+        ? newQtyData.price
+        : parseFloat(
+            this.originalOrderItems.find((i) => i.productId === id)?.unitPrice,
+          ) || 0;
 
       const quantityChange = newQty - originalQty;
       difference += quantityChange * price;
