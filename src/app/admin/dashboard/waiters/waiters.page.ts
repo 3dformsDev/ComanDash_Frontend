@@ -21,7 +21,6 @@ import { ToastService } from '@services/toast.service';
   standalone: false,
 })
 export class WaitersPage implements OnInit {
-
   allOrders: Order[] = [];
   filteredOrders: any[] = [];
   pendingOrders: Order[] = [];
@@ -46,11 +45,11 @@ export class WaitersPage implements OnInit {
     private _toastService: ToastService,
     private alertController: AlertController,
     private modalCtrl: ModalController,
-    private store: Store<AppState>
-  ) { }
+    private store: Store<AppState>,
+  ) {}
 
   ngOnInit() {
-    console.log("WaitersPage: ngOnInit");
+    console.log('WaitersPage: ngOnInit');
     this.subscribeToOrders();
   }
 
@@ -59,7 +58,9 @@ export class WaitersPage implements OnInit {
    * Aquí es donde activamos nuestro servicio de tiempo real.
    */
   ionViewWillEnter() {
-    console.log("WaitersPage: ionViewWillEnter - Iniciando servicio en tiempo real.");
+    console.log(
+      'WaitersPage: ionViewWillEnter - Iniciando servicio en tiempo real.',
+    );
     this._ordersRealtimeService.init();
   }
 
@@ -68,20 +69,24 @@ export class WaitersPage implements OnInit {
    * Aquí es donde apagamos el servicio para limpiar y ahorrar recursos.
    */
   ionViewWillLeave() {
-    console.log("WaitersPage: ionViewWillLeave - Apagando servicio en tiempo real.");
+    console.log(
+      'WaitersPage: ionViewWillLeave - Apagando servicio en tiempo real.',
+    );
     this._ordersRealtimeService.shutdown();
   }
 
   subscribeToOrders() {
-    this.ordersSubscription = this._ordersRealtimeService.orders$.subscribe(orders => {
-      this.pendingOrders = orders;
-      this.applyFilters();
-    });
+    this.ordersSubscription = this._ordersRealtimeService.orders$.subscribe(
+      (orders) => {
+        this.pendingOrders = orders;
+        this.applyFilters();
+      },
+    );
   }
 
   groupItems(order: Order) {
     const grouped = new Map();
-    this.pendingOrders.forEach(item => {
+    this.pendingOrders.forEach((item) => {
       if (grouped.has(item.id)) {
         grouped.get(item.id).quantity++;
       } else {
@@ -110,14 +115,16 @@ export class WaitersPage implements OnInit {
     switch (this.currentFilter) {
       case 'pending':
         // Regla para "En proceso": estado 'pending' Y no es prepagada.
-        filtered = baseOrders.filter(order =>
-          !order.isReadyToServe && order.status != 'cancelled'
+        filtered = baseOrders.filter(
+          (order) => !order.isReadyToServe && order.status != 'cancelled',
         );
         break;
 
       case 'ready':
         // Regla para "Listas": solo filtra por el estado 'ready'.
-        filtered = baseOrders.filter(order => order.isReadyToServe && !order.isServed);
+        filtered = baseOrders.filter(
+          (order) => order.isReadyToServe && !order.isServed,
+        );
         break;
 
       case 'served':
@@ -126,7 +133,7 @@ export class WaitersPage implements OnInit {
         // - Si está paga Y no tiene mesa (o mesa libre) → NO debe estar aquí (va a payed)
         // - Si está paga Y tiene mesa Y mesa ocupada → SÍ debe estar aquí
         // - Si NO está paga → SÍ debe estar aquí
-        filtered = baseOrders.filter(order => {
+        filtered = baseOrders.filter((order) => {
           if (!order.isReadyToServe || !order.isServed) return false;
 
           // Si NO está paga, permanece en served
@@ -148,8 +155,9 @@ export class WaitersPage implements OnInit {
         // - Debe estar paga (paidAt existe)
         // - Debe tener fecha de pago
         // - NO puede estar si tiene mesa ocupada
-        filtered = baseOrders.filter(order => {
-          if (!order.isReadyToServe || !order.isServed || !order.paidAt) return false;
+        filtered = baseOrders.filter((order) => {
+          if (!order.isReadyToServe || !order.isServed || !order.paidAt)
+            return false;
 
           // Si no tiene mesa, puede estar en payed
           if (!order.tableId) return true;
@@ -164,7 +172,7 @@ export class WaitersPage implements OnInit {
 
       case 'cancelled':
         //   // Regla para "Canceladas": solo filtra por el estado 'cancelled'.
-        filtered = baseOrders.filter(order => order.status === 'cancelled');
+        filtered = baseOrders.filter((order) => order.status === 'cancelled');
         break;
 
       default:
@@ -175,9 +183,11 @@ export class WaitersPage implements OnInit {
 
     // 3. APLICA LA BÚSQUEDA: Sobre la lista YA filtrada por estado.
     if (this.searchQuery && filtered.length > 0) {
-      filtered = filtered.filter(order =>
-        String(order.orderNumber ?? '').includes(this.searchQuery) ||
-        (order.customerName && order.customerName.toLowerCase().includes(this.searchQuery))
+      filtered = filtered.filter(
+        (order) =>
+          String(order.orderNumber ?? '').includes(this.searchQuery) ||
+          (order.customerName &&
+            order.customerName.toLowerCase().includes(this.searchQuery)),
       );
     }
 
@@ -185,22 +195,36 @@ export class WaitersPage implements OnInit {
     this.filteredOrders = filtered;
   }
 
-  getStatusInfo(status: string): { label: string, color: string, icon: string } {
-    const statusInfo = this.statusFilters.find(f => f.value === status);
+  getStatusInfo(status: string): {
+    label: string;
+    color: string;
+    icon: string;
+  } {
+    const statusInfo = this.statusFilters.find((f) => f.value === status);
     let color = 'medium';
 
     switch (status) {
-      case 'pending': color = 'warning'; break;
-      case 'ready': color = 'primary'; break;
-      case 'served': color = 'tertiary'; break;
-      case 'paid': color = 'success'; break;
-      case 'cancelled': color = 'danger'; break;
+      case 'pending':
+        color = 'warning';
+        break;
+      case 'ready':
+        color = 'primary';
+        break;
+      case 'served':
+        color = 'tertiary';
+        break;
+      case 'paid':
+        color = 'success';
+        break;
+      case 'cancelled':
+        color = 'danger';
+        break;
     }
 
     return {
       label: statusInfo ? statusInfo.label : 'Desconocido',
       color: `var(--ion-color-${color})`,
-      icon: statusInfo ? statusInfo.icon : 'help-circle-outline'
+      icon: statusInfo ? statusInfo.icon : 'help-circle-outline',
     };
   }
 
@@ -219,10 +243,13 @@ export class WaitersPage implements OnInit {
           text: 'Cancelar',
           role: 'cancel',
           cssClass: 'secondary',
-        }, {
+        },
+        {
           text: 'Sí, Servir',
           handler: () => {
-            console.log(`Iniciando liberación de la mesa para la orden #${order.id}`);
+            console.log(
+              `Iniciando liberación de la mesa para la orden #${order.id}`,
+            );
             // AQUÍ VA LA LÓGICA PARA LLAMAR A TU SERVICIO
             if (order.id) {
               this._ordersService.markAsServedOrder(order.id).subscribe({
@@ -235,13 +262,12 @@ export class WaitersPage implements OnInit {
                 },
                 complete: () => {
                   console.log('Petición finalizada.');
-                }
-
+                },
               });
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     await alert.present();
@@ -270,21 +296,31 @@ export class WaitersPage implements OnInit {
         {
           name: 'reason',
           type: 'textarea',
-          placeholder: 'Motivo de la cancelación (opcional)'
-        }
+          placeholder: 'Motivo de la cancelación (opcional)',
+        },
       ],
       buttons: [
         { text: 'Atrás', role: 'cancel' },
         {
           text: 'Sí, Cancelar',
           handler: (data) => {
-            this._ordersService.cancelOrder({ orderId: order.id!, reason: data.reason }).subscribe({
-              next: () => this._toastService.presentToast('Comanda cancelada exitosamente.', 'success'),
-              error: (err) => this._toastService.presentToast(`Error: ${err.error.message}`, 'danger')
-            });
-          }
-        }
-      ]
+            this._ordersService
+              .cancelOrder({ orderId: order.id!, reason: data.reason })
+              .subscribe({
+                next: () =>
+                  this._toastService.presentToast(
+                    'Comanda cancelada exitosamente.',
+                    'success',
+                  ),
+                error: (err) =>
+                  this._toastService.presentToast(
+                    `Error: ${err.error.message}`,
+                    'danger',
+                  ),
+              });
+          },
+        },
+      ],
     });
     await alert.present();
   }
@@ -295,31 +331,41 @@ export class WaitersPage implements OnInit {
       component: CancelOrderComponent,
       componentProps: { order: order },
       // Estilos para que el modal no sea pantalla completa en móvil
-      cssClass: 'cancel-order-modal'
+      cssClass: 'cancel-order-modal',
     });
     await modal.present();
 
     const { data, role } = await modal.onWillDismiss();
 
     if (role === 'confirm') {
-      this._ordersService.cancelOrder({
-        orderId: order.id!,
-        reason: data.reason,
-        paymentMethodId: data.paymentMethodId
-      }).subscribe({
-        next: (res) => this._toastService.presentToast(`Comanda cancelada. Reembolso de ${res.refundAmount} procesado.`, 'success'),
-        error: (err) => this._toastService.presentToast(`Error: ${err.error.message}`, 'danger')
-      });
+      this._ordersService
+        .cancelOrder({
+          orderId: order.id!,
+          reason: data.reason,
+          paymentMethodId: data.paymentMethodId,
+        })
+        .subscribe({
+          next: (res) =>
+            this._toastService.presentToast(
+              `Comanda cancelada. Reembolso de ${res.refundAmount} procesado.`,
+              'success',
+            ),
+          error: (err) =>
+            this._toastService.presentToast(
+              `Error: ${err.error.message}`,
+              'danger',
+            ),
+        });
     }
   }
 
-
   // ✅ NUEVAS ACCIONES PARA LOS BOTONES
   editOrder(order: Order) {
-
     console.log(`Editando orden #${order.id}`);
     // ✅ 4. Despacha la acción para seleccionar la orden en el estado global
-    this.store.dispatch(OrdersActions.selectOrderForEdit({ orderId: order.id! }));
+    this.store.dispatch(
+      OrdersActions.selectOrderForEdit({ orderId: order.id! }),
+    );
 
     // ✅ 5. Navega a la página de órdenes
     this.router.navigate(['/dashboard/orders']);
@@ -337,10 +383,10 @@ export class WaitersPage implements OnInit {
     console.log(order.orderItems);
     const itemsForPayment = order.orderItems.map((item: any) => ({
       id: item.id,
-      name: item.product.name,        // <-- Obtenemos el nombre del producto anidado
+      name: item.product.name, // <-- Obtenemos el nombre del producto anidado
       quantity: item.quantity,
       price: parseFloat(item.unitPrice),
-      category: item.product.category // <-- Usamos el precio unitario y lo convertimos a número
+      category: item.product.category, // <-- Usamos el precio unitario y lo convertimos a número
     }));
 
     const paymentModal = await this.modalCtrl.create({
@@ -351,8 +397,8 @@ export class WaitersPage implements OnInit {
       backdropDismiss: false,
       componentProps: {
         orderToPay: {
-          items: itemsForPayment // Ya no usamos .reduce(), pasamos el array directamente
-        }
+          items: itemsForPayment, // Ya no usamos .reduce(), pasamos el array directamente
+        },
       },
     });
 
@@ -375,33 +421,42 @@ export class WaitersPage implements OnInit {
       console.log(data);
 
       if (order.id && data.paymentMethodId) {
-
         // 👇 La clave es añadir .subscribe() al final de la llamada.
-        this._ordersService.makeOrderPayment({
-          orderId: order.id,
-          movementType: 'sale',
-          paymentMethodId: data.paymentMethodId,
-        }).subscribe({
-          next: (response) => {
-            const index = this.pendingOrders.findIndex(o => o.id === order.id);
+        this._ordersService
+          .makeOrderPayment({
+            orderId: order.id,
+            movementType: 'sale',
+            paymentMethodId: data.paymentMethodId,
 
-            if (index !== -1) {
-              // Guardamos fecha de pago
-              this.pendingOrders[index].paidAt = new Date().toString();
-              // 👇 Ojo: no cambiamos manualmente el status, lo decide applyFilters()
-            }
+            adjustments: data.adjustments || [],
+          })
+          .subscribe({
+            next: (response) => {
+              const index = this.pendingOrders.findIndex(
+                (o) => o.id === order.id,
+              );
 
-            this.applyFilters();
-          },
-          error: (err) => {
-            // ❌ Error: Este bloque se ejecuta si la petición falla (códigos 4xx, 5xx).
-            console.error('Error al realizar el pago:', err);
-            // Aquí deberías mostrar una alerta de error al usuario.
-          }
-        });
+              if (index !== -1) {
+                // Guardamos fecha de pago
+                this.pendingOrders[index].paidAt = new Date().toString();
+                // 👇 Ojo: no cambiamos manualmente el status, lo decide applyFilters()
+              }
+
+              this.applyFilters();
+            },
+            error: (err) => {
+              // ❌ Error: Este bloque se ejecuta si la petición falla (códigos 4xx, 5xx).
+              console.error('Error al realizar el pago:', err);
+              // Aquí deberías mostrar una alerta de error al usuario.
+            },
+          });
       }
 
-      await this.modalCtrl.dismiss(finalOrderWithPayment, 'confirmed', 'payment-modal');
+      await this.modalCtrl.dismiss(
+        finalOrderWithPayment,
+        'confirmed',
+        'payment-modal',
+      );
     }
     // Aquí abrirías el modal de pago
     this.applyFilters();
@@ -428,44 +483,50 @@ export class WaitersPage implements OnInit {
           text: 'Cancelar',
           role: 'cancel',
           cssClass: 'secondary',
-        }, {
+        },
+        {
           text: 'Sí, Liberar',
           handler: () => {
-            console.log(`Iniciando liberación de la mesa para la orden #${order.id}`);
+            console.log(
+              `Iniciando liberación de la mesa para la orden #${order.id}`,
+            );
             // AQUÍ VA LA LÓGICA PARA LLAMAR A TU SERVICIO
             // Ejemplo:
             if (order.id) {
-              this._tableService.releaseTable(order.tableId, order.id).subscribe({
-                next: (response) => {
-                  // ✅ SOLUCIÓN: Crear una copia del objeto en lugar de mutarlo directamente
-                  const index = this.pendingOrders.findIndex(o => o.id === order.id);
+              this._tableService
+                .releaseTable(order.tableId, order.id)
+                .subscribe({
+                  next: (response) => {
+                    // ✅ SOLUCIÓN: Crear una copia del objeto en lugar de mutarlo directamente
+                    const index = this.pendingOrders.findIndex(
+                      (o) => o.id === order.id,
+                    );
 
-                  if (index !== -1) {
-                    // 🔥 Crea una nueva instancia del objeto con todas las propiedades intactas
-                    this.pendingOrders[index] = {
-                      ...this.pendingOrders[index], // Conserva todas las propiedades existentes
-                      tableId: null,                // Solo modifica tableId
-                      table: {
-                        isBussy: false,
-                      }                   // También limpia la referencia de table si existe
-                    };
-                  }
+                    if (index !== -1) {
+                      // 🔥 Crea una nueva instancia del objeto con todas las propiedades intactas
+                      this.pendingOrders[index] = {
+                        ...this.pendingOrders[index], // Conserva todas las propiedades existentes
+                        tableId: null, // Solo modifica tableId
+                        table: {
+                          isBussy: false,
+                        }, // También limpia la referencia de table si existe
+                      };
+                    }
 
-                  this.applyFilters();
-                  console.log(`Tabla #${order.tableId} liberada.`);
-                },
-                error: (err) => {
-                  console.error('Error al liberar tabla:', err);
-                },
-                complete: () => {
-                  console.log('Petición finalizada.');
-                }
-
-              });
+                    this.applyFilters();
+                    console.log(`Tabla #${order.tableId} liberada.`);
+                  },
+                  error: (err) => {
+                    console.error('Error al liberar tabla:', err);
+                  },
+                  complete: () => {
+                    console.log('Petición finalizada.');
+                  },
+                });
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     await alert.present();
@@ -475,4 +536,3 @@ export class WaitersPage implements OnInit {
     return item.id; // 👈 usa el id único de la orden
   }
 }
-
