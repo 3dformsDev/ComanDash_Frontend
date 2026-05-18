@@ -1,22 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-<<<<<<< HEAD
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonicModule, ModalController, AlertController } from '@ionic/angular';
 import {
   PaymentMethodI,
   PaymentMethodService,
 } from '@services/payment-method.service';
-=======
-import { AlertController, IonicModule, ModalController } from '@ionic/angular';import { PaymentMethodI, PaymentMethodService } from '@services/payment-method.service';
->>>>>>> feature/auth-timeout
 import { firstValueFrom } from 'rxjs';
-
-interface PaymentAdjustment {
-  type: 'charge' | 'discount';
-  description: string;
-  amount: number;
-}
 
 @Component({
   selector: 'app-payment',
@@ -37,7 +27,6 @@ export class PaymentComponent implements OnInit {
   public pageTitle: string = 'Detalle de la Cuenta';
   public allPaymentMethods: PaymentMethodI[] = [];
   public selectedPaymentMethod: number | null = null;
-  public adjustments: PaymentAdjustment[] = [];
 
   // ✅ Propiedades para la propina, ahora se manejan aquí
   public includeTip: boolean = false;
@@ -48,14 +37,9 @@ export class PaymentComponent implements OnInit {
 
   constructor(
     private modalCtrl: ModalController,
-<<<<<<< HEAD
+    private alertController: AlertController,
     private _paymentMethodService: PaymentMethodService,
   ) {}
-=======
-    private alertController: AlertController,
-    private _paymentMethodService: PaymentMethodService
-  ) { }
->>>>>>> feature/auth-timeout
 
   async ngOnInit() {
     this.orderItems = Object.values(this.orderToPay.items);
@@ -73,39 +57,24 @@ export class PaymentComponent implements OnInit {
 
   // ✅ Renombrado para mayor claridad y ahora maneja la propina
   calculateTotalForNewOrder() {
-<<<<<<< HEAD
     const subtotal = this.orderItems.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0,
     );
+
     this.tipAmount = subtotal * 0.1;
-    this.total = this.includeTip ? subtotal + this.tipAmount : subtotal;
+
+    const charges = this.adjustments
+      .filter((adj) => adj.type === 'charge')
+      .reduce((acc, adj) => acc + adj.amount, 0);
+
+    const discounts = this.adjustments
+      .filter((adj) => adj.type === 'discount')
+      .reduce((acc, adj) => acc + adj.amount, 0);
+
+    this.total =
+      subtotal + charges - discounts + (this.includeTip ? this.tipAmount : 0);
   }
-=======
-
-  const subtotal = this.orderItems.reduce(
-    (acc, item) => acc + (item.price * item.quantity),
-    0
-  );
-
-  this.tipAmount = subtotal * 0.10;
-
-  const charges = this.adjustments
-    .filter(adj => adj.type === 'charge')
-    .reduce((acc, adj) => acc + adj.amount, 0);
-
-  const discounts = this.adjustments
-    .filter(adj => adj.type === 'discount')
-    .reduce((acc, adj) => acc + adj.amount, 0);
-
-  this.total =
-    subtotal +
-    charges -
-    discounts +
-    (this.includeTip ? this.tipAmount : 0);
-}
->>>>>>> feature/auth-timeout
-
   // ✅ Este método se queda como estaba
   calculateDifference() {
     const originalQuantities = new Map<number, number>();
@@ -168,67 +137,6 @@ export class PaymentComponent implements OnInit {
     }
   }
 
-  //  Pop up  DE AGREGAR O DESCONTAR UN CARGO O DESCUENTO
-  async openAdjustmentModal(type: 'charge' | 'discount') {
-
-  const alert = await this.alertController.create({
-    header: type === 'charge'
-      ? 'Agregar cargo'
-      : 'Agregar descuento',
-
-    inputs: [
-      {
-        name: 'description',
-        type: 'text',
-        placeholder: 'Descripción'
-      },
-      {
-        name: 'amount',
-        type: 'number',
-        placeholder: 'Valor'
-      }
-    ],
-
-    buttons: [
-      {
-        text: 'Cancelar',
-        role: 'cancel'
-      },
-      {
-        text: 'Agregar',
-        handler: (data) => {
-
-          const amount = Number(data.amount);
-
-          if (!data.description || !amount || amount <= 0) {
-            return false;
-          }
-
-          this.adjustments.push({
-            type,
-            description: data.description,
-            amount
-          });
-
-          this.calculateTotalForNewOrder();
-
-          return true;
-        }
-      }
-    ]
-  });
-
-  await alert.present();
-}
-
-removeAdjustment(index: number) {
-
-  this.adjustments.splice(index, 1);
-
-  this.calculateTotalForNewOrder();
-}
-
-// ✅ Método para seleccionar el método de pago
   selectPaymentMethod(methodId: number) {
     this.selectedPaymentMethod = methodId;
   }
@@ -258,5 +166,63 @@ removeAdjustment(index: number) {
     };
 
     this.modalCtrl.dismiss(paymentDetails, 'paid');
+  }
+
+  async openAdjustmentModal(type: 'charge' | 'discount') {
+    const alert = await this.alertController.create({
+      header: type === 'charge' ? 'Agregar recargo' : 'Agregar descuento',
+
+      cssClass: 'receipt-download-alert',
+
+      inputs: [
+        {
+          name: 'description',
+          type: 'text',
+          placeholder:
+            type === 'charge' ? 'Nombre del recargo' : 'Nombre del descuento',
+        },
+        {
+          name: 'amount',
+          type: 'number',
+          placeholder:
+            type === 'charge' ? 'Valor del recargo' : 'Valor del descuento',
+        },
+      ],
+
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Aceptar',
+          handler: (data: any) => {
+            const amount = Number(data.amount);
+
+            if (!data.description || !amount || amount <= 0) {
+              return false;
+            }
+
+            this.adjustments.push({
+              type,
+              description: data.description,
+              amount,
+            });
+
+            this.calculateTotalForNewOrder();
+
+            return true;
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  removeAdjustment(index: number) {
+    this.adjustments.splice(index, 1);
+
+    this.calculateTotalForNewOrder();
   }
 }
