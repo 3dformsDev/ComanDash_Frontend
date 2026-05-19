@@ -1,79 +1,103 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Comandash App</title>
 
-<head>
-  <meta charset="utf-8"/>
-  <title>Minsiva App</title>
+    <base href="/" />
 
-  <base href="/"/>
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta
+      name="description"
+      content="Comandash - Gestiona tus pedidos al instante"
+    />
 
-  <meta name="color-scheme" content="light dark"/>
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <meta name="format-detection" content="telephone=no"/>
-  <meta name="msapplication-tap-highlight" content="no"/>
-  <meta name="description" content="Comandapp - Gestiona tus pedidos al instante>
-	<meta property=" og:title"=""/>
-  <meta property="og:description" content="Comandapp - Gestiona tus pedidos al instante"/>
+    <meta property="og:title" content="Comandash App" />
 
-  <link rel="icon" type="image/png" href="assets/icons/icon.jpg"/>
+    <meta
+      property="og:description"
+      content="Comandash - Gestiona tus pedidos al instante"
+    />
 
-  <!-- Favicons Icon -->
-  <link rel="shortcut icon" type="image/x-icon" href="assets/icons/icon.jpg"/>
+    <link rel="icon" type="image/png" href="assets/images/comandash-icon.png" />
 
-  <!-- Title -->
-  <title>Comandapp - Gestiona tus pedidos al instante</title>
+    <!-- Title -->
+    <title>Comandash - Gestiona tus pedidos al instante</title>
 
-  <!-- Stylesheets -->
-  <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css" />
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&amp;family=Roboto+Slab:wght@100;300;500;600;800&amp;display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&amp;family=Roboto+Slab:wght@100;300;500;600;800&amp;display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="assets/vendor/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.css">
-  <link rel="stylesheet" href="assets/vendor/swiper/swiper-bundle.min.css">
-  <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+    <!-- Stylesheets -->
+    <link
+      rel="stylesheet"
+      href="assets/vendor/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.css"
+    />
+    <link rel="stylesheet" href="assets/vendor/swiper/swiper-bundle.min.css" />
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css" />
 
-  <!-- PWA Version -->
-  <link rel="manifest" href="manifest.webmanifest">
+    <!-- PWA Version -->
+    <link rel="manifest" href="manifest.webmanifest" />
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic" crossorigin="">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <!-- Font Awesome for Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin="" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
 
-  <!-- add to homescreen for ios -->
-  <meta name="mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-</head>
+    <!-- add to homescreen for ios -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  </head>
 
-<body>
-  <!-- Preloader -->
-  <div id="preloader">
-    <div class="spinner"></div>
-  </div>
-  <!-- Preloader end-->
-  <app-root></app-root><!--**********************************
+  <body>
+    <!-- Preloader -->
+    <div id="preloader">
+      <div class="spinner"></div>
+    </div>
+    <!-- Preloader end-->
+    <app-root></app-root
+    ><!--**********************************
   Scripts
 ***********************************-->
-  <script src="assets/js/jquery.js"></script>
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script><!-- Swiper -->
-  <script src="assets/js/dz.carousel.js"></script><!-- Swiper -->
-  <script src="assets/vendor/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.js"></script><!-- Swiper -->
-  <script src="assets/js/settings.js"></script>
-  <script src="assets/js/custom.js"></script>
-  <!-- <script src="index.js" defer=""></script> -->
-  <script>
-    $(".stepper").TouchSpin();
-  </script>
-  <noscript>Please enable JavaScript to continue using this application.</noscript>
-</body>
-
+    <script src="assets/js/jquery.js"></script>
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <!-- Swiper -->
+    <script src="assets/js/dz.carousel.js"></script>
+    <!-- Swiper -->
+    <script src="assets/vendor/bootstrap-touchspin/dist/jquery.bootstrap-touchspin.min.js"></script>
+    <!-- Swiper -->
+    <script src="assets/js/settings.js"></script>
+    <script src="assets/js/custom.js"></script>
+    <!-- <script src="index.js" defer=""></script> -->
+    <script>
+      $(".stepper").TouchSpin();
+    </script>
+    <noscript
+      >Please enable JavaScript to continue using this application.</noscript
+    >
+  </body>
 </html>

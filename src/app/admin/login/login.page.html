@@ -1,86 +1,173 @@
 <!--
   * Estructura HTML actualizada para la página de login.
-  * - Se ha simplificado el header para mostrar solo el logo de MINSIVA.
-  * - Se ha mantenido la estructura del formulario y los mensajes de error.
-  * - Se ha ajustado el footer para un diseño más limpio.
+  * - Branding actualizado a COMANDASH.
+  * - Layout centrado verticalmente.
+  * - Logo optimizado y responsive.
+  * - Mantiene estructura preparada para recuperación de contraseña futura.
 -->
-<ion-content [fullscreen]="true" class="ion-padding">
+
+<ion-content [fullscreen]="true">
+  <div
+    style="
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 24px;
+      padding-top: 0px;
+      padding-bottom: 120px;
+      background: #f7f7f7;
+    "
+  >
     <!-- Contenedor del Logo -->
     <div class="logo-container ion-text-center">
-        <!-- Reemplaza 'assets/minsiva-logo.svg' con la ruta correcta de tu imagen -->
-        <img src="assets/images/TM.svg" alt="Minsiva Logo" />
+      <img
+        src="assets/images/comandash-horizontal.png"
+        alt="Comandash Logo"
+        style="
+          width: 650px;
+          max-width: 90vw;
+          height: auto;
+          object-fit: contain;
+          margin-bottom: 10px;
+        "
+      />
     </div>
 
     <!-- Área del Formulario -->
     <div class="form-area">
-        <div class="ion-text-center welcome-text">
-            <h3>Bienvenido de vuelta</h3>
-            <p>Control total de comandas y gestión de pedidos.</p>
-        </div>
+      <div class="ion-text-center welcome-text">
+        <h3>Bienvenido de vuelta</h3>
+        <p>Control total de comandas y gestión de pedidos.</p>
+      </div>
 
-        <!-- CAMPO DE USUARIO -->
-        <ion-item lines="none" class="custom-input-item">
-            <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
-            <ion-input type="text" placeholder="Usuario" [value]="loginForm.get('username')?.value"
-                (ionInput)="loginForm.get('username')?.setValue($event.detail.value)" required>
-            </ion-input>
-        </ion-item>
-        <!-- Mensaje de error del usuario -->
-        <div *ngIf="formErrors.username" class="error-message">
-            {{ formErrors.username }}
-        </div>
+      <!-- CAMPO DE USUARIO -->
+      <ion-item lines="none" class="custom-input-item">
+        <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
 
-        <!-- CAMPO DE CONTRASEÑA -->
-        <ion-item lines="none" class="custom-input-item">
-            <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
-            <ion-input [type]="showPassword ? 'text' : 'password'" [value]="loginForm.get('password')?.value"
-                (ionInput)="loginForm.get('password')?.setValue($event.detail.value)" placeholder="Contraseña" required>
-            </ion-input>
-            <ion-button fill="clear" slot="end" (click)="togglePassword()" class="password-toggle">
-                <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" color="medium"></ion-icon>
-            </ion-button>
-        </ion-item>
-        <!-- Mensaje de error de la contraseña -->
-        <div *ngIf="formErrors.password" class="error-message">
-            {{ formErrors.password }}
-        </div>
+        <ion-input
+          type="text"
+          placeholder="Usuario"
+          [value]="loginForm.get('username')?.value"
+          (ionInput)="loginForm.get('username')?.setValue($event.detail.value)"
+          required
+        >
+        </ion-input>
+      </ion-item>
 
-        <!-- CAMPO DE CÓDIGO DE COMPAÑÍA -->
-        <ion-item lines="none" class="custom-input-item">
-            <!-- Cambié el ícono para que coincida mejor con la imagen de referencia -->
-            <ion-icon name="document-text-outline" slot="start" color="medium"></ion-icon>
-            <ion-input type="text" placeholder="Código de compañía" [value]="loginForm.get('business_code')?.value"
-                (ionInput)="loginForm.get('business_code')?.setValue($event.detail.value)" required>
-            </ion-input>
-        </ion-item>
-        <!-- Mensaje de error del código -->
-        <div *ngIf="formErrors.business_code" class="error-message">
-            {{ formErrors.business_code }}
-        </div>
+      <!-- Mensaje de error del usuario -->
+      <div *ngIf="formErrors.username" class="error-message">
+        {{ formErrors.username }}
+      </div>
 
-        <!-- BOTÓN DE LOGIN -->
-        <ion-button expand="block" shape="round" class="login-btn" (click)="login()" [disabled]="loginForm.invalid">
-            INICIAR SESIÓN
+      <!-- CAMPO DE CONTRASEÑA -->
+      <ion-item lines="none" class="custom-input-item">
+        <ion-icon
+          name="lock-closed-outline"
+          slot="start"
+          color="medium"
+        ></ion-icon>
+
+        <ion-input
+          [type]="showPassword ? 'text' : 'password'"
+          [value]="loginForm.get('password')?.value"
+          (ionInput)="loginForm.get('password')?.setValue($event.detail.value)"
+          placeholder="Contraseña"
+          required
+        >
+        </ion-input>
+
+        <ion-button
+          fill="clear"
+          slot="end"
+          (click)="togglePassword()"
+          class="password-toggle"
+        >
+          <ion-icon
+            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            color="medium"
+          ></ion-icon>
         </ion-button>
+      </ion-item>
 
-        <!-- Opciones Adicionales -->
-        <!-- <ion-grid class="options-grid">
-            <ion-row class="ion-align-items-center">
-                <ion-col size="auto">
-                    <ion-item lines="none" class="checkbox-item">
-                        <ion-checkbox slot="start" mode="md" [checked]="true"></ion-checkbox>
-                        <ion-label>Mantener sesión</ion-label>
-                    </ion-item>
-                </ion-col>
-                <ion-col class="ion-text-end">
-                    <ion-button fill="clear" class="forgot-btn">¿OLVIDASTE TU CONTRASEÑA?</ion-button>
-                </ion-col>
-            </ion-row>
-        </ion-grid> -->
+      <!-- Mensaje de error de la contraseña -->
+      <div *ngIf="formErrors.password" class="error-message">
+        {{ formErrors.password }}
+      </div>
+
+      <!-- CAMPO DE CÓDIGO DE COMPAÑÍA -->
+      <ion-item lines="none" class="custom-input-item">
+        <ion-icon
+          name="document-text-outline"
+          slot="start"
+          color="medium"
+        ></ion-icon>
+
+        <ion-input
+          type="text"
+          placeholder="Código de compañía"
+          [value]="loginForm.get('business_code')?.value"
+          (ionInput)="loginForm.get('business_code')?.setValue($event.detail.value)"
+          required
+        >
+        </ion-input>
+      </ion-item>
+
+      <!-- Mensaje de error del código -->
+      <div *ngIf="formErrors.business_code" class="error-message">
+        {{ formErrors.business_code }}
+      </div>
+
+      <!-- BOTÓN DE LOGIN -->
+      <ion-button
+        expand="block"
+        shape="round"
+        class="login-btn"
+        (click)="login()"
+        [disabled]="loginForm.invalid"
+      >
+        INICIAR SESIÓN
+      </ion-button>
+
+      <!-- Opciones Adicionales -->
+      <!--
+      <ion-grid class="options-grid">
+        <ion-row class="ion-align-items-center">
+          <ion-col size="auto">
+            <ion-item lines="none" class="checkbox-item">
+              <ion-checkbox
+                slot="start"
+                mode="md"
+                [checked]="true"
+              ></ion-checkbox>
+
+              <ion-label>Mantener sesión</ion-label>
+            </ion-item>
+          </ion-col>
+
+          <ion-col class="ion-text-end">
+            <ion-button fill="clear" class="forgot-btn">
+              ¿OLVIDASTE TU CONTRASEÑA?
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      -->
     </div>
 
     <!-- Enlace para crear cuenta -->
-    <div class="signup-container ion-text-center">
-        <ion-text>¿No tienes una cuenta? <a href="https://wa.link/967txc" target="_blank">CREAR UNA CUENTA</a></ion-text>
+    <div class="signup-container ion-text-center mt-6">
+      <ion-text>
+        ¿No tienes una cuenta?
+
+        <a
+          href="https://wa.me/573132261027"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          CREAR UNA CUENTA
+        </a>
+      </ion-text>
     </div>
+  </div>
 </ion-content>
