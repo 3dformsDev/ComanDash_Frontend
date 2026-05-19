@@ -311,15 +311,14 @@ export class OrdersPage implements OnInit {
           } else {
             console.log(data);
 
-            await this.showLoading('Enviando comanda...');
-            console.log('¡Pedido confirmado!', data);
             this.store.dispatch(
               OrdersActions.createOrder({
                 order: {
                   ...data,
+                  adjustments: data.adjustments || [],
+
                   paymentDetails: {
-                    paymentMethodId: data.paymentMethodId,
-                    notesPayment: data.notesPayment,
+                    ...data,
                   },
                 },
               }),

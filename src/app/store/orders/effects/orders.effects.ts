@@ -82,6 +82,7 @@ export class OrdersEffects {
             order.paymentDetails && {
               paymentMethodId: order.paymentDetails.paymentMethodId,
               notesPayment: order.notesPayment ?? 'Todo correcto',
+              adjustments: order.adjustments || [],
             }),
         };
 

@@ -25,6 +25,11 @@ export interface Order {
   isAdvancePayment: boolean;
   paymentMethodId?: number | null | undefined;
   notesPayment?: string | null;
+  adjustments?: {
+    type: 'charge' | 'discount';
+    description: string;
+    amount: number;
+  }[];
 
   // Campos adicionales que puede devolver backend
   status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
