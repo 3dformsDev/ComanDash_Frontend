@@ -1,15 +1,15 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter', // <-- OJO: Cámbialo por el ID de tu app (ej: com.tuempresa.app)
-  appName: 'frontend',
+  appId: 'com.comandash.app', // <-- OJO: Cámbialo por el ID de tu app (ej: com.tuempresa.app)
+  appName: 'COMANDASH', // <-- OJO: Cámbialo por el nombre de tu app
   webDir: 'www',
 
   // =======================================================
   // --> AÑADIDO 1: Configuración del servidor para Live Reload
   // =======================================================
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
   },
 
   // =======================================================
@@ -17,11 +17,11 @@ const config: CapacitorConfig = {
   // =======================================================
   plugins: {
     PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"],
+      presentationOptions: ['badge', 'sound', 'alert'],
     },
     Camera: {
-      permissions: ['camera', 'photos']
-    }
+      permissions: ['camera', 'photos'],
+    },
   },
 };
 

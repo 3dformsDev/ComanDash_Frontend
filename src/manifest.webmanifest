@@ -1,44 +1,44 @@
 {
-    "name": "Minsiva",
-    "short_name": "Minsiva",
-    "theme_color": "#FF3131",
-    "background_color": "#fafafa",
-    "display": "standalone",
-    "scope": "/",
-    "start_url": "/",
-    "icons": [
-        {
-            "src": "assets/icons/icon.jpg",
-            "sizes": "72x72",
-            "type": "image/jpeg"
-        },
-        {
-            "src": "assets/icons/icon.jpg",
-            "sizes": "96x96",
-            "type": "image/jpeg"
-        },
-        {
-            "src": "assets/icons/icon.jpg",
-            "sizes": "128x128",
-            "type": "image/jpeg"
-        },
-        {
-            "src": "assets/icons/icon.jpg",
-            "sizes": "192x192",
-            "type": "image/jpeg",
-            "purpose": "any"
-        },
-        {
-            "src": "assets/icons/icon.jpg",
-            "sizes": "384x384",
-            "type": "image/jpeg"
-        },
-        {
-            "src": "assets/icons/icon.jpg",
-            "sizes": "512x512",
-            "type": "image/jpeg",
-            "purpose": "any maskable"
-        }
-    ],
-    "gcm_sender_id": "103953800507"
+  "name": "COMANDASH",
+  "short_name": "COMANDASH",
+  "theme_color": "#FF3131",
+  "background_color": "#fafafa",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "assets/icons/icon.jpg",
+      "sizes": "72x72",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "assets/icons/icon.jpg",
+      "sizes": "96x96",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "assets/icons/icon.jpg",
+      "sizes": "128x128",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "assets/icons/icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon.jpg",
+      "sizes": "384x384",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "assets/icons/icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "gcm_sender_id": "103953800507"
 }

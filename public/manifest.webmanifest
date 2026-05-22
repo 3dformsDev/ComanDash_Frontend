@@ -1,6 +1,6 @@
 {
-  "name": "app",
-  "short_name": "app",
+  "name": "COMANDASH",
+  "short_name": "COMANDASH",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
