@@ -29,6 +29,38 @@ ion-header.customer-view-header {
     }
   }
 
+  .product-search-container {
+    padding: 0 16px 12px 16px;
+
+    .product-searchbar {
+      --background: #ffffff;
+      --border-radius: 14px;
+      --box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      --color: #1f2937;
+      --placeholder-color: #6b7280;
+      --icon-color: #ff3131;
+      --clear-button-color: #ff3131;
+      padding: 0;
+    }
+  }
+
+  .search-status-container {
+    padding: 0 16px 16px 16px;
+
+    .search-status-chip {
+      --background: #fff1f1;
+      --color: #b91c1c;
+      height: auto;
+      min-height: 38px;
+      font-weight: 600;
+      border-radius: 9999px;
+
+      ion-label {
+        white-space: normal;
+      }
+    }
+  }
+
   /* Contenedor de filtros de categoría */
   .category-filters-container {
     padding: 0 16px 16px 16px;
@@ -61,7 +93,7 @@ ion-header.customer-view-header {
       white-space: nowrap;
 
       &.chip-selected {
-        --background: #FF6B53;
+        --background: #ff6b53;
         --color: #ffffff;
         font-weight: 600;
         box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
@@ -77,6 +109,36 @@ ion-header.customer-view-header {
   --padding-bottom: 120px;
 }
 
+.empty-products-state {
+  min-height: 45vh;
+  padding: 32px 20px;
+  text-align: center;
+  color: #6b7280;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 48px;
+    color: #ff3131;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    margin: 0 0 8px 0;
+    color: #1f2937;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0 0 12px 0;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+}
 /* Tarjeta de cada platillo en el menú */
 .menu-item-card {
   display: flex;
@@ -349,7 +411,9 @@ ion-header.customer-view-header {
     justify-content: space-between;
     align-items: center;
     border: none;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -4px rgba(0, 0, 0, 0.1);
 
     .total-preview {
       font-weight: 700;

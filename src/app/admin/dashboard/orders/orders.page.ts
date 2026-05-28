@@ -48,6 +48,7 @@ export class OrdersPage implements OnInit {
   private loadingIndicator: HTMLIonLoadingElement | null = null;
 
   public currentFilter: number = 1; // Filtro activo por defecto
+  public searchTerm = '';
 
   // Array que almacena los productos que se van añadiendo a la orden
   public currentOrder: GroupedProduct[] = [];
@@ -56,11 +57,27 @@ export class OrdersPage implements OnInit {
 
   // --- GETTERS (PROPIEDADES CALCULADAS) ---
 
-  // Filtra la lista de platillos según la categoría seleccionada
-  get menuItems() {
-    return this.allProducts.filter(
-      (item) => item.categoryId === this.currentFilter,
+  // Filtra productos por categoría o por búsqueda global.
+  get menuItems(): ProductI[] {
+    const term = this.normalizedSearchTerm;
+
+    if (!term) {
+      return this.allProducts.filter(
+        (item) => item.categoryId === this.currentFilter,
+      );
+    }
+
+    return this.allProducts.filter((item) =>
+      this.normalizeSearchText(item.name).includes(term),
     );
+  }
+
+  get normalizedSearchTerm(): string {
+    return this.normalizeSearchText(this.searchTerm);
+  }
+
+  get isSearchingProducts(): boolean {
+    return this.normalizedSearchTerm.length > 0;
   }
 
   // Calcula el número total de items en la orden
@@ -135,6 +152,7 @@ export class OrdersPage implements OnInit {
     this.currentOrderId = null;
     this.currentOrder = [];
     this.currentFilter = 1; // O el ID de tu categoría por defecto
+    this.searchTerm = '';
     // this.protectedImages.clear(); // Opcional: si quieres limpiar las imágenes cacheadas
   }
 
@@ -144,6 +162,28 @@ export class OrdersPage implements OnInit {
    */
   public selectFilter(filter: number): void {
     this.currentFilter = filter;
+  }
+
+  public onSearchTermChange(event: Event): void {
+    const value =
+      (event as CustomEvent<{ value?: string | null }>).detail?.value ?? '';
+
+    this.searchTerm = value;
+  }
+
+  public clearProductSearch(): void {
+    this.searchTerm = '';
+  }
+
+  private normalizeSearchText(
+    value: string | number | null | undefined,
+  ): string {
+    return (value ?? '')
+      .toString()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   /**
