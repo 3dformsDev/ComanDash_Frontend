@@ -27,6 +27,8 @@ export class PaymentComponent implements OnInit {
   public pageTitle: string = 'Detalle de la Cuenta';
   public allPaymentMethods: PaymentMethodI[] = [];
   public selectedPaymentMethod: number | null = null;
+  public paymentAmount: number | null = null;
+  public paymentError: string | null = null;
 
   // ✅ Propiedades para la propina, ahora se manejan aquí
   public includeTip: boolean = false;
@@ -53,14 +55,20 @@ export class PaymentComponent implements OnInit {
     } else {
       this.calculateTotalForNewOrder();
     }
+
+    this.syncDefaultPaymentAmount();
   }
 
   // ✅ Renombrado para mayor claridad y ahora maneja la propina
   calculateTotalForNewOrder() {
-    const subtotal = this.orderItems.reduce(
+    const calculatedSubtotal = this.orderItems.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0,
     );
+
+    const explicitTotalAmount = Number(this.orderToPay?.totalAmount || 0);
+    const subtotal =
+      explicitTotalAmount > 0 ? explicitTotalAmount : calculatedSubtotal;
 
     this.tipAmount = subtotal * 0.1;
 
@@ -74,6 +82,8 @@ export class PaymentComponent implements OnInit {
 
     this.total =
       subtotal + charges - discounts + (this.includeTip ? this.tipAmount : 0);
+
+    this.syncDefaultPaymentAmount();
   }
   // ✅ Este método se queda como estaba
   calculateDifference() {
@@ -137,6 +147,49 @@ export class PaymentComponent implements OnInit {
     }
   }
 
+  get paidAmount(): number {
+    return Number(this.orderToPay?.paidAmount || 0);
+  }
+
+  get pendingAmount(): number {
+    return Math.max(this.total - this.paidAmount, 0);
+  }
+
+  get normalizedPaymentAmount(): number {
+    return Number(this.paymentAmount || 0);
+  }
+
+  get paymentProgressPercent(): number {
+    if (!this.total) return 0;
+
+    return Math.min((this.paidAmount / this.total) * 100, 100);
+  }
+
+  canConfirmPayment(): boolean {
+    if (!this.selectedPaymentMethod) return false;
+
+    if (this.isEditMode && this.paymentDifference === 0) return false;
+
+    if (this.normalizedPaymentAmount <= 0) return false;
+
+    if (!this.isRefund && this.normalizedPaymentAmount > this.pendingAmount) {
+      return false;
+    }
+
+    return true;
+  }
+
+  setFullPendingAmount(): void {
+    this.paymentAmount = this.pendingAmount;
+    this.paymentError = null;
+  }
+
+  private syncDefaultPaymentAmount(): void {
+    const amount = this.isRefund ? this.total : this.pendingAmount;
+
+    this.paymentAmount = amount > 0 ? amount : null;
+  }
+
   selectPaymentMethod(methodId: number) {
     this.selectedPaymentMethod = methodId;
   }
@@ -146,22 +199,34 @@ export class PaymentComponent implements OnInit {
   }
 
   confirmPayment() {
-    console.log('COMANDASH PAYMENT COMPONENT NUEVO');
-    if (!this.selectedPaymentMethod) return;
+    this.paymentError = null;
 
-    // ✅ La lógica para determinar el monto a pagar ahora es correcta
-    const amountToSend = this.isEditMode ? this.paymentDifference : this.total;
+    if (!this.canConfirmPayment()) {
+      this.paymentError = this.selectedPaymentMethod
+        ? 'Verifica el monto a recibir.'
+        : 'Selecciona un método de pago.';
+
+      return;
+    }
+
+    const amountToSend =
+      this.isEditMode && this.isRefund
+        ? -Math.abs(this.normalizedPaymentAmount)
+        : this.normalizedPaymentAmount;
 
     this.notesPayment = this.isRefund
       ? 'Pago por devolución'
-      : 'Recepción de dinero por nuevos productos';
+      : this.pendingAmount === this.normalizedPaymentAmount
+        ? 'Pago final de la orden'
+        : 'Pago parcial de la orden';
 
     const paymentDetails = {
       totalPaid: amountToSend,
+      amount: amountToSend,
       paymentMethodId: this.selectedPaymentMethod,
       notesPayment: this.notesPayment,
       tipIncluded: this.includeTip,
-
+      pendingAmount: this.pendingAmount,
       adjustments: this.adjustments,
     };
 

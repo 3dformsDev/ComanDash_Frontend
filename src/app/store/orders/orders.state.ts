@@ -14,6 +14,25 @@ export interface OrderItem {
   kitchenStatus?: 'pending' | 'in_preparation' | 'ready' | 'served';
 }
 
+export interface PaymentSummary {
+  totalAmount: number;
+  paidAmount: number;
+  pendingAmount: number;
+  isFullyPaid: boolean;
+}
+
+export interface OrderPaymentRecord {
+  id?: number;
+  orderId?: number;
+  paymentMethodId?: number;
+  cashRegisterSessionId?: number | null;
+  amount: number | string;
+  referenceNumber?: string | null;
+  processedBy?: number;
+  processedAt?: string;
+  notes?: string | null;
+}
+
 // 2. Definimos cómo se ve una orden
 export interface Order {
   id?: number; // opcional, porque aún no existe hasta que backend la guarde
@@ -32,12 +51,27 @@ export interface Order {
   }[];
 
   // Campos adicionales que puede devolver backend
-  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  status?:
+    | 'pending'
+    | 'in_progress'
+    | 'ready'
+    | 'served'
+    | 'paid'
+    | 'completed'
+    | 'cancelled';
   totalAmount?: number;
   createdAt?: string; // ISO string
   updatedAt?: string; // ISO string
   paymentDetails?: {
     paymentMethodId: number;
+    amount?: number | string;
+    totalPaid?: number | string;
+    notesPayment?: string;
+    adjustments?: {
+      type: 'charge' | 'discount';
+      description: string;
+      amount: number;
+    }[];
   } | null;
 
   isPrepaid?: boolean;
@@ -45,6 +79,8 @@ export interface Order {
   isReadyToServe?: boolean;
   isServed?: boolean;
   paidAt?: string | null;
+  payments?: OrderPaymentRecord[];
+  paymentSummary?: PaymentSummary;
   table?: {
     isBussy: boolean;
     tableNumber?: string | number;
@@ -61,7 +97,9 @@ export interface OrderPayment {
   orderId: number;
   paymentMethodId: number;
   movementType: 'sale' | 'withdrawal' | 'deposit';
+  amount: number | string;
 
+  notes?: string;
   notesPayment?: string;
 
   adjustments?: {

@@ -377,17 +377,66 @@ export class WaitersPage implements OnInit {
     // Aquí abrirías un modal para cambiar entre 'Mesa' y 'Para Llevar'
   }
 
-  async payOrder(order: any) {
-    console.log(order);
+  private getOrderPaidAmount(order: any): number {
+    if (order.paymentSummary?.paidAmount !== undefined) {
+      return Number(order.paymentSummary.paidAmount || 0);
+    }
 
-    console.log(order.orderItems);
+    if (Array.isArray(order.payments)) {
+      return order.payments.reduce(
+        (sum: number, payment: any) => sum + Number(payment.amount || 0),
+        0,
+      );
+    }
+
+    return 0;
+  }
+
+  private getOrderTotalAmount(order: any, itemsForPayment: any[]): number {
+    const orderTotal = Number(order.totalAmount || order.total || 0);
+
+    if (orderTotal > 0) {
+      return orderTotal;
+    }
+
+    return itemsForPayment.reduce(
+      (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+      0,
+    );
+  }
+
+  private applyPaymentSummaryToOrder(
+    orderId: number,
+    paymentSummary: any,
+  ): Order | null {
+    const index = this.pendingOrders.findIndex((o) => o.id === orderId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    this.pendingOrders[index] = {
+      ...this.pendingOrders[index],
+      paymentSummary,
+      paidAt: paymentSummary.isFullyPaid
+        ? new Date().toString()
+        : this.pendingOrders[index].paidAt,
+    };
+
+    return this.pendingOrders[index];
+  }
+
+  async payOrder(order: any) {
     const itemsForPayment = order.orderItems.map((item: any) => ({
       id: item.id,
-      name: item.product.name, // <-- Obtenemos el nombre del producto anidado
+      name: item.product.name,
       quantity: item.quantity,
       price: parseFloat(item.unitPrice),
-      category: item.product.category, // <-- Usamos el precio unitario y lo convertimos a número
+      category: item.product.category,
     }));
+
+    const totalAmount = this.getOrderTotalAmount(order, itemsForPayment);
+    const paidAmount = this.getOrderPaidAmount(order);
 
     const paymentModal = await this.modalCtrl.create({
       component: PaymentComponent,
@@ -397,70 +446,89 @@ export class WaitersPage implements OnInit {
       backdropDismiss: false,
       componentProps: {
         orderToPay: {
-          items: itemsForPayment, // Ya no usamos .reduce(), pasamos el array directamente
+          items: itemsForPayment,
+          totalAmount,
+          paidAmount,
         },
       },
     });
 
     await paymentModal.present();
+
     const { data, role } = await paymentModal.onWillDismiss();
 
-    console.log(`Rol de pago ${role}`);
+    if (role !== 'paid' || !data) {
+      this.applyFilters();
+      return;
+    }
 
-    if (role === 'paid') {
-      // 3. Prepara el objeto final con los datos del pago.
-      const finalOrderWithPayment = {
-        orderItems: order,
-        isAdvancePayment: false,
-        paymentDetails: data,
-        kitchenNotes: 'Todo correcto',
-      };
+    if (!order.id || !data.paymentMethodId || !data.amount) {
+      await this._toastService.presentToast(
+        'No se pudo procesar el pago. Faltan datos del pago.',
+        'danger',
+      );
+      return;
+    }
 
-      // 4. Cierra ESTE modal (OrderSummary) y devuelve el objeto final.
+    this._ordersService
+      .makeOrderPayment({
+        orderId: order.id,
+        movementType: 'sale',
+        paymentMethodId: data.paymentMethodId,
+        amount: Number(data.amount).toFixed(2),
+        notes: data.notesPayment,
+        adjustments: data.adjustments || [],
+      })
+      .subscribe({
+        next: async (response) => {
+          const paymentSummary = response.paymentSummary;
 
-      console.log(data);
+          if (paymentSummary) {
+            const updatedOrder = this.applyPaymentSummaryToOrder(
+              order.id,
+              paymentSummary,
+            );
 
-      if (order.id && data.paymentMethodId) {
-        // 👇 La clave es añadir .subscribe() al final de la llamada.
-        this._ordersService
-          .makeOrderPayment({
-            orderId: order.id,
-            movementType: 'sale',
-            paymentMethodId: data.paymentMethodId,
-            adjustments: data.adjustments || [],
-          })
-          .subscribe({
-            next: (response) => {
-              const index = this.pendingOrders.findIndex(
-                (o) => o.id === order.id,
+            this.applyFilters();
+
+            if (paymentSummary.isFullyPaid) {
+              await this._toastService.presentToast(
+                'Pago completado exitosamente.',
+                'success',
               );
 
-              if (index !== -1) {
-                // Guardamos fecha de pago
-                this.pendingOrders[index].paidAt = new Date().toString();
-                // 👇 Ojo: no cambiamos manualmente el status, lo decide applyFilters()
-              }
-
-              this.applyFilters();
-
               this.showReceiptDownloadAlert(order.id);
-            },
-            error: (err) => {
-              // ❌ Error: Este bloque se ejecuta si la petición falla (códigos 4xx, 5xx).
-              console.error('Error al realizar el pago:', err);
-              // Aquí deberías mostrar una alerta de error al usuario.
-            },
-          });
-      }
+              return;
+            }
 
-      await this.modalCtrl.dismiss(
-        finalOrderWithPayment,
-        'confirmed',
-        'payment-modal',
-      );
-    }
-    // Aquí abrirías el modal de pago
-    this.applyFilters();
+            await this._toastService.presentToast(
+              `Pago recibido. Saldo pendiente: $${paymentSummary.pendingAmount.toLocaleString('es-CO')}`,
+              'success',
+            );
+
+            if (updatedOrder) {
+              await this.payOrder(updatedOrder);
+            }
+
+            return;
+          }
+
+          this.applyFilters();
+
+          await this._toastService.presentToast(
+            'Pago procesado correctamente.',
+            'success',
+          );
+        },
+        error: async (err) => {
+          console.error('Error al realizar el pago:', err);
+
+          await this._toastService.presentToast(
+            err?.error?.message || 'Error al realizar el pago.',
+            'danger',
+          );
+        },
+      });
   }
 
   viewOrderDetails(orderId: number) {
