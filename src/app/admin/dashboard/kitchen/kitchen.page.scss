@@ -1,233 +1,238 @@
 /* Header y selector de vista */
 .kitchen-header {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: saturate(180%) blur(20px);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
 
-    ion-toolbar {
-        --padding-start: 16px;
-        --padding-end: 16px;
-        --background: transparent;
-        // CORRECCIÓN: Aumentamos la altura del toolbar
-        --padding-top: 8px;
-        --padding-bottom: 8px;
-        --min-height: 60px;
-        border-bottom: 1px solid var(--ion-color-step-150, #e0e0e0);
-        margin-bottom: 16px;
-        margin-top: 10px;
-    }
+  ion-toolbar {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --background: transparent;
+    // CORRECCIÓN: Aumentamos la altura del toolbar
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --min-height: 60px;
+    border-bottom: 1px solid var(--ion-color-step-150, #e0e0e0);
+    margin-bottom: 16px;
+    margin-top: 10px;
+  }
 
-    h1 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin: 0;
-    }
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+  }
 
-    p {
-        font-size: 0.875rem;
-        color: var(--ion-color-medium-shade);
-        margin: 0;
-    }
+  p {
+    font-size: 0.875rem;
+    color: var(--ion-color-medium-shade);
+    margin: 0;
+  }
 }
 
 .view-selector {
-    display: flex;
-    padding: 4px;
-    margin: 0 16px 12px 16px;
-    background-color: var(--ion-color-light);
-    border-radius: 8px;
+  display: flex;
+  padding: 4px;
+  margin: 0 16px 12px 16px;
+  background-color: var(--ion-color-light);
+  border-radius: 8px;
 
-    button {
-        flex: 1;
-        padding: 8px;
-        border: none;
-        background-color: transparent;
-        border-radius: 6px;
-        font-weight: 600;
-        color: var(--ion-color-medium-shade);
-        transition: all 0.2s ease-in-out;
+  button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background-color: transparent;
+    border-radius: 6px;
+    font-weight: 600;
+    color: var(--ion-color-medium-shade);
+    transition: all 0.2s ease-in-out;
 
-        &.active {
-            background-color: #ffffff;
-            color: var(--ion-color-primary);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
+    &.active {
+      background-color: #ffffff;
+      color: var(--ion-color-primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
+  }
 }
 
 /* Estilos generales del contenido */
 .empty-message {
-    text-align: center;
-    margin-top: 40%;
-    color: var(--ion-color-medium);
-    font-size: 1.1em;
+  text-align: center;
+  margin-top: 40%;
+  color: var(--ion-color-medium);
+  font-size: 1.1em;
 
-    ion-icon {
-        font-size: 3em;
-        display: block;
-        margin: 0 auto 8px;
-    }
+  ion-icon {
+    font-size: 3em;
+    display: block;
+    margin: 0 auto 8px;
+  }
 }
 
 /* Tarjeta de Comanda */
 .order-card {
-    background: #ffffff;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    border-left: 5px solid #facc15; // Amarillo para nuevas (border-yellow-400)
-    padding: 1rem 0;
+  background: #ffffff;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border-left: 5px solid #facc15; // Amarillo para nuevas (border-yellow-400)
+  padding: 1rem 0;
 
-    &.modified {
-        border-left: 5px solid #fb923c; // Naranja para modificadas (border-orange-400)
+  &.modified {
+    border-left: 5px solid #fb923c; // Naranja para modificadas (border-orange-400)
+  }
+
+  // Nuevas clases para bordes según tiempo transcurrido
+  &.urgent-border {
+    border-left: 5px solid #ef4444; // Rojo para 15+ minutos
+  }
+
+  &.very-urgent-border {
+    border-left: 5px solid #dc2626; // Rojo más intenso para 30+ minutos
+  }
+
+  &.critical-border {
+    border-left: 5px solid #991b1b; // Rojo crítico para 40+ minutos
+    animation: pulse-red 2s infinite;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+
+    .order-id {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin: 0;
     }
 
-    // Nuevas clases para bordes según tiempo transcurrido
-    &.urgent-border {
-        border-left: 5px solid #ef4444; // Rojo para 15+ minutos
+    .order-info {
+      color: var(--ion-color-primary);
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+
+  .timer {
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #ffffff;
+    font-weight: bold;
+    font-family: monospace;
+
+    &.normal {
+      background-color: #22c55e; // Verde (0-4 minutos)
     }
 
-    &.very-urgent-border {
-        border-left: 5px solid #dc2626; // Rojo más intenso para 30+ minutos
+    &.warning {
+      background-color: #f59e0b; // Amarillo (5-14 minutos)
     }
 
-    &.critical-border {
-        border-left: 5px solid #991b1b; // Rojo crítico para 40+ minutos
-        animation: pulse-red 2s infinite;
+    &.urgent {
+      background-color: #ef4444; // Rojo (15-29 minutos)
     }
 
-    .card-header {
-        display: flex;
-        justify-content: space-between;
-        padding: 12px 16px;
+    &.very-urgent {
+      background-color: #dc2626; // Rojo más intenso (30-39 minutos)
+      animation: pulse-timer 1.5s infinite;
+    }
 
-        .order-id {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin: 0;
+    &.critical {
+      background-color: #991b1b; // Rojo crítico (40+ minutos)
+      animation: pulse-critical 1s infinite;
+    }
+  }
+
+  .order-notes {
+    background: var(--ion-color-light-tint);
+    margin: 0 16px 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 3px solid var(--ion-color-warning);
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  ion-list {
+    padding: 0 8px;
+
+    ion-item {
+      --padding-start: 8px;
+      --inner-padding-end: 8px;
+      --border-radius: 6px;
+      margin-bottom: 4px;
+
+      ion-icon[slot="end"] {
+        font-size: 56px;
+        min-width: 56px;
+        color: #9ca3af;
+      }
+
+      &.ready {
+        text-decoration: line-through;
+        color: var(--ion-color-medium-shade);
+
+        ion-icon[slot="end"] {
+          color: #22c55e;
         }
+      }
 
-        .order-info {
-            color: var(--ion-color-primary);
-            font-weight: 600;
-            margin: 0;
-        }
-    }
-
-    .timer {
-        padding: 4px 8px;
-        border-radius: 6px;
-        color: #ffffff;
+      .item-quantity {
         font-weight: bold;
-        font-family: monospace;
-
-        &.normal {
-            background-color: #22c55e; // Verde (0-4 minutos)
-        }
-
-        &.warning {
-            background-color: #f59e0b; // Amarillo (5-14 minutos)
-        }
-
-        &.urgent {
-            background-color: #ef4444; // Rojo (15-29 minutos)
-        }
-
-        &.very-urgent {
-            background-color: #dc2626; // Rojo más intenso (30-39 minutos)
-            animation: pulse-timer 1.5s infinite;
-        }
-
-        &.critical {
-            background-color: #991b1b; // Rojo crítico (40+ minutos)
-            animation: pulse-critical 1s infinite;
-        }
+        margin-right: 8px;
+      }
     }
+  }
 
-    .order-notes {
-        background: var(--ion-color-light-tint);
-        margin: 0 16px 12px;
-        padding: 8px 12px;
-        border-radius: 6px;
-        border-left: 3px solid var(--ion-color-warning);
-        font-size: 0.9em;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    ion-list {
-        padding: 0 8px;
-
-        ion-item {
-            --padding-start: 8px;
-            --inner-padding-end: 8px;
-            --border-radius: 6px;
-            margin-bottom: 4px;
-
-            &.ready {
-                text-decoration: line-through;
-                color: var(--ion-color-medium-shade);
-
-                ion-icon {
-                    color: var(--ion-color-success);
-                }
-            }
-
-            .item-quantity {
-                font-weight: bold;
-                margin-right: 8px;
-            }
-        }
-    }
-
-    .dispatch-btn {
-        margin: 12px 16px;
-        --background: var(--ion-color-success);
-        --border-radius: 8px;
-    }
+  .dispatch-btn {
+    margin: 12px 16px;
+    --background: var(--ion-color-success);
+    --border-radius: 8px;
+  }
 }
 
 // Animaciones para llamar la atención en casos críticos
 @keyframes pulse-timer {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-
-    50% {
-        transform: scale(1.05);
-        opacity: 0.8;
-    }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
 }
 
 @keyframes pulse-critical {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(153, 27, 27, 0.7);
+  }
 
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 1;
-        box-shadow: 0 0 0 0 rgba(153, 27, 27, 0.7);
-    }
-
-    50% {
-        transform: scale(1.1);
-        opacity: 0.9;
-        box-shadow: 0 0 0 5px rgba(153, 27, 27, 0);
-    }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+    box-shadow: 0 0 0 5px rgba(153, 27, 27, 0);
+  }
 }
 
 @keyframes pulse-red {
+  0%,
+  100% {
+    border-left-color: #991b1b;
+  }
 
-    0%,
-    100% {
-        border-left-color: #991b1b;
-    }
-
-    50% {
-        border-left-color: #dc2626;
-    }
+  50% {
+    border-left-color: #dc2626;
+  }
 }
 
 /* ================================================= */
@@ -237,189 +242,190 @@
 /* Tarjeta de Producto Agregado (Contenedor principal) */
 /* Estilos del mockup: bg-white rounded-xl shadow p-4 */
 .product-card {
-    background: #ffffff;
-    padding: 16px;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    margin-bottom: 16px;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
 }
 
 /* Contenedor para la fila superior (info + cantidad) */
 .product-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 /* Información del producto (izquierda) */
 /* Estilos del mockup: font-bold text-lg, text-xs text-gray-500 */
 .product-info {
-    flex: 1;
-    /* Ocupa el espacio disponible */
+  flex: 1;
+  /* Ocupa el espacio disponible */
 }
 
 .product-info h3 {
-    font-weight: 700;
-    font-size: 1.125rem;
-    /* 18px */
-    color: #1f2937;
-    /* text-gray-800 */
-    margin: 0 0 4px 0;
+  font-weight: 700;
+  font-size: 1.125rem;
+  /* 18px */
+  color: #1f2937;
+  /* text-gray-800 */
+  margin: 0 0 4px 0;
 }
 
 .product-info p {
-    font-size: 0.75rem;
-    /* 12px */
-    color: #6b7280;
-    /* text-gray-500 */
-    margin: 0;
+  font-size: 0.75rem;
+  /* 12px */
+  color: #6b7280;
+  /* text-gray-500 */
+  margin: 0;
 }
 
 /* Círculo con la cantidad (derecha) */
 /* Estilos del mockup: text-2xl font-bold bg-indigo-100 text-indigo-600 rounded-full w-12 h-12 */
 .product-quantity {
-    font-size: 1.5rem;
-    /* 24px */
-    font-weight: 700;
-    /* Color pastel como en la imagen (ajusta si prefieres otro tono) */
-    background-color: #ede9fe;
-    /* bg-violet-100 */
-    color: #6d28d9;
-    /* text-violet-700 */
-    border-radius: 9999px;
-    /* rounded-full */
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    /* Evita que se encoja */
+  font-size: 1.5rem;
+  /* 24px */
+  font-weight: 700;
+  /* Color pastel como en la imagen (ajusta si prefieres otro tono) */
+  background-color: #ede9fe;
+  /* bg-violet-100 */
+  color: #6d28d9;
+  /* text-violet-700 */
+  border-radius: 9999px;
+  /* rounded-full */
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* Evita que se encoja */
 }
 
 /* Contenedor para los botones de acción (fila inferior) */
 /* Estilos del mockup: flex gap-2 mt-4 */
 .product-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 /* Estilo base para los botones de acción */
 .product-actions button {
-    flex: 1;
-    /* Para que ocupen el 50% cada uno */
-    border: none;
-    border-radius: 8px;
-    /* rounded-lg */
-    padding: 8px 0;
-    font-size: 0.875rem;
-    /* 14px */
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    /* Espacio entre ícono y texto */
-    transition: background-color 0.2s ease-in-out;
+  flex: 1;
+  /* Para que ocupen el 50% cada uno */
+  border: none;
+  border-radius: 8px;
+  /* rounded-lg */
+  padding: 8px 0;
+  font-size: 0.875rem;
+  /* 14px */
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  /* Espacio entre ícono y texto */
+  transition: background-color 0.2s ease-in-out;
 }
 
 /* Botón "Listos" */
 /* Estilos del mockup: bg-green-100 text-green-700 */
 .ready-btn {
-    background-color: #dcfce7;
-    color: #166534;
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 /* Botón "Agotado" */
 /* Estilos del mockup: bg-red-100 text-red-700 */
 .stock-out-btn {
-    background-color: #fee2e2;
-    color: #991b1b;
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 // En kitchen.page.scss
 
 .product-meta {
-    font-size: 0.8em;
-    color: var(--ion-color-medium-shade);
+  font-size: 0.8em;
+  color: var(--ion-color-medium-shade);
+  margin-top: 4px;
+
+  p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  // Estilo para la nueva información de notas
+  .notes-info {
+    color: var(--ion-color-warning-shade); // Un color que llame la atención
+    font-weight: 500;
     margin-top: 4px;
-
-    p {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    // Estilo para la nueva información de notas
-    .notes-info {
-        color: var(--ion-color-warning-shade); // Un color que llame la atención
-        font-weight: 500;
-        margin-top: 4px;
-    }
+  }
 }
 
 cdk-virtual-scroll-viewport {
-    height: 100%;
-    width: 100%;
-    flex-grow: 1;
+  height: 100%;
+  width: 100%;
+  flex-grow: 1;
 }
 
 .list-container {
-    height: 100%;
-    width: 100%;
-    display: flex; // Usamos flexbox para manejar el contenido interno
-    flex-direction: column; // Apilamos los elementos verticalmente
+  height: 100%;
+  width: 100%;
+  display: flex; // Usamos flexbox para manejar el contenido interno
+  flex-direction: column; // Apilamos los elementos verticalmente
 }
 
 // // Clase para la animación palpitante temporal
 .order-card.card-updated {
-    //     // Llama a la animación 'pulse-modified'
-    animation: pulse-modified 1.5s ease-out;
+  //     // Llama a la animación 'pulse-modified'
+  animation: pulse-modified 1.5s ease-out;
 }
 
 // // Etiqueta "MODIFICADO" para las tarjetas con la clase .modified
 .order-card.modified {
-    position: relative;
-    overflow: hidden;
-    border-left-color: #fb923c;
-    box-shadow: 0 0 12px 1px rgba(251, 146, 60, 0.6);
+  position: relative;
+  overflow: hidden;
+  border-left-color: #fb923c;
+  box-shadow: 0 0 12px 1px rgba(251, 146, 60, 0.6);
 
-    &::after {
-        content: 'MODIFICADO';
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background-color: #fb923c; // Naranja Tailwind naranja-400
-        color: white;
-        font-size: 0.65rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 9999px; // pill shape
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        z-index: 10;
-        pointer-events: none;
-    }
+  &::after {
+    content: "MODIFICADO";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #fb923c; // Naranja Tailwind naranja-400
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 9999px; // pill shape
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    z-index: 10;
+    pointer-events: none;
+  }
 }
 
 @keyframes subtle-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-
-    50% {
-        transform: scale(1.05);
-        opacity: 0.85;
-    }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
 }
 
 .order-card.modified::after {
-    animation: subtle-pulse 2s infinite;
+  animation: subtle-pulse 2s infinite;
 }
