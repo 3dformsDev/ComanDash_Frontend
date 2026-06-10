@@ -33,6 +33,7 @@
         <div class="adjustment-actions">
           <ion-button
             class="adjustment-btn remove-btn"
+            [disabled]="!canEditAdjustments"
             (click)="openAdjustmentModal('discount')"
           >
             -
@@ -40,6 +41,7 @@
 
           <ion-button
             class="adjustment-btn add-btn"
+            [disabled]="!canEditAdjustments"
             (click)="openAdjustmentModal('charge')"
           >
             +
@@ -70,6 +72,7 @@
               </span>
 
               <ion-button
+                *ngIf="canEditAdjustments"
                 fill="clear"
                 class="remove-adjustment-btn"
                 (click)="removeAdjustment(i)"

@@ -392,17 +392,47 @@ export class WaitersPage implements OnInit {
     return 0;
   }
 
-  private getOrderTotalAmount(order: any, itemsForPayment: any[]): number {
-    const orderTotal = Number(order.totalAmount || order.total || 0);
+  private getOrderSubtotalAmount(order: any, itemsForPayment: any[]): number {
+    const explicitSubtotal = Number(order.subtotal || 0);
 
-    if (orderTotal > 0) {
-      return orderTotal;
+    if (explicitSubtotal > 0) {
+      return explicitSubtotal;
     }
 
     return itemsForPayment.reduce(
       (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
       0,
     );
+  }
+
+  private getOrderAdjustments(order: any): any[] {
+    const summaryAdjustments = order.paymentSummary?.adjustments;
+
+    if (Array.isArray(summaryAdjustments)) {
+      return summaryAdjustments;
+    }
+
+    if (Array.isArray(order.adjustments)) {
+      return order.adjustments;
+    }
+
+    return [];
+  }
+
+  private getOrderTotalAmount(order: any, itemsForPayment: any[]): number {
+    const summaryTotal = Number(order.paymentSummary?.totalAmount || 0);
+
+    if (summaryTotal > 0) {
+      return summaryTotal;
+    }
+
+    const orderTotal = Number(order.totalAmount || order.total || 0);
+
+    if (orderTotal > 0) {
+      return orderTotal;
+    }
+
+    return this.getOrderSubtotalAmount(order, itemsForPayment);
   }
 
   private applyPaymentSummaryToOrder(
@@ -415,12 +445,19 @@ export class WaitersPage implements OnInit {
       return null;
     }
 
+    const currentOrder: any = this.pendingOrders[index];
+
     this.pendingOrders[index] = {
-      ...this.pendingOrders[index],
+      ...currentOrder,
+      totalAmount: paymentSummary.totalAmount ?? currentOrder.totalAmount,
+      paidAmount: paymentSummary.paidAmount ?? currentOrder.paidAmount,
+      adjustments: Array.isArray(paymentSummary.adjustments)
+        ? paymentSummary.adjustments
+        : currentOrder.adjustments,
       paymentSummary,
       paidAt: paymentSummary.isFullyPaid
         ? new Date().toString()
-        : this.pendingOrders[index].paidAt,
+        : currentOrder.paidAt,
     };
 
     return this.pendingOrders[index];
@@ -435,8 +472,10 @@ export class WaitersPage implements OnInit {
       category: item.product.category,
     }));
 
+    const subtotalAmount = this.getOrderSubtotalAmount(order, itemsForPayment);
     const totalAmount = this.getOrderTotalAmount(order, itemsForPayment);
     const paidAmount = this.getOrderPaidAmount(order);
+    const adjustments = this.getOrderAdjustments(order);
 
     const paymentModal = await this.modalCtrl.create({
       component: PaymentComponent,
@@ -449,6 +488,8 @@ export class WaitersPage implements OnInit {
           items: itemsForPayment,
           totalAmount,
           paidAmount,
+          subtotalAmount,
+          adjustments,
         },
       },
     });

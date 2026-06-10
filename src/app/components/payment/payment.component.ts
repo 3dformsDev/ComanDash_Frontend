@@ -45,6 +45,8 @@ export class PaymentComponent implements OnInit {
 
   async ngOnInit() {
     this.orderItems = Object.values(this.orderToPay.items);
+    this.adjustments = this.normalizeAdjustments(this.orderToPay?.adjustments);
+
     this.allPaymentMethods = await firstValueFrom(
       this._paymentMethodService.getPaymentMethods(true),
     );
@@ -59,32 +61,71 @@ export class PaymentComponent implements OnInit {
     this.syncDefaultPaymentAmount();
   }
 
+  private normalizeAdjustments(adjustments: any): any[] {
+    if (!Array.isArray(adjustments)) {
+      return [];
+    }
+
+    return adjustments
+      .filter((adjustment) => {
+        return (
+          adjustment &&
+          (adjustment.type === 'charge' || adjustment.type === 'discount') &&
+          Number(adjustment.amount || 0) > 0
+        );
+      })
+      .map((adjustment) => ({
+        id: adjustment.id,
+        type: adjustment.type,
+        description: adjustment.description,
+        amount: Number(adjustment.amount || 0),
+      }));
+  }
+
   // ✅ Renombrado para mayor claridad y ahora maneja la propina
   calculateTotalForNewOrder() {
     const calculatedSubtotal = this.orderItems.reduce(
-      (acc, item) => acc + item.price * item.quantity,
+      (acc, item) => acc + Number(item.price || 0) * Number(item.quantity || 0),
       0,
     );
 
+    const explicitSubtotal = Number(
+      this.orderToPay?.subtotalAmount || this.orderToPay?.subtotal || 0,
+    );
+
     const explicitTotalAmount = Number(this.orderToPay?.totalAmount || 0);
+
     const subtotal =
-      explicitTotalAmount > 0 ? explicitTotalAmount : calculatedSubtotal;
+      explicitSubtotal > 0 ? explicitSubtotal : calculatedSubtotal;
 
     this.tipAmount = subtotal * 0.1;
 
     const charges = this.adjustments
       .filter((adj) => adj.type === 'charge')
-      .reduce((acc, adj) => acc + adj.amount, 0);
+      .reduce((acc, adj) => acc + Number(adj.amount || 0), 0);
 
     const discounts = this.adjustments
       .filter((adj) => adj.type === 'discount')
-      .reduce((acc, adj) => acc + adj.amount, 0);
+      .reduce((acc, adj) => acc + Number(adj.amount || 0), 0);
 
-    this.total =
+    const calculatedTotal =
       subtotal + charges - discounts + (this.includeTip ? this.tipAmount : 0);
+
+    /**
+     * Si hay ajustes, el total se calcula desde subtotal + ajustes.
+     * Si no hay ajustes, se respeta totalAmount del backend.
+     * Esto evita doble sumar ajustes cuando totalAmount ya viene ajustado.
+     */
+    this.total =
+      this.adjustments.length > 0 || this.includeTip
+        ? calculatedTotal
+        : explicitTotalAmount > 0
+          ? explicitTotalAmount
+          : calculatedTotal;
 
     this.syncDefaultPaymentAmount();
   }
+
   // ✅ Este método se queda como estaba
   calculateDifference() {
     const originalQuantities = new Map<number, number>();
@@ -149,6 +190,14 @@ export class PaymentComponent implements OnInit {
 
   get paidAmount(): number {
     return Number(this.orderToPay?.paidAmount || 0);
+  }
+
+  get hasRegisteredPayments(): boolean {
+    return this.paidAmount > 0;
+  }
+
+  get canEditAdjustments(): boolean {
+    return !this.hasRegisteredPayments && !this.isEditMode;
   }
 
   get pendingAmount(): number {
@@ -227,13 +276,16 @@ export class PaymentComponent implements OnInit {
       notesPayment: this.notesPayment,
       tipIncluded: this.includeTip,
       pendingAmount: this.pendingAmount,
-      adjustments: this.adjustments,
+      adjustments: this.canEditAdjustments ? this.adjustments : [],
     };
 
     this.modalCtrl.dismiss(paymentDetails, 'paid');
   }
 
   async openAdjustmentModal(type: 'charge' | 'discount') {
+    if (!this.canEditAdjustments) {
+      return;
+    }
     const alert = await this.alertController.create({
       header: type === 'charge' ? 'Agregar recargo' : 'Agregar descuento',
 
@@ -286,6 +338,10 @@ export class PaymentComponent implements OnInit {
   }
 
   removeAdjustment(index: number) {
+    if (!this.canEditAdjustments) {
+      return;
+    }
+
     this.adjustments.splice(index, 1);
 
     this.calculateTotalForNewOrder();
