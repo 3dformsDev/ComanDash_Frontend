@@ -81,8 +81,13 @@ export class OrdersEffects {
           ...(order.isAdvancePayment &&
             order.paymentDetails && {
               paymentMethodId: order.paymentDetails.paymentMethodId,
-              notesPayment: order.notesPayment ?? 'Todo correcto',
-              adjustments: order.adjustments || [],
+              notesPayment:
+                order.paymentDetails.notesPayment ??
+                order.notesPayment ??
+                'Todo correcto',
+              adjustments:
+                order.paymentDetails.adjustments || order.adjustments || [],
+              advancePayments: order.paymentDetails.advancePayments || [],
             }),
         };
 

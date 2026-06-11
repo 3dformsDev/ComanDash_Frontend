@@ -72,7 +72,18 @@ export interface Order {
       description: string;
       amount: number;
     }[];
+    advancePayments?: {
+      paymentMethodId: number;
+      amount: number;
+      notesPayment: string;
+    }[];
   } | null;
+
+  advancePayments?: {
+    paymentMethodId: number;
+    amount: number;
+    notesPayment: string;
+  }[];
 
   isPrepaid?: boolean;
   orderNumber?: string | number;

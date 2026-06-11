@@ -118,6 +118,7 @@
               inputmode="decimal"
               min="1"
               [max]="pendingAmount"
+              [readonly]="requireFullPayment"
               placeholder="Ingresa el valor"
               [(ngModel)]="paymentAmount"
             >

@@ -19,6 +19,8 @@ export class PaymentComponent implements OnInit {
   @Input() orderToPay: any;
   @Input() originalOrderItems: any[] = [];
   @Input() isEditMode: boolean = false;
+  @Input() requireFullPayment: boolean = false;
+  @Input() allowLocalSplitPayments: boolean = false;
 
   public orderItems: any[] = [];
   public total: number = 0; // El monto final a mostrar en la UI (siempre positivo)
@@ -36,6 +38,14 @@ export class PaymentComponent implements OnInit {
   public notesPayment: string = 'Pago de diferencia por modificación';
 
   public adjustments: any[] = [];
+
+  public localAdvancePayments: {
+    paymentMethodId: number;
+    amount: number;
+    notesPayment: string;
+  }[] = [];
+
+  public localPaidAmount: number = 0;
 
   constructor(
     private modalCtrl: ModalController,
@@ -189,7 +199,7 @@ export class PaymentComponent implements OnInit {
   }
 
   get paidAmount(): number {
-    return Number(this.orderToPay?.paidAmount || 0);
+    return Number(this.orderToPay?.paidAmount || 0) + this.localPaidAmount;
   }
 
   get hasRegisteredPayments(): boolean {
@@ -225,7 +235,19 @@ export class PaymentComponent implements OnInit {
       return false;
     }
 
+    if (
+      this.requireFullPayment &&
+      !this.isRefund &&
+      !this.isFullPendingAmountSelected()
+    ) {
+      return false;
+    }
+
     return true;
+  }
+
+  private isFullPendingAmountSelected(): boolean {
+    return Math.abs(this.normalizedPaymentAmount - this.pendingAmount) < 0.0001;
   }
 
   setFullPendingAmount(): void {
@@ -251,12 +273,26 @@ export class PaymentComponent implements OnInit {
     this.paymentError = null;
 
     if (!this.canConfirmPayment()) {
-      this.paymentError = this.selectedPaymentMethod
-        ? 'Verifica el monto a recibir.'
-        : 'Selecciona un método de pago.';
+      if (!this.selectedPaymentMethod) {
+        this.paymentError = 'Selecciona un método de pago.';
+        return;
+      }
 
+      if (
+        this.requireFullPayment &&
+        !this.isRefund &&
+        !this.isFullPendingAmountSelected()
+      ) {
+        this.paymentError =
+          'En cobro anticipado debes recibir el saldo completo antes de crear la orden.';
+        return;
+      }
+
+      this.paymentError = 'Verifica el monto a recibir.';
       return;
     }
+
+    const pendingBeforePayment = this.pendingAmount;
 
     const amountToSend =
       this.isEditMode && this.isRefund
@@ -265,9 +301,47 @@ export class PaymentComponent implements OnInit {
 
     this.notesPayment = this.isRefund
       ? 'Pago por devolución'
-      : this.pendingAmount === this.normalizedPaymentAmount
+      : pendingBeforePayment === this.normalizedPaymentAmount
         ? 'Pago final de la orden'
         : 'Pago parcial de la orden';
+
+    if (
+      this.allowLocalSplitPayments &&
+      !this.isRefund &&
+      this.selectedPaymentMethod
+    ) {
+      this.localAdvancePayments.push({
+        paymentMethodId: this.selectedPaymentMethod,
+        amount: amountToSend,
+        notesPayment: this.notesPayment,
+      });
+
+      this.localPaidAmount += amountToSend;
+
+      const isFullyPaid = this.pendingAmount <= 0.0001;
+
+      if (!isFullyPaid) {
+        this.selectedPaymentMethod = null;
+        this.syncDefaultPaymentAmount();
+        return;
+      }
+
+      const finalPaymentDetails = {
+        totalPaid: this.localPaidAmount,
+        amount: this.localPaidAmount,
+        paymentMethodId:
+          this.localAdvancePayments[this.localAdvancePayments.length - 1]
+            .paymentMethodId,
+        notesPayment: 'Pago anticipado completo',
+        tipIncluded: this.includeTip,
+        pendingAmount: 0,
+        adjustments: this.adjustments,
+        advancePayments: this.localAdvancePayments,
+      };
+
+      this.modalCtrl.dismiss(finalPaymentDetails, 'paid');
+      return;
+    }
 
     const paymentDetails = {
       totalPaid: amountToSend,
@@ -275,7 +349,7 @@ export class PaymentComponent implements OnInit {
       paymentMethodId: this.selectedPaymentMethod,
       notesPayment: this.notesPayment,
       tipIncluded: this.includeTip,
-      pendingAmount: this.pendingAmount,
+      pendingAmount: pendingBeforePayment - amountToSend,
       adjustments: this.canEditAdjustments ? this.adjustments : [],
     };
 
