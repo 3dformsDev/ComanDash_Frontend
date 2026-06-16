@@ -238,14 +238,16 @@ export class WaitersPage implements OnInit {
     const alert = await this.alertController.create({
       header: 'Confirmar Acción',
       message: `¿Estás seguro de que deseas marcar como servido la órden #${order.orderNumber}?`,
+      cssClass: 'confirmation-action-alert',
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel',
-          cssClass: 'secondary',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'Sí, Servir',
+          cssClass: 'alert-primary-action',
           handler: () => {
             console.log(
               `Iniciando liberación de la mesa para la orden #${order.id}`,
@@ -588,14 +590,16 @@ export class WaitersPage implements OnInit {
     const alert = await this.alertController.create({
       header: 'Confirmar Acción',
       message: `¿Estás seguro de que deseas liberar la mesa #${order.tableId} asociada a esta orden?`,
+      cssClass: 'confirmation-action-alert',
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel',
-          cssClass: 'secondary',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'Sí, Liberar',
+          cssClass: 'alert-primary-action',
           handler: () => {
             console.log(
               `Iniciando liberación de la mesa para la orden #${order.id}`,
@@ -654,9 +658,11 @@ export class WaitersPage implements OnInit {
         {
           text: 'NO',
           role: 'cancel',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'SÍ DESCARGAR',
+          cssClass: 'alert-primary-action',
           handler: () => {
             this._ordersService.downloadReceipt(orderId).subscribe({
               next: () => {

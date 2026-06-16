@@ -31,6 +31,7 @@ export class PaymentComponent implements OnInit {
   public selectedPaymentMethod: number | null = null;
   public paymentAmount: number | null = null;
   public paymentError: string | null = null;
+  public isSplitPaymentEnabled: boolean = false;
 
   // ✅ Propiedades para la propina, ahora se manejan aquí
   public includeTip: boolean = false;
@@ -68,6 +69,7 @@ export class PaymentComponent implements OnInit {
       this.calculateTotalForNewOrder();
     }
 
+    this.isSplitPaymentEnabled = this.hasRegisteredPayments;
     this.syncDefaultPaymentAmount();
   }
 
@@ -210,6 +212,18 @@ export class PaymentComponent implements OnInit {
     return !this.hasRegisteredPayments && !this.isEditMode;
   }
 
+  get shouldShowSplitPaymentToggle(): boolean {
+    return !this.isRefund && !this.isEditMode;
+  }
+
+  get shouldShowSplitPaymentDetails(): boolean {
+    return this.shouldShowSplitPaymentToggle && this.isSplitPaymentEnabled;
+  }
+
+  get canToggleSplitPayment(): boolean {
+    return this.shouldShowSplitPaymentToggle && !this.hasRegisteredPayments;
+  }
+
   get pendingAmount(): number {
     return Math.max(this.total - this.paidAmount, 0);
   }
@@ -253,6 +267,21 @@ export class PaymentComponent implements OnInit {
   setFullPendingAmount(): void {
     this.paymentAmount = this.pendingAmount;
     this.paymentError = null;
+  }
+
+  onSplitPaymentToggle(event: CustomEvent): void {
+    if (!this.canToggleSplitPayment) {
+      this.isSplitPaymentEnabled =
+        this.hasRegisteredPayments || this.isSplitPaymentEnabled;
+      return;
+    }
+
+    this.isSplitPaymentEnabled = Boolean(event.detail?.checked);
+    this.paymentError = null;
+
+    if (!this.isSplitPaymentEnabled) {
+      this.syncDefaultPaymentAmount();
+    }
   }
 
   private syncDefaultPaymentAmount(): void {
@@ -307,6 +336,7 @@ export class PaymentComponent implements OnInit {
 
     if (
       this.allowLocalSplitPayments &&
+      this.isSplitPaymentEnabled &&
       !this.isRefund &&
       this.selectedPaymentMethod
     ) {
@@ -363,7 +393,7 @@ export class PaymentComponent implements OnInit {
     const alert = await this.alertController.create({
       header: type === 'charge' ? 'Agregar recargo' : 'Agregar descuento',
 
-      cssClass: 'receipt-download-alert',
+      cssClass: 'adjustment-alert',
 
       inputs: [
         {
@@ -384,9 +414,11 @@ export class PaymentComponent implements OnInit {
         {
           text: 'Cancelar',
           role: 'cancel',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'Aceptar',
+          cssClass: 'alert-primary-action',
           handler: (data: any) => {
             const amount = Number(data.amount);
 

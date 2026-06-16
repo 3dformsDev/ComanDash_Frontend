@@ -110,30 +110,72 @@ ion-content.payment-modal-content {
 /* ACTION BUTTONS */
 /* ===================================================== */
 
+/* ===================================================== */
+/* ACTION BUTTONS */
+/* ===================================================== */
+
 .adjustment-actions {
   display: flex;
   justify-content: center;
-  gap: 18px;
+  align-items: center;
 
-  margin-bottom: 24px;
+  gap: 22px;
+
+  margin: 8px 0 28px 0;
 }
 
 .adjustment-btn {
-  width: 95px;
-  height: 52px;
+  width: 74px;
+  height: 50px;
 
-  font-size: 1.7rem;
-  font-weight: 800;
+  margin: 0;
 
-  --border-radius: 16px;
+  font-size: 1.8rem;
+  font-weight: 900;
+  line-height: 1;
+
+  --padding-start: 0;
+  --padding-end: 0;
+
+  --border-radius: 14px;
+  --box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+
+  text-transform: none;
+
+  transition:
+    transform 140ms ease,
+    filter 140ms ease,
+    opacity 140ms ease;
 }
 
-.add-btn {
-  --background: #16b34a;
+.adjustment-btn::part(native) {
+  border-radius: 14px;
+}
+
+.adjustment-btn:not(.button-disabled):active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.96);
 }
 
 .remove-btn {
-  --background: #eb2020;
+  --background: #ef4444;
+  --background-hover: #dc2626;
+  --background-activated: #dc2626;
+  --color: #ffffff;
+}
+
+.add-btn {
+  --background: #16a34a;
+  --background-hover: #15803d;
+  --background-activated: #15803d;
+  --color: #ffffff;
+}
+
+.adjustment-btn.button-disabled {
+  opacity: 0.45;
+
+  --box-shadow: none;
+  filter: grayscale(0.15);
 }
 
 /* ===================================================== */
@@ -193,11 +235,55 @@ ion-content.payment-modal-content {
 /* SPLIT PAYMENT */
 /* ===================================================== */
 
-.split-payment-summary {
-  margin-top: 10px;
-  padding: 14px;
+.split-payment-toggle-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 16px;
+
+  margin-top: 12px;
+  padding: 14px 16px;
+
+  border: 1px solid #e7e7e7;
   border-radius: 16px;
+
+  background: #ffffff;
+}
+
+.split-payment-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  color: #111;
+}
+
+.split-payment-toggle-text strong {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.split-payment-toggle-text small {
+  color: #777;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.split-payment-panel {
+  margin-top: 12px;
+  padding: 14px;
+
+  border-radius: 16px;
+
   background: #f8f8f8;
+}
+
+.split-payment-summary {
+  margin-top: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .split-row {
@@ -237,7 +323,7 @@ ion-content.payment-modal-content {
 }
 
 .payment-amount-section {
-  margin: 22px 0 24px 0;
+  margin: 18px 0 0 0;
 }
 
 .payment-amount-input {

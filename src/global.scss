@@ -673,39 +673,152 @@ ion-modal.payment-modal-class {
 }
 
 /* ===================================================== */
-/* RECEIPT DOWNLOAD ALERT */
+/* COMANDASH FORM ALERTS */
 /* ===================================================== */
 
-.receipt-download-alert {
+.receipt-download-alert,
+.adjustment-alert,
+.confirmation-action-alert {
   .alert-wrapper {
+    width: min(92vw, 400px) !important;
+    max-width: 400px !important;
+
     border-radius: 18px !important;
-    padding: 12px !important;
+    padding: 22px 24px 24px !important;
+
+    background: #ffffff !important;
+
+    box-shadow:
+      0 22px 55px rgba(15, 23, 42, 0.25),
+      0 8px 18px rgba(15, 23, 42, 0.12) !important;
   }
 
   .alert-head {
+    padding: 0 0 18px !important;
     text-align: center !important;
-    padding-bottom: 8px !important;
   }
 
   .alert-title {
-    font-size: 22px !important;
-    font-weight: 700 !important;
+    margin: 0 !important;
+
+    color: #1f2937 !important;
+
+    font-size: 1.32rem !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+
     text-align: center !important;
   }
 
   .alert-message {
+    padding: 0 10px 4px !important;
+
+    color: #6b7280 !important;
+
+    font-size: 0.98rem !important;
+    line-height: 1.42 !important;
+
     text-align: center !important;
-    font-size: 16px !important;
-    line-height: 1.5 !important;
+  }
+
+  .alert-input-group {
+    padding: 0 0 12px !important;
+  }
+
+  .alert-input-wrapper {
+    margin: 0 0 12px !important;
+  }
+
+  .alert-input {
+    height: 56px !important;
+
+    margin: 0 !important;
+    padding: 0 16px !important;
+
+    border: 1px solid #d1d5db !important;
+    border-radius: 12px !important;
+
+    background: #ffffff !important;
+
+    color: #111827 !important;
+
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+
+    box-shadow: none !important;
+  }
+
+  .alert-input::placeholder {
+    color: #aeb4c0 !important;
+    opacity: 1 !important;
   }
 
   .alert-button-group {
+    display: flex !important;
+    flex-direction: row !important;
     justify-content: center !important;
-    padding-top: 10px !important;
+    align-items: center !important;
+
+    gap: 14px !important;
+
+    padding: 8px 0 0 !important;
   }
 
   .alert-button {
-    font-weight: 700 !important;
-    min-width: 120px;
+    flex: 1 1 0 !important;
+
+    height: 44px !important;
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border-radius: 12px !important;
+
+    font-size: 0.93rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+
+    text-transform: uppercase !important;
+  }
+
+  .alert-button-inner {
+    justify-content: center !important;
+  }
+
+  .alert-button.alert-secondary-action {
+    background: #e5e7eb !important;
+    color: #111827 !important;
+  }
+
+  .alert-button.alert-primary-action {
+    background: #ff3131 !important;
+    color: #ffffff !important;
+  }
+}
+
+/* Ajuste específico para alertas con inputs */
+.adjustment-alert {
+  .alert-wrapper {
+    width: min(92vw, 430px) !important;
+    max-width: 430px !important;
+  }
+
+  .alert-input-group {
+    margin-top: 4px !important;
+  }
+}
+
+/* Ajuste específico para alerta de recibo */
+.receipt-download-alert {
+  .alert-message {
+    margin-bottom: 10px !important;
+  }
+}
+
+/* Ajuste específico para alertas de confirmación */
+.confirmation-action-alert {
+  .alert-message {
+    margin-bottom: 10px !important;
   }
 }
