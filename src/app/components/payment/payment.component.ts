@@ -19,6 +19,8 @@ export class PaymentComponent implements OnInit {
   @Input() orderToPay: any;
   @Input() originalOrderItems: any[] = [];
   @Input() isEditMode: boolean = false;
+  @Input() requireFullPayment: boolean = false;
+  @Input() allowLocalSplitPayments: boolean = false;
 
   public orderItems: any[] = [];
   public total: number = 0; // El monto final a mostrar en la UI (siempre positivo)
@@ -27,6 +29,9 @@ export class PaymentComponent implements OnInit {
   public pageTitle: string = 'Detalle de la Cuenta';
   public allPaymentMethods: PaymentMethodI[] = [];
   public selectedPaymentMethod: number | null = null;
+  public paymentAmount: number | null = null;
+  public paymentError: string | null = null;
+  public isSplitPaymentEnabled: boolean = false;
 
   // ✅ Propiedades para la propina, ahora se manejan aquí
   public includeTip: boolean = false;
@@ -34,6 +39,14 @@ export class PaymentComponent implements OnInit {
   public notesPayment: string = 'Pago de diferencia por modificación';
 
   public adjustments: any[] = [];
+
+  public localAdvancePayments: {
+    paymentMethodId: number;
+    amount: number;
+    notesPayment: string;
+  }[] = [];
+
+  public localPaidAmount: number = 0;
 
   constructor(
     private modalCtrl: ModalController,
@@ -43,6 +56,8 @@ export class PaymentComponent implements OnInit {
 
   async ngOnInit() {
     this.orderItems = Object.values(this.orderToPay.items);
+    this.adjustments = this.normalizeAdjustments(this.orderToPay?.adjustments);
+
     this.allPaymentMethods = await firstValueFrom(
       this._paymentMethodService.getPaymentMethods(true),
     );
@@ -53,28 +68,76 @@ export class PaymentComponent implements OnInit {
     } else {
       this.calculateTotalForNewOrder();
     }
+
+    this.isSplitPaymentEnabled = this.hasRegisteredPayments;
+    this.syncDefaultPaymentAmount();
+  }
+
+  private normalizeAdjustments(adjustments: any): any[] {
+    if (!Array.isArray(adjustments)) {
+      return [];
+    }
+
+    return adjustments
+      .filter((adjustment) => {
+        return (
+          adjustment &&
+          (adjustment.type === 'charge' || adjustment.type === 'discount') &&
+          Number(adjustment.amount || 0) > 0
+        );
+      })
+      .map((adjustment) => ({
+        id: adjustment.id,
+        type: adjustment.type,
+        description: adjustment.description,
+        amount: Number(adjustment.amount || 0),
+      }));
   }
 
   // ✅ Renombrado para mayor claridad y ahora maneja la propina
   calculateTotalForNewOrder() {
-    const subtotal = this.orderItems.reduce(
-      (acc, item) => acc + item.price * item.quantity,
+    const calculatedSubtotal = this.orderItems.reduce(
+      (acc, item) => acc + Number(item.price || 0) * Number(item.quantity || 0),
       0,
     );
+
+    const explicitSubtotal = Number(
+      this.orderToPay?.subtotalAmount || this.orderToPay?.subtotal || 0,
+    );
+
+    const explicitTotalAmount = Number(this.orderToPay?.totalAmount || 0);
+
+    const subtotal =
+      explicitSubtotal > 0 ? explicitSubtotal : calculatedSubtotal;
 
     this.tipAmount = subtotal * 0.1;
 
     const charges = this.adjustments
       .filter((adj) => adj.type === 'charge')
-      .reduce((acc, adj) => acc + adj.amount, 0);
+      .reduce((acc, adj) => acc + Number(adj.amount || 0), 0);
 
     const discounts = this.adjustments
       .filter((adj) => adj.type === 'discount')
-      .reduce((acc, adj) => acc + adj.amount, 0);
+      .reduce((acc, adj) => acc + Number(adj.amount || 0), 0);
 
-    this.total =
+    const calculatedTotal =
       subtotal + charges - discounts + (this.includeTip ? this.tipAmount : 0);
+
+    /**
+     * Si hay ajustes, el total se calcula desde subtotal + ajustes.
+     * Si no hay ajustes, se respeta totalAmount del backend.
+     * Esto evita doble sumar ajustes cuando totalAmount ya viene ajustado.
+     */
+    this.total =
+      this.adjustments.length > 0 || this.includeTip
+        ? calculatedTotal
+        : explicitTotalAmount > 0
+          ? explicitTotalAmount
+          : calculatedTotal;
+
+    this.syncDefaultPaymentAmount();
   }
+
   // ✅ Este método se queda como estaba
   calculateDifference() {
     const originalQuantities = new Map<number, number>();
@@ -137,6 +200,96 @@ export class PaymentComponent implements OnInit {
     }
   }
 
+  get paidAmount(): number {
+    return Number(this.orderToPay?.paidAmount || 0) + this.localPaidAmount;
+  }
+
+  get hasRegisteredPayments(): boolean {
+    return this.paidAmount > 0;
+  }
+
+  get canEditAdjustments(): boolean {
+    return !this.hasRegisteredPayments && !this.isEditMode;
+  }
+
+  get shouldShowSplitPaymentToggle(): boolean {
+    return !this.isRefund && !this.isEditMode;
+  }
+
+  get shouldShowSplitPaymentDetails(): boolean {
+    return this.shouldShowSplitPaymentToggle && this.isSplitPaymentEnabled;
+  }
+
+  get canToggleSplitPayment(): boolean {
+    return this.shouldShowSplitPaymentToggle && !this.hasRegisteredPayments;
+  }
+
+  get pendingAmount(): number {
+    return Math.max(this.total - this.paidAmount, 0);
+  }
+
+  get normalizedPaymentAmount(): number {
+    return Number(this.paymentAmount || 0);
+  }
+
+  get paymentProgressPercent(): number {
+    if (!this.total) return 0;
+
+    return Math.min((this.paidAmount / this.total) * 100, 100);
+  }
+
+  canConfirmPayment(): boolean {
+    if (!this.selectedPaymentMethod) return false;
+
+    if (this.isEditMode && this.paymentDifference === 0) return false;
+
+    if (this.normalizedPaymentAmount <= 0) return false;
+
+    if (!this.isRefund && this.normalizedPaymentAmount > this.pendingAmount) {
+      return false;
+    }
+
+    if (
+      this.requireFullPayment &&
+      !this.isRefund &&
+      !this.isFullPendingAmountSelected()
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private isFullPendingAmountSelected(): boolean {
+    return Math.abs(this.normalizedPaymentAmount - this.pendingAmount) < 0.0001;
+  }
+
+  setFullPendingAmount(): void {
+    this.paymentAmount = this.pendingAmount;
+    this.paymentError = null;
+  }
+
+  onSplitPaymentToggle(event: CustomEvent): void {
+    if (!this.canToggleSplitPayment) {
+      this.isSplitPaymentEnabled =
+        this.hasRegisteredPayments || this.isSplitPaymentEnabled;
+      return;
+    }
+
+    this.isSplitPaymentEnabled = Boolean(event.detail?.checked);
+    this.paymentError = null;
+
+    if (!this.isSplitPaymentEnabled) {
+      this.syncDefaultPaymentAmount();
+    }
+  }
+
+  private syncDefaultPaymentAmount(): void {
+    const amount = this.isRefund ? this.total : this.pendingAmount;
+
+    this.paymentAmount = amount > 0 ? amount : null;
+  }
+
   selectPaymentMethod(methodId: number) {
     this.selectedPaymentMethod = methodId;
   }
@@ -146,33 +299,101 @@ export class PaymentComponent implements OnInit {
   }
 
   confirmPayment() {
-    console.log('COMANDASH PAYMENT COMPONENT NUEVO');
-    if (!this.selectedPaymentMethod) return;
+    this.paymentError = null;
 
-    // ✅ La lógica para determinar el monto a pagar ahora es correcta
-    const amountToSend = this.isEditMode ? this.paymentDifference : this.total;
+    if (!this.canConfirmPayment()) {
+      if (!this.selectedPaymentMethod) {
+        this.paymentError = 'Selecciona un método de pago.';
+        return;
+      }
+
+      if (
+        this.requireFullPayment &&
+        !this.isRefund &&
+        !this.isFullPendingAmountSelected()
+      ) {
+        this.paymentError =
+          'En cobro anticipado debes recibir el saldo completo antes de crear la orden.';
+        return;
+      }
+
+      this.paymentError = 'Verifica el monto a recibir.';
+      return;
+    }
+
+    const pendingBeforePayment = this.pendingAmount;
+
+    const amountToSend =
+      this.isEditMode && this.isRefund
+        ? -Math.abs(this.normalizedPaymentAmount)
+        : this.normalizedPaymentAmount;
 
     this.notesPayment = this.isRefund
       ? 'Pago por devolución'
-      : 'Recepción de dinero por nuevos productos';
+      : pendingBeforePayment === this.normalizedPaymentAmount
+        ? 'Pago final de la orden'
+        : 'Pago parcial de la orden';
+
+    if (
+      this.allowLocalSplitPayments &&
+      this.isSplitPaymentEnabled &&
+      !this.isRefund &&
+      this.selectedPaymentMethod
+    ) {
+      this.localAdvancePayments.push({
+        paymentMethodId: this.selectedPaymentMethod,
+        amount: amountToSend,
+        notesPayment: this.notesPayment,
+      });
+
+      this.localPaidAmount += amountToSend;
+
+      const isFullyPaid = this.pendingAmount <= 0.0001;
+
+      if (!isFullyPaid) {
+        this.selectedPaymentMethod = null;
+        this.syncDefaultPaymentAmount();
+        return;
+      }
+
+      const finalPaymentDetails = {
+        totalPaid: this.localPaidAmount,
+        amount: this.localPaidAmount,
+        paymentMethodId:
+          this.localAdvancePayments[this.localAdvancePayments.length - 1]
+            .paymentMethodId,
+        notesPayment: 'Pago anticipado completo',
+        tipIncluded: this.includeTip,
+        pendingAmount: 0,
+        adjustments: this.adjustments,
+        advancePayments: this.localAdvancePayments,
+      };
+
+      this.modalCtrl.dismiss(finalPaymentDetails, 'paid');
+      return;
+    }
 
     const paymentDetails = {
       totalPaid: amountToSend,
+      amount: amountToSend,
       paymentMethodId: this.selectedPaymentMethod,
       notesPayment: this.notesPayment,
       tipIncluded: this.includeTip,
-
-      adjustments: this.adjustments,
+      pendingAmount: pendingBeforePayment - amountToSend,
+      adjustments: this.canEditAdjustments ? this.adjustments : [],
     };
 
     this.modalCtrl.dismiss(paymentDetails, 'paid');
   }
 
   async openAdjustmentModal(type: 'charge' | 'discount') {
+    if (!this.canEditAdjustments) {
+      return;
+    }
     const alert = await this.alertController.create({
       header: type === 'charge' ? 'Agregar recargo' : 'Agregar descuento',
 
-      cssClass: 'receipt-download-alert',
+      cssClass: 'adjustment-alert',
 
       inputs: [
         {
@@ -193,9 +414,11 @@ export class PaymentComponent implements OnInit {
         {
           text: 'Cancelar',
           role: 'cancel',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'Aceptar',
+          cssClass: 'alert-primary-action',
           handler: (data: any) => {
             const amount = Number(data.amount);
 
@@ -221,6 +444,10 @@ export class PaymentComponent implements OnInit {
   }
 
   removeAdjustment(index: number) {
+    if (!this.canEditAdjustments) {
+      return;
+    }
+
     this.adjustments.splice(index, 1);
 
     this.calculateTotalForNewOrder();

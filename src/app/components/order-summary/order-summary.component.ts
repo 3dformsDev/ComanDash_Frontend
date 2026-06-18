@@ -135,6 +135,11 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
       // --- CASO A: IR A LA PANTALLA DE PAGO ---
       const paymentModal = await this.modalCtrl.create({
         component: PaymentComponent,
+        id: 'payment-modal',
+        cssClass: 'payment-modal-class',
+        showBackdrop: true,
+        backdropDismiss: false,
+        handle: false,
         componentProps: {
           orderToPay: {
             items: this.groupedOrderItems.reduce((obj, item) => {
@@ -144,8 +149,9 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
           },
           originalOrderItems: this.originalOrderItems,
           isEditMode: this.isEditMode,
+          requireFullPayment: false,
+          allowLocalSplitPayments: true,
         },
-        // ... (resto de props del modal)
       });
 
       await paymentModal.present();

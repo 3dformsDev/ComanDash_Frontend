@@ -1,39 +1,25 @@
 <ion-content class="payment-modal-content">
-
   <div class="payment-layout">
-
     <!-- ===================================================== -->
     <!-- TOP SECTION -->
     <!-- ===================================================== -->
 
     <div class="top-section">
-
       <div class="payment-container">
-
         <h3 class="modal-title">
           {{ pageTitle }}
         </h3>
 
         <div class="items-summary-list">
-
-          <div
-            *ngFor="let item of orderItems"
-            class="summary-item">
-
+          <div *ngFor="let item of orderItems" class="summary-item">
             <span>
-              {{ item.quantity }}x {{item.category.name}} - {{ item.name }}
+              {{ item.quantity }}x {{ item.category.name }} - {{ item.name }}
             </span>
 
-            <span>
-              ${{ (item.price * item.quantity) | number:'1.0-0' }}
-            </span>
-
+            <span> ${{ item.price * item.quantity | number: "1.0-0" }} </span>
           </div>
-
         </div>
-
       </div>
-
     </div>
 
     <!-- ===================================================== -->
@@ -41,141 +27,233 @@
     <!-- ===================================================== -->
 
     <div class="bottom-section">
-
       <div class="bottom-scrollable-content">
-
         <!-- ACTION BUTTONS -->
 
         <div class="adjustment-actions">
-
           <ion-button
             class="adjustment-btn remove-btn"
-            (click)="openAdjustmentModal('discount')">
-
-               -
-
+            [disabled]="!canEditAdjustments"
+            (click)="openAdjustmentModal('discount')"
+          >
+            -
           </ion-button>
 
           <ion-button
             class="adjustment-btn add-btn"
-            (click)="openAdjustmentModal('charge')">
-
-             +
-
+            [disabled]="!canEditAdjustments"
+            (click)="openAdjustmentModal('charge')"
+          >
+            +
           </ion-button>
-
         </div>
 
         <!-- ADJUSTMENTS -->
 
         <div class="costs-summary">
-
           <div
             class="cost-row adjustment-row"
-            *ngFor="let adjustment of adjustments; let i = index">
-
+            *ngFor="let adjustment of adjustments; let i = index"
+          >
             <div class="adjustment-info">
-
               <span>
                 {{ adjustment.description }}
               </span>
-
             </div>
 
             <div class="adjustment-value-container">
-
               <span
                 [class.text-success]="adjustment.type === 'charge'"
-                [class.text-danger]="adjustment.type === 'discount'">
+                [class.text-danger]="adjustment.type === 'discount'"
+              >
+                {{ adjustment.type === "charge" ? "+" : "-" }}
 
-                {{ adjustment.type === 'charge' ? '+' : '-' }}
-
-                ${{ adjustment.amount | number:'1.0-0' }}
-
+                ${{ adjustment.amount | number: "1.0-0" }}
               </span>
 
               <ion-button
+                *ngIf="canEditAdjustments"
                 fill="clear"
                 class="remove-adjustment-btn"
-                (click)="removeAdjustment(i)">
-
+                (click)="removeAdjustment(i)"
+              >
                 ✕
-
               </ion-button>
-
             </div>
-
           </div>
 
           <div class="cost-row grand-total">
-
             <span>
-              {{ isRefund ? 'TOTAL A DEVOLVER' : 'TOTAL A PAGAR' }}
+              {{ isRefund ? "TOTAL A DEVOLVER" : "TOTAL A PAGAR" }}
             </span>
 
-            <span>
-              ${{ total | number:'1.0-0' }}
-            </span>
-
+            <span> ${{ total | number: "1.0-0" }} </span>
           </div>
 
+          <!-- <div class="split-payment-summary" *ngIf="!isRefund">
+            <div class="split-row">
+              <span>Pagado</span>
+              <strong>${{ paidAmount | number: "1.0-0" }}</strong>
+            </div>
+
+            <div class="split-row pending">
+              <span>Saldo pendiente</span>
+              <strong>${{ pendingAmount | number: "1.0-0" }}</strong>
+            </div>
+
+            <div class="payment-progress-track">
+              <div
+                class="payment-progress-fill"
+                [style.width.%]="paymentProgressPercent"
+              ></div>
+            </div>
+          </div> -->
+
+          <!-- <div class="payment-amount-section" *ngIf="!isRefund">
+            <h4 class="payment-methods-title">Valor a recibir</h4>
+
+            <ion-input
+              class="payment-amount-input"
+              type="number"
+              inputmode="decimal"
+              min="1"
+              [max]="pendingAmount"
+              [readonly]="requireFullPayment"
+              placeholder="Ingresa el valor"
+              [(ngModel)]="paymentAmount"
+            >
+            </ion-input>
+
+            <ion-button
+              fill="clear"
+              class="use-full-balance-btn"
+              (click)="setFullPendingAmount()"
+            >
+              Usar saldo pendiente
+            </ion-button>
+
+            <p class="payment-error" *ngIf="paymentError">
+              {{ paymentError }}
+            </p>
+          </div> -->
+
+          <div
+            class="split-payment-toggle-card"
+            *ngIf="shouldShowSplitPaymentToggle"
+          >
+            <div class="split-payment-toggle-text">
+              <strong>Pago dividido</strong>
+
+              <small *ngIf="!hasRegisteredPayments">
+                Actívalo solo si vas a recibir abonos parciales.
+              </small>
+
+              <small *ngIf="hasRegisteredPayments">
+                Ya existen abonos registrados para esta cuenta.
+              </small>
+            </div>
+
+            <ion-toggle
+              mode="ios"
+              [checked]="isSplitPaymentEnabled"
+              [disabled]="!canToggleSplitPayment"
+              (ionChange)="onSplitPaymentToggle($event)"
+            ></ion-toggle>
+          </div>
+
+          <div
+            class="split-payment-panel"
+            *ngIf="shouldShowSplitPaymentDetails"
+          >
+            <div class="split-payment-summary">
+              <div class="split-row">
+                <span>Pagado</span>
+                <strong>${{ paidAmount | number: "1.0-0" }}</strong>
+              </div>
+
+              <div class="split-row pending">
+                <span>Saldo pendiente</span>
+                <strong>${{ pendingAmount | number: "1.0-0" }}</strong>
+              </div>
+
+              <div class="payment-progress-track">
+                <div
+                  class="payment-progress-fill"
+                  [style.width.%]="paymentProgressPercent"
+                ></div>
+              </div>
+            </div>
+
+            <div class="payment-amount-section">
+              <h4 class="payment-methods-title">Valor a recibir</h4>
+
+              <ion-input
+                class="payment-amount-input"
+                type="number"
+                inputmode="decimal"
+                min="1"
+                [max]="pendingAmount"
+                [readonly]="requireFullPayment"
+                placeholder="Ingresa el valor"
+                [(ngModel)]="paymentAmount"
+              >
+              </ion-input>
+
+              <ion-button
+                fill="clear"
+                class="use-full-balance-btn"
+                (click)="setFullPendingAmount()"
+              >
+                Usar saldo pendiente
+              </ion-button>
+            </div>
+          </div>
+
+          <p class="payment-error" *ngIf="paymentError">
+            {{ paymentError }}
+          </p>
         </div>
 
         <!-- PAYMENT METHODS -->
 
         <div class="payment-methods">
-
-          <h4 class="payment-methods-title">
-            Seleccionar Método de Pago
-          </h4>
+          <h4 class="payment-methods-title">Seleccionar Método de Pago</h4>
 
           <div class="payment-options-container">
-
             <ion-button
               *ngFor="let method of allPaymentMethods"
               fill="clear"
               class="payment-method-btn"
               [class.selected]="selectedPaymentMethod === method.id"
-              (click)="selectPaymentMethod(method.id)">
-
+              (click)="selectPaymentMethod(method.id)"
+            >
               {{ method.name }}
-
             </ion-button>
-
           </div>
-
         </div>
-
       </div>
 
       <!-- FIXED ACTIONS -->
 
       <div class="fixed-actions">
-
         <ion-button
           expand="full"
           class="confirm-payment-btn"
-          [disabled]="!selectedPaymentMethod || (isEditMode && paymentDifference === 0)"
-          (click)="confirmPayment()">
-
-          {{ isRefund ? 'Procesar Devolución' : 'Recibir Pago' }}
-
+          [disabled]="!canConfirmPayment()"
+          (click)="confirmPayment()"
+        >
+          {{ isRefund ? "Procesar Devolución" : "Recibir Pago" }}
         </ion-button>
 
         <ion-button
           expand="full"
           fill="clear"
           class="cancel-btn"
-          (click)="dismiss()">
-
+          (click)="dismiss()"
+        >
           Cancelar
-
         </ion-button>
-
       </div>
-
     </div>
-
   </div>
-
 </ion-content>

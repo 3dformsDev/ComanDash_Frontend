@@ -205,6 +205,21 @@ ion-item.order-card-item {
     }
   }
 
+  .refund-pill {
+    background: #fff7ed;
+    color: #c2410c;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 14px;
+    }
+
+    &:hover {
+      background: #fed7aa;
+    }
+  }
+
   .timestamp {
     font-size: 0.75rem;
     color: #9ca3af;
@@ -225,6 +240,44 @@ ion-item.order-card-item {
     .item-quantity {
       font-weight: 600;
     }
+  }
+  .adjustment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-top: 4px;
+    padding: 4px 0;
+
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+
+  .adjustment-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    min-width: 0;
+  }
+
+  .adjustment-sign {
+    font-weight: 900;
+  }
+
+  .adjustment-amount {
+    white-space: nowrap;
+    font-weight: 800;
+  }
+
+  .charge-adjustment {
+    color: #16a34a;
+  }
+
+  .discount-adjustment {
+    color: #dc2626;
   }
 }
 

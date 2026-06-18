@@ -1,8 +1,6 @@
 :host {
-
   --modal-height-desktop: 92vh;
   --modal-width-desktop: 680px;
-
 }
 
 /* ===================================================== */
@@ -10,21 +8,17 @@
 /* ===================================================== */
 
 ion-content.payment-modal-content {
-
   --padding-top: 0;
   --padding-bottom: 0;
   --padding-start: 0;
   --padding-end: 0;
-
 }
 
 .payment-layout {
-
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
 }
 
 /* ===================================================== */
@@ -32,7 +26,6 @@ ion-content.payment-modal-content {
 /* ===================================================== */
 
 .top-section {
-
   flex: 0 0 40%;
   min-height: 280px;
 
@@ -41,22 +34,18 @@ ion-content.payment-modal-content {
   overflow: hidden;
 
   background: #ffffff;
-
 }
 
 .payment-container {
-
   height: 100%;
 
   display: flex;
   flex-direction: column;
 
   padding: 24px;
-
 }
 
 .modal-title {
-
   font-size: 2rem;
   font-weight: 700;
 
@@ -65,17 +54,14 @@ ion-content.payment-modal-content {
   text-align: center;
 
   flex-shrink: 0;
-
 }
 
 .items-summary-list {
-
   flex: 1;
 
   overflow-y: auto;
 
   padding-right: 6px;
-
 }
 
 /* ===================================================== */
@@ -83,7 +69,6 @@ ion-content.payment-modal-content {
 /* ===================================================== */
 
 .summary-item {
-
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -96,7 +81,6 @@ ion-content.payment-modal-content {
 
   font-size: 1rem;
   font-weight: 600;
-
 }
 
 /* ===================================================== */
@@ -104,7 +88,6 @@ ion-content.payment-modal-content {
 /* ===================================================== */
 
 .bottom-section {
-
   flex: 1;
 
   display: flex;
@@ -113,55 +96,86 @@ ion-content.payment-modal-content {
   overflow: hidden;
 
   background: #ffffff;
-
 }
 
 .bottom-scrollable-content {
-
   flex: 1;
 
   overflow-y: auto;
 
   padding: 20px 24px;
-
 }
 
 /* ===================================================== */
 /* ACTION BUTTONS */
 /* ===================================================== */
 
-.adjustment-actions {
+/* ===================================================== */
+/* ACTION BUTTONS */
+/* ===================================================== */
 
+.adjustment-actions {
   display: flex;
   justify-content: center;
-  gap: 18px;
+  align-items: center;
 
-  margin-bottom: 24px;
+  gap: 22px;
 
+  margin: 8px 0 28px 0;
 }
 
 .adjustment-btn {
+  width: 74px;
+  height: 50px;
 
-  width: 95px;
-  height: 52px;
+  margin: 0;
 
-  font-size: 1.7rem;
-  font-weight: 800;
+  font-size: 1.8rem;
+  font-weight: 900;
+  line-height: 1;
 
-  --border-radius: 16px;
+  --padding-start: 0;
+  --padding-end: 0;
 
+  --border-radius: 14px;
+  --box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+
+  text-transform: none;
+
+  transition:
+    transform 140ms ease,
+    filter 140ms ease,
+    opacity 140ms ease;
 }
 
-.add-btn {
+.adjustment-btn::part(native) {
+  border-radius: 14px;
+}
 
-  --background: #16b34a;
-
+.adjustment-btn:not(.button-disabled):active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.96);
 }
 
 .remove-btn {
+  --background: #ef4444;
+  --background-hover: #dc2626;
+  --background-activated: #dc2626;
+  --color: #ffffff;
+}
 
-  --background: #eb2020;
+.add-btn {
+  --background: #16a34a;
+  --background-hover: #15803d;
+  --background-activated: #15803d;
+  --color: #ffffff;
+}
 
+.adjustment-btn.button-disabled {
+  opacity: 0.45;
+
+  --box-shadow: none;
+  filter: grayscale(0.15);
 }
 
 /* ===================================================== */
@@ -169,13 +183,10 @@ ion-content.payment-modal-content {
 /* ===================================================== */
 
 .costs-summary {
-
   margin-bottom: 24px;
-
 }
 
 .cost-row {
-
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -183,52 +194,169 @@ ion-content.payment-modal-content {
   gap: 16px;
 
   padding: 12px 0;
-
 }
 
 .adjustment-row span {
-
   font-size: 1rem;
   font-weight: 600;
-
 }
 
 .adjustment-info {
-
   flex: 1;
 
   overflow-wrap: break-word;
-
 }
 
 .adjustment-value-container {
-
   display: flex;
   align-items: center;
   gap: 8px;
 
   flex-shrink: 0;
-
 }
 
 .remove-adjustment-btn {
-
   margin: 0;
 
   --padding-start: 0;
   --padding-end: 0;
 
   font-size: 0.9rem;
-
 }
 
 .grand-total {
-
   font-size: 1.4rem;
   font-weight: 800;
 
   padding-top: 18px;
+}
 
+/* ===================================================== */
+/* SPLIT PAYMENT */
+/* ===================================================== */
+
+.split-payment-toggle-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 16px;
+
+  margin-top: 12px;
+  padding: 14px 16px;
+
+  border: 1px solid #e7e7e7;
+  border-radius: 16px;
+
+  background: #ffffff;
+}
+
+.split-payment-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  color: #111;
+}
+
+.split-payment-toggle-text strong {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.split-payment-toggle-text small {
+  color: #777;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.split-payment-panel {
+  margin-top: 12px;
+  padding: 14px;
+
+  border-radius: 16px;
+
+  background: #f8f8f8;
+}
+
+.split-payment-summary {
+  margin-top: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.split-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 6px 0;
+
+  color: #555;
+  font-size: 0.98rem;
+}
+
+.split-row.pending {
+  color: #111;
+  font-size: 1.08rem;
+}
+
+.payment-progress-track {
+  width: 100%;
+  height: 8px;
+
+  margin-top: 10px;
+
+  border-radius: 999px;
+  overflow: hidden;
+
+  background: #e5e5e5;
+}
+
+.payment-progress-fill {
+  height: 100%;
+
+  border-radius: 999px;
+
+  background: #16b34a;
+}
+
+.payment-amount-section {
+  margin: 18px 0 0 0;
+}
+
+.payment-amount-input {
+  width: 100%;
+
+  margin-top: 10px;
+
+  --background: #f8f8f8;
+  --border-radius: 14px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+
+  min-height: 54px;
+
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.use-full-balance-btn {
+  width: 100%;
+
+  margin-top: 8px;
+
+  font-weight: 700;
+  color: #eb2020;
+}
+
+.payment-error {
+  margin: 8px 0 0 0;
+
+  color: #eb2020;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 /* ===================================================== */
@@ -236,25 +364,20 @@ ion-content.payment-modal-content {
 /* ===================================================== */
 
 .payment-methods-title {
-
   text-align: center;
 
   margin-bottom: 18px;
 
   color: #666;
-
 }
 
 .payment-options-container {
-
   display: flex;
   flex-direction: column;
   gap: 12px;
-
 }
 
 .payment-method-btn {
-
   width: 100%;
 
   --background: #f2f2f2;
@@ -263,14 +386,11 @@ ion-content.payment-modal-content {
   height: 52px;
 
   font-weight: 600;
-
 }
 
 .payment-method-btn.selected {
-
   --background: #dfefff;
   border: 2px solid #3880ff;
-
 }
 
 /* ===================================================== */
@@ -278,7 +398,6 @@ ion-content.payment-modal-content {
 /* ===================================================== */
 
 .fixed-actions {
-
   flex-shrink: 0;
 
   padding: 20px 24px;
@@ -286,23 +405,18 @@ ion-content.payment-modal-content {
   border-top: 1px solid #ececec;
 
   background: #ffffff;
-
 }
 
 .confirm-payment-btn {
-
   margin-bottom: 10px;
 
   height: 54px;
 
   font-weight: 700;
-
 }
 
 .cancel-btn {
-
   font-weight: 600;
-
 }
 
 /* ===================================================== */
@@ -310,13 +424,9 @@ ion-content.payment-modal-content {
 /* ===================================================== */
 
 @media (max-width: 1024px) {
-
   .top-section {
-
     flex: 0 0 38%;
-
   }
-
 }
 
 /* ===================================================== */
@@ -324,42 +434,28 @@ ion-content.payment-modal-content {
 /* ===================================================== */
 
 @media (max-width: 768px) {
-
   .top-section {
-
     flex: 0 0 34%;
     min-height: 200px;
-
   }
 
   .payment-container {
-
     padding: 18px;
-
   }
 
   .bottom-scrollable-content {
-
     padding: 18px;
-
   }
 
   .fixed-actions {
-
     padding: 18px;
-
   }
 
   .modal-title {
-
     font-size: 1.6rem;
-
   }
 
   .summary-item {
-
     font-size: 0.95rem;
-
   }
-
 }

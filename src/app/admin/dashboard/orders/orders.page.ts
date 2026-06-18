@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppState } from '@capacitor/app';
 import {
@@ -38,7 +38,7 @@ interface GroupedProduct extends ProductI {
   styleUrls: ['./orders.page.scss'],
   standalone: false,
 })
-export class OrdersPage implements OnInit {
+export class OrdersPage implements OnInit, OnDestroy {
   selectedOrders$!: Observable<OrdersState>;
   allCategories: CategoryI[] = [];
   allProducts: ProductI[] = [];
@@ -46,6 +46,8 @@ export class OrdersPage implements OnInit {
   public currentOrderId: number | null = null;
   private destroy$ = new Subject<void>();
   private loadingIndicator: HTMLIonLoadingElement | null = null;
+
+  private static receiptAlertsInProgress = new Set<number>();
 
   public currentFilter: number = 1; // Filtro activo por defecto
   public searchTerm = '';
@@ -112,6 +114,11 @@ export class OrdersPage implements OnInit {
   ngOnInit() {
     this.selectedOrders$ = this.store.select(selectOrdersFeature);
     this.setupOrderActionListeners();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async ionViewWillEnter() {
@@ -406,32 +413,7 @@ export class OrdersPage implements OnInit {
           this.currentOrder = [];
 
           if (order.isAdvancePayment) {
-            const alert = await this.alertController.create({
-              header: 'Pago realizado',
-              message: '¿Deseas descargar el recibo?',
-              cssClass: 'receipt-download-alert',
-              buttons: [
-                {
-                  text: 'NO',
-                  role: 'cancel',
-                },
-                {
-                  text: 'SÍ DESCARGAR',
-                  handler: () => {
-                    this._ordersService.downloadReceipt(order.id!).subscribe({
-                      next: () => {
-                        console.log('Recibo descargado');
-                      },
-                      error: (err: any) => {
-                        console.error(err);
-                      },
-                    });
-                  },
-                },
-              ],
-            });
-
-            await alert.present();
+            await this.showAdvancePaymentReceiptAlertOnce(order.id);
           }
 
           // Redirigir después de un breve delay
@@ -486,6 +468,54 @@ export class OrdersPage implements OnInit {
         );
       },
     });
+  }
+
+  private async showAdvancePaymentReceiptAlertOnce(
+    orderId: number | null | undefined,
+  ): Promise<void> {
+    if (!orderId) {
+      return;
+    }
+
+    if (OrdersPage.receiptAlertsInProgress.has(orderId)) {
+      return;
+    }
+
+    OrdersPage.receiptAlertsInProgress.add(orderId);
+
+    try {
+      const alert = await this.alertController.create({
+        header: 'Pago realizado',
+        message: '¿Deseas descargar el recibo?',
+        cssClass: 'receipt-download-alert',
+        buttons: [
+          {
+            text: 'NO',
+            role: 'cancel',
+            cssClass: 'alert-secondary-action',
+          },
+          {
+            text: 'SÍ DESCARGAR',
+            cssClass: 'alert-primary-action',
+            handler: () => {
+              this._ordersService.downloadReceipt(orderId).subscribe({
+                next: () => {
+                  console.log('Recibo descargado');
+                },
+                error: (err: any) => {
+                  console.error('Error descargando recibo', err);
+                },
+              });
+            },
+          },
+        ],
+      });
+
+      await alert.present();
+      await alert.onDidDismiss();
+    } finally {
+      OrdersPage.receiptAlertsInProgress.delete(orderId);
+    }
   }
 
   private async showLoading(message: string): Promise<void> {

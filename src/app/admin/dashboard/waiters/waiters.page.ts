@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppState } from '@capacitor/app';
 import { AlertController, ModalController } from '@ionic/angular';
@@ -13,6 +13,7 @@ import { PaymentComponent } from 'src/app/components/payment/payment.component';
 import * as OrdersActions from '@store/orders/actions/orders.actions';
 import { CancelOrderComponent } from 'src/app/components/cancel-order/cancel-order.component';
 import { ToastService } from '@services/toast.service';
+import { selectUser } from '@store/auth/selectors/auth.selectors';
 
 @Component({
   selector: 'app-waiters',
@@ -20,12 +21,14 @@ import { ToastService } from '@services/toast.service';
   styleUrls: ['./waiters.page.scss'],
   standalone: false,
 })
-export class WaitersPage implements OnInit {
+export class WaitersPage implements OnInit, OnDestroy {
   allOrders: Order[] = [];
   filteredOrders: any[] = [];
   pendingOrders: Order[] = [];
   public groupedOrderItems: any[] = [];
   private ordersSubscription!: Subscription;
+  private userSubscription!: Subscription;
+  private currentUserRoleCode: string | null = null;
 
   statusFilters = [
     { label: 'Cocinando', value: 'pending', icon: 'hourglass-outline' },
@@ -51,6 +54,15 @@ export class WaitersPage implements OnInit {
   ngOnInit() {
     console.log('WaitersPage: ngOnInit');
     this.subscribeToOrders();
+
+    this.userSubscription = this.store.select(selectUser).subscribe((user) => {
+      this.currentUserRoleCode = user?.role?.code || null;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.ordersSubscription?.unsubscribe();
+    this.userSubscription?.unsubscribe();
   }
 
   /**
@@ -238,14 +250,16 @@ export class WaitersPage implements OnInit {
     const alert = await this.alertController.create({
       header: 'Confirmar Acción',
       message: `¿Estás seguro de que deseas marcar como servido la órden #${order.orderNumber}?`,
+      cssClass: 'confirmation-action-alert',
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel',
-          cssClass: 'secondary',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'Sí, Servir',
+          cssClass: 'alert-primary-action',
           handler: () => {
             console.log(
               `Iniciando liberación de la mesa para la orden #${order.id}`,
@@ -345,14 +359,28 @@ export class WaitersPage implements OnInit {
           paymentMethodId: data.paymentMethodId,
         })
         .subscribe({
-          next: (res) =>
+          next: (res) => {
+            const index = this.pendingOrders.findIndex(
+              (o) => o.id === order.id,
+            );
+
+            if (index !== -1) {
+              this.pendingOrders[index] = {
+                ...this.pendingOrders[index],
+                status: 'cancelled',
+              };
+            }
+
+            this.applyFilters();
+
             this._toastService.presentToast(
               `Comanda cancelada. Reembolso de ${res.refundAmount} procesado.`,
               'success',
-            ),
+            );
+          },
           error: (err) =>
             this._toastService.presentToast(
-              `Error: ${err.error.message}`,
+              `Error: ${err.error?.message || 'No se pudo procesar la devolución.'}`,
               'danger',
             ),
         });
@@ -377,17 +405,105 @@ export class WaitersPage implements OnInit {
     // Aquí abrirías un modal para cambiar entre 'Mesa' y 'Para Llevar'
   }
 
-  async payOrder(order: any) {
-    console.log(order);
+  private getOrderPaidAmount(order: any): number {
+    if (order.paymentSummary?.paidAmount !== undefined) {
+      return Number(order.paymentSummary.paidAmount || 0);
+    }
 
-    console.log(order.orderItems);
+    if (Array.isArray(order.payments)) {
+      return order.payments.reduce(
+        (sum: number, payment: any) => sum + Number(payment.amount || 0),
+        0,
+      );
+    }
+
+    return 0;
+  }
+
+  private getOrderSubtotalAmount(order: any, itemsForPayment: any[]): number {
+    const explicitSubtotal = Number(order.subtotal || 0);
+
+    if (explicitSubtotal > 0) {
+      return explicitSubtotal;
+    }
+
+    return itemsForPayment.reduce(
+      (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+      0,
+    );
+  }
+
+  getOrderAdjustments(order: any): any[] {
+    const summaryAdjustments = order.paymentSummary?.adjustments;
+
+    if (Array.isArray(summaryAdjustments)) {
+      return summaryAdjustments;
+    }
+
+    if (Array.isArray(order.adjustments)) {
+      return order.adjustments;
+    }
+
+    return [];
+  }
+
+  private getOrderTotalAmount(order: any, itemsForPayment: any[]): number {
+    const summaryTotal = Number(order.paymentSummary?.totalAmount || 0);
+
+    if (summaryTotal > 0) {
+      return summaryTotal;
+    }
+
+    const orderTotal = Number(order.totalAmount || order.total || 0);
+
+    if (orderTotal > 0) {
+      return orderTotal;
+    }
+
+    return this.getOrderSubtotalAmount(order, itemsForPayment);
+  }
+
+  private applyPaymentSummaryToOrder(
+    orderId: number,
+    paymentSummary: any,
+  ): Order | null {
+    const index = this.pendingOrders.findIndex((o) => o.id === orderId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    const currentOrder: any = this.pendingOrders[index];
+
+    this.pendingOrders[index] = {
+      ...currentOrder,
+      totalAmount: paymentSummary.totalAmount ?? currentOrder.totalAmount,
+      paidAmount: paymentSummary.paidAmount ?? currentOrder.paidAmount,
+      adjustments: Array.isArray(paymentSummary.adjustments)
+        ? paymentSummary.adjustments
+        : currentOrder.adjustments,
+      paymentSummary,
+      paidAt: paymentSummary.isFullyPaid
+        ? new Date().toString()
+        : currentOrder.paidAt,
+    };
+
+    return this.pendingOrders[index];
+  }
+
+  async payOrder(order: any) {
     const itemsForPayment = order.orderItems.map((item: any) => ({
       id: item.id,
-      name: item.product.name, // <-- Obtenemos el nombre del producto anidado
+      name: item.product.name,
       quantity: item.quantity,
       price: parseFloat(item.unitPrice),
-      category: item.product.category, // <-- Usamos el precio unitario y lo convertimos a número
+      category: item.product.category,
     }));
+
+    const subtotalAmount = this.getOrderSubtotalAmount(order, itemsForPayment);
+    const totalAmount = this.getOrderTotalAmount(order, itemsForPayment);
+    const paidAmount = this.getOrderPaidAmount(order);
+    const adjustments = this.getOrderAdjustments(order);
 
     const paymentModal = await this.modalCtrl.create({
       component: PaymentComponent,
@@ -397,70 +513,91 @@ export class WaitersPage implements OnInit {
       backdropDismiss: false,
       componentProps: {
         orderToPay: {
-          items: itemsForPayment, // Ya no usamos .reduce(), pasamos el array directamente
+          items: itemsForPayment,
+          totalAmount,
+          paidAmount,
+          subtotalAmount,
+          adjustments,
         },
       },
     });
 
     await paymentModal.present();
+
     const { data, role } = await paymentModal.onWillDismiss();
 
-    console.log(`Rol de pago ${role}`);
+    if (role !== 'paid' || !data) {
+      this.applyFilters();
+      return;
+    }
 
-    if (role === 'paid') {
-      // 3. Prepara el objeto final con los datos del pago.
-      const finalOrderWithPayment = {
-        orderItems: order,
-        isAdvancePayment: false,
-        paymentDetails: data,
-        kitchenNotes: 'Todo correcto',
-      };
+    if (!order.id || !data.paymentMethodId || !data.amount) {
+      await this._toastService.presentToast(
+        'No se pudo procesar el pago. Faltan datos del pago.',
+        'danger',
+      );
+      return;
+    }
 
-      // 4. Cierra ESTE modal (OrderSummary) y devuelve el objeto final.
+    this._ordersService
+      .makeOrderPayment({
+        orderId: order.id,
+        movementType: 'sale',
+        paymentMethodId: data.paymentMethodId,
+        amount: Number(data.amount).toFixed(2),
+        notes: data.notesPayment,
+        adjustments: data.adjustments || [],
+      })
+      .subscribe({
+        next: async (response) => {
+          const paymentSummary = response.paymentSummary;
 
-      console.log(data);
+          if (paymentSummary) {
+            const updatedOrder = this.applyPaymentSummaryToOrder(
+              order.id,
+              paymentSummary,
+            );
 
-      if (order.id && data.paymentMethodId) {
-        // 👇 La clave es añadir .subscribe() al final de la llamada.
-        this._ordersService
-          .makeOrderPayment({
-            orderId: order.id,
-            movementType: 'sale',
-            paymentMethodId: data.paymentMethodId,
-            adjustments: data.adjustments || [],
-          })
-          .subscribe({
-            next: (response) => {
-              const index = this.pendingOrders.findIndex(
-                (o) => o.id === order.id,
+            this.applyFilters();
+
+            if (paymentSummary.isFullyPaid) {
+              await this._toastService.presentToast(
+                'Pago completado exitosamente.',
+                'success',
               );
 
-              if (index !== -1) {
-                // Guardamos fecha de pago
-                this.pendingOrders[index].paidAt = new Date().toString();
-                // 👇 Ojo: no cambiamos manualmente el status, lo decide applyFilters()
-              }
-
-              this.applyFilters();
-
               this.showReceiptDownloadAlert(order.id);
-            },
-            error: (err) => {
-              // ❌ Error: Este bloque se ejecuta si la petición falla (códigos 4xx, 5xx).
-              console.error('Error al realizar el pago:', err);
-              // Aquí deberías mostrar una alerta de error al usuario.
-            },
-          });
-      }
+              return;
+            }
 
-      await this.modalCtrl.dismiss(
-        finalOrderWithPayment,
-        'confirmed',
-        'payment-modal',
-      );
-    }
-    // Aquí abrirías el modal de pago
-    this.applyFilters();
+            await this._toastService.presentToast(
+              `Pago recibido. Saldo pendiente: $${paymentSummary.pendingAmount.toLocaleString('es-CO')}`,
+              'success',
+            );
+
+            if (updatedOrder) {
+              await this.payOrder(updatedOrder);
+            }
+
+            return;
+          }
+
+          this.applyFilters();
+
+          await this._toastService.presentToast(
+            'Pago procesado correctamente.',
+            'success',
+          );
+        },
+        error: async (err) => {
+          console.error('Error al realizar el pago:', err);
+
+          await this._toastService.presentToast(
+            err?.error?.message || 'Error al realizar el pago.',
+            'danger',
+          );
+        },
+      });
   }
 
   viewOrderDetails(orderId: number) {
@@ -479,14 +616,16 @@ export class WaitersPage implements OnInit {
     const alert = await this.alertController.create({
       header: 'Confirmar Acción',
       message: `¿Estás seguro de que deseas liberar la mesa #${order.tableId} asociada a esta orden?`,
+      cssClass: 'confirmation-action-alert',
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel',
-          cssClass: 'secondary',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'Sí, Liberar',
+          cssClass: 'alert-primary-action',
           handler: () => {
             console.log(
               `Iniciando liberación de la mesa para la orden #${order.id}`,
@@ -533,6 +672,32 @@ export class WaitersPage implements OnInit {
     await alert.present();
   }
 
+  canManagePaidRefund(order: any): boolean {
+    const allowedRoles = ['super_admin', 'admin'];
+
+    if (!allowedRoles.includes(this.currentUserRoleCode || '')) {
+      return false;
+    }
+
+    if (this.currentFilter !== 'paid') {
+      return false;
+    }
+
+    if (!order?.paidAt || order?.status === 'cancelled') {
+      return false;
+    }
+
+    if (!order?.isReadyToServe || !order?.isServed) {
+      return false;
+    }
+
+    if (!order.tableId) {
+      return true;
+    }
+
+    return !order.table?.isBussy;
+  }
+
   trackByOrder(index: number, item: Order) {
     return item.id; // 👈 usa el id único de la orden
   }
@@ -545,9 +710,11 @@ export class WaitersPage implements OnInit {
         {
           text: 'NO',
           role: 'cancel',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'SÍ DESCARGAR',
+          cssClass: 'alert-primary-action',
           handler: () => {
             this._ordersService.downloadReceipt(orderId).subscribe({
               next: () => {
