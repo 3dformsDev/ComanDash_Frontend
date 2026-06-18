@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppState } from '@capacitor/app';
 import { AlertController, ModalController } from '@ionic/angular';
@@ -13,6 +13,7 @@ import { PaymentComponent } from 'src/app/components/payment/payment.component';
 import * as OrdersActions from '@store/orders/actions/orders.actions';
 import { CancelOrderComponent } from 'src/app/components/cancel-order/cancel-order.component';
 import { ToastService } from '@services/toast.service';
+import { selectUser } from '@store/auth/selectors/auth.selectors';
 
 @Component({
   selector: 'app-waiters',
@@ -20,12 +21,14 @@ import { ToastService } from '@services/toast.service';
   styleUrls: ['./waiters.page.scss'],
   standalone: false,
 })
-export class WaitersPage implements OnInit {
+export class WaitersPage implements OnInit, OnDestroy {
   allOrders: Order[] = [];
   filteredOrders: any[] = [];
   pendingOrders: Order[] = [];
   public groupedOrderItems: any[] = [];
   private ordersSubscription!: Subscription;
+  private userSubscription!: Subscription;
+  private currentUserRoleCode: string | null = null;
 
   statusFilters = [
     { label: 'Cocinando', value: 'pending', icon: 'hourglass-outline' },
@@ -51,6 +54,15 @@ export class WaitersPage implements OnInit {
   ngOnInit() {
     console.log('WaitersPage: ngOnInit');
     this.subscribeToOrders();
+
+    this.userSubscription = this.store.select(selectUser).subscribe((user) => {
+      this.currentUserRoleCode = user?.role?.code || null;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.ordersSubscription?.unsubscribe();
+    this.userSubscription?.unsubscribe();
   }
 
   /**
@@ -347,14 +359,28 @@ export class WaitersPage implements OnInit {
           paymentMethodId: data.paymentMethodId,
         })
         .subscribe({
-          next: (res) =>
+          next: (res) => {
+            const index = this.pendingOrders.findIndex(
+              (o) => o.id === order.id,
+            );
+
+            if (index !== -1) {
+              this.pendingOrders[index] = {
+                ...this.pendingOrders[index],
+                status: 'cancelled',
+              };
+            }
+
+            this.applyFilters();
+
             this._toastService.presentToast(
               `Comanda cancelada. Reembolso de ${res.refundAmount} procesado.`,
               'success',
-            ),
+            );
+          },
           error: (err) =>
             this._toastService.presentToast(
-              `Error: ${err.error.message}`,
+              `Error: ${err.error?.message || 'No se pudo procesar la devolución.'}`,
               'danger',
             ),
         });
@@ -407,7 +433,7 @@ export class WaitersPage implements OnInit {
     );
   }
 
-  private getOrderAdjustments(order: any): any[] {
+  getOrderAdjustments(order: any): any[] {
     const summaryAdjustments = order.paymentSummary?.adjustments;
 
     if (Array.isArray(summaryAdjustments)) {
@@ -644,6 +670,32 @@ export class WaitersPage implements OnInit {
     });
 
     await alert.present();
+  }
+
+  canManagePaidRefund(order: any): boolean {
+    const allowedRoles = ['super_admin', 'admin'];
+
+    if (!allowedRoles.includes(this.currentUserRoleCode || '')) {
+      return false;
+    }
+
+    if (this.currentFilter !== 'paid') {
+      return false;
+    }
+
+    if (!order?.paidAt || order?.status === 'cancelled') {
+      return false;
+    }
+
+    if (!order?.isReadyToServe || !order?.isServed) {
+      return false;
+    }
+
+    if (!order.tableId) {
+      return true;
+    }
+
+    return !order.table?.isBussy;
   }
 
   trackByOrder(index: number, item: Order) {

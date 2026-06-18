@@ -87,12 +87,42 @@
                   <ion-icon name="download-outline"></ion-icon>
                   Recibo
                 </div>
+
+                <div
+                  class="status-pill refund-pill"
+                  *ngIf="canManagePaidRefund(order)"
+                  (click)="$event.stopPropagation(); cancelOrder(order)"
+                >
+                  <ion-icon name="return-down-back-outline"></ion-icon>
+                  Devolución
+                </div>
               </div>
             </div>
             <ul class="order-items-list">
               <li *ngFor="let item of order.orderItems">
                 <span class="item-quantity">{{ item.quantity }}x</span>
                 {{item.product.category.name}} - {{ item.product.name }}
+              </li>
+
+              <li
+                class="adjustment-item"
+                *ngFor="let adjustment of getOrderAdjustments(order)"
+                [ngClass]="{
+      'charge-adjustment': adjustment.type === 'charge',
+      'discount-adjustment': adjustment.type === 'discount'
+    }"
+              >
+                <div class="adjustment-info">
+                  <span class="adjustment-sign">
+                    {{ adjustment.type === 'discount' ? '-' : '+' }}
+                  </span>
+                  <span>{{ adjustment.description }}</span>
+                </div>
+
+                <span class="adjustment-amount">
+                  {{ adjustment.type === 'discount' ? '-' : '+' }}{{
+                  adjustment.amount | currency:'COP':'$':'1.0-0' }}
+                </span>
               </li>
             </ul>
 
