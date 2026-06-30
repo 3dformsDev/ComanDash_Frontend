@@ -1,5 +1,4 @@
 <div class="summary-container-sheet">
-
   <ion-content class="modal-content-scrollable">
     <div class="summary-header">
       <h2 class="summary-title">Resumen del Pedido</h2>
@@ -9,10 +8,16 @@
     </div>
 
     <div class="order-items-list">
-      <p *ngIf="groupedOrderItems.length === 0" class="empty-message">Aún no hay productos.</p>
+      <p *ngIf="groupedOrderItems.length === 0" class="empty-message">
+        Aún no hay productos.
+      </p>
       <div class="order-item" *ngFor="let item of groupedOrderItems">
-        <img *ngIf="protectedImages.get(item.id); else noImage" [src]="protectedImages.get(item.id)"
-          alt="{{ item.name }}" class="item-image">
+        <img
+          *ngIf="protectedImages.get(item.id); else noImage"
+          [src]="protectedImages.get(item.id)"
+          alt="{{ item.name }}"
+          class="item-image"
+        />
 
         <ng-template #noImage>
           <div class="item-image flex justify-center align-items-center">
@@ -20,8 +25,12 @@
           </div>
         </ng-template>
         <div class="item-details">
-          <p class="item-name font-bold">{{item.category.name}} - {{ item.name }}</p>
-          <p class="item-price">{{ item.price | currency:'COP':'$':'1.0-0' }}</p>
+          <p class="item-name font-bold">
+            {{ item.category.name }} - {{ item.name }}
+          </p>
+          <p class="item-price">
+            {{ item.price | currency: "COP" : "$" : "1.0-0" }}
+          </p>
         </div>
         <div class="quantity-controls">
           <button class="quantity-btn" (click)="removeItem(item)">
@@ -39,14 +48,23 @@
   <ion-footer class="modal-footer">
     <div class="notes-section">
       <label class="notes-label">Notas para la cocina:</label>
-      <ion-textarea class="notes-textarea" rows="2" placeholder="Ej: sin cebolla..." [(ngModel)]="kitchenNotes">
-
+      <ion-textarea
+        class="notes-textarea"
+        rows="2"
+        placeholder="Ej: sin cebolla..."
+        [ngModel]="kitchenNotes"
+        (ngModelChange)="onKitchenNotesChange($event)"
+      >
       </ion-textarea>
     </div>
 
     <div class="prepaid-section">
       <label class="prepaid-label">Cobro Anticipado</label>
-      <ion-toggle [(ngModel)]="isPrepaid" mode="ios" [disabled]="isEditMode"></ion-toggle>
+      <ion-toggle
+        [(ngModel)]="isPrepaid"
+        mode="ios"
+        [disabled]="isEditMode"
+      ></ion-toggle>
     </div>
 
     <div class="totals-section">
@@ -60,12 +78,17 @@
       </div> -->
       <div class="total-row grand-total">
         <span>Total</span>
-        <span>{{ total | currency:'COP':'$':'1.0-0' }}</span>
+        <span>{{ total | currency: "COP" : "$" : "1.0-0" }}</span>
       </div>
     </div>
-    <button #confirmButton expand="block" class="confirm-button" (click)="confirmOrder()"
-      [disabled]="groupedOrderItems.length === 0">
-      {{ isPrepaid ? 'Continuar al Pago' : 'Confirmar y Enviar a Cocina' }}
+    <button
+      #confirmButton
+      expand="block"
+      class="confirm-button"
+      (click)="confirmOrder()"
+      [disabled]="groupedOrderItems.length === 0"
+    >
+      {{ isPrepaid ? "Continuar al Pago" : "Confirmar y Enviar a Cocina" }}
     </button>
   </ion-footer>
 </div>

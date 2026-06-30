@@ -55,6 +55,10 @@ export class OrdersPage implements OnInit, OnDestroy {
   // Array que almacena los productos que se van añadiendo a la orden
   public currentOrder: GroupedProduct[] = [];
 
+  // Conserva temporalmente la nota general mientras el mesero cierra y reabre
+  // el modal "Resumen del Pedido" antes de confirmar la comanda.
+  private draftKitchenNotes: string | null = null;
+
   public protectedImages = new Map<number, string>();
 
   // --- GETTERS (PROPIEDADES CALCULADAS) ---
@@ -158,6 +162,7 @@ export class OrdersPage implements OnInit, OnDestroy {
     this.isEditMode = false;
     this.currentOrderId = null;
     this.currentOrder = [];
+    this.draftKitchenNotes = null;
     this.currentFilter = 1; // O el ID de tu categoría por defecto
     this.searchTerm = '';
     // this.protectedImages.clear(); // Opcional: si quieres limpiar las imágenes cacheadas
@@ -278,24 +283,22 @@ export class OrdersPage implements OnInit, OnDestroy {
    * Método actualizado para abrir el modal
    */
   public async viewOrder(): Promise<void> {
-    // ✅ PASO CLAVE: Obtenemos el estado de la orden ANTES de crear el modal.
+    // Obtenemos el estado de la orden ANTES de crear el modal.
     const orderState = await firstValueFrom(
       this.store.select(selectOrdersFeature),
     );
+
     let isAlreadyPaid = false;
-
-    // ✅ Guardamos los items originales si estamos en modo edición
     let originalItems: OrderItem[] = [];
+    let originalKitchenNotes = this.draftKitchenNotes ?? '';
 
-    // ✅ 1. Variable para las notas originales
-    let originalKitchenNotes = '';
-
-    // Si estamos en modo edición, verificamos si la orden actual ya tiene pago anticipado.
+    // Si estamos en modo edición, usamos las notas existentes de la orden
+    // solo cuando todavía no hay una nota temporal escrita en esta sesión.
     if (this.isEditMode && orderState.currentOrder) {
       isAlreadyPaid = orderState.currentOrder.isAdvancePayment;
-      // ✅ Asignamos los items originales de la orden del store
       originalItems = orderState.currentOrder.orderItems;
-      originalKitchenNotes = orderState.currentOrder.kitchenNotes || '';
+      originalKitchenNotes =
+        this.draftKitchenNotes ?? orderState.currentOrder.kitchenNotes ?? '';
     }
 
     const flatOrderItems = this.currentOrder.reduce((acc, item) => {
@@ -314,14 +317,17 @@ export class OrdersPage implements OnInit, OnDestroy {
         modalId: 'orderSummaryModal',
         isOrderAlreadyPaid: isAlreadyPaid,
         isEditMode: this.isEditMode,
-        // ✅ Enviamos los items originales al modal
         originalOrderItems: originalItems,
         originalKitchenNotes: originalKitchenNotes,
+
+        // Mantiene viva la nota aunque el modal se cierre y se vuelva a abrir.
+        onDraftKitchenNotesChange: (notes: string) => {
+          this.draftKitchenNotes = notes ?? '';
+        },
       },
       id: 'orderSummaryModal',
-      // Removemos breakpoints y initialBreakpoint para usar modal tradicional
       cssClass: 'order-summary-modal',
-      backdropDismiss: true, // Permite cerrar tocando fuera del modal
+      backdropDismiss: true,
       showBackdrop: true,
       handle: false,
     });
@@ -333,7 +339,7 @@ export class OrdersPage implements OnInit, OnDestroy {
     console.log(`Valor de role ${role}`);
 
     if (role === 'confirmed') {
-      // ✅ PASO 1: Obtener el estado actual de la orden desde el store
+      // Obtener el estado actual de la orden desde el store
       this.store
         .select(selectOrdersFeature)
         .pipe(take(1))
@@ -341,11 +347,11 @@ export class OrdersPage implements OnInit, OnDestroy {
           if (this.isEditMode) {
             await this.showLoading('Actualizando comanda...');
 
-            // ✅ PASO 2: Fusionar la orden original con los nuevos datos del modal
+            // Fusionar la orden original con los nuevos datos del modal
             const originalOrder = orderState.currentOrder!;
             const updatedOrderData: Partial<Order> = {
-              ...originalOrder, // Mantiene todos los datos originales (tableId, customerName, etc.)
-              ...data, // Sobrescribe con los nuevos datos (orderItems, kitchenNotes)
+              ...originalOrder,
+              ...data,
             };
 
             console.log('¡Pedido actualizado!', updatedOrderData);
@@ -373,9 +379,10 @@ export class OrdersPage implements OnInit, OnDestroy {
           }
         });
 
-      this.currentOrder = []; // Limpia la orden después de confirmar
+      this.currentOrder = [];
+      this.draftKitchenNotes = null;
     }
-  } //aqui?
+  }
 
   async refreshData() {
     try {
@@ -431,10 +438,15 @@ export class OrdersPage implements OnInit, OnDestroy {
         ofType(OrdersActions.updateOrderSuccess),
         tap(async ({ order }) => {
           await this.hideLoading();
+
+          const orderDisplayNumber =
+            order.orderNumber || order.id || this.currentOrderId || 'N/A';
+
           this.toastService.presentToast(
-            `¡Pedido #${order.orderNumber || 'N/A'} actualizado!`,
+            `¡Pedido #${orderDisplayNumber} actualizado!`,
             'success',
           );
+
           this.router.navigate(['/dashboard/waiters']); // O a donde quieras redirigir
         }),
         takeUntil(this.destroy$),

@@ -27,6 +27,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   @Input() isEditMode: boolean = false;
   @Input() originalOrderItems: any[] = [];
   @Input() originalKitchenNotes: string = '';
+  @Input() onDraftKitchenNotesChange?: (notes: string) => void;
   @ViewChild('confirmButton', { static: false }) confirmButton!: ElementRef;
 
   public isPrepaid: boolean = false;
@@ -57,6 +58,11 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.groupItems();
     this.kitchenNotes = this.originalKitchenNotes;
+
+    if (this.onDraftKitchenNotesChange) {
+      this.onDraftKitchenNotesChange(this.kitchenNotes);
+    }
+
     // ✅ 2. Si la orden ya venía con pago anticipado,
     //    marcamos el toggle como activo por defecto.
     if (this.isEditMode) {
@@ -112,6 +118,13 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
     }
   }
 
+  onKitchenNotesChange(notes: string): void {
+    this.kitchenNotes = notes ?? '';
+
+    if (this.onDraftKitchenNotesChange) {
+      this.onDraftKitchenNotesChange(this.kitchenNotes);
+    }
+  }
   dismiss() {
     this.modalCtrl.dismiss(null, 'cancelled');
   }
