@@ -31,6 +31,11 @@ export class PaymentComponent implements OnInit {
   public selectedPaymentMethod: number | null = null;
   public paymentAmount: number | null = null;
   public paymentError: string | null = null;
+
+  // Calculadora visual de vueltas. No se guarda ni se envía al backend.
+  public cashReceivedAmount: number | null = null;
+  public cashReceivedDisplayValue: string = '';
+
   public isSplitPaymentEnabled: boolean = false;
 
   // ✅ Propiedades para la propina, ahora se manejan aquí
@@ -232,6 +237,68 @@ export class PaymentComponent implements OnInit {
     return Number(this.paymentAmount || 0);
   }
 
+  get selectedPaymentMethodData(): PaymentMethodI | null {
+    return (
+      this.allPaymentMethods.find(
+        (method) => method.id === this.selectedPaymentMethod,
+      ) || null
+    );
+  }
+
+  get isCashPaymentSelected(): boolean {
+    return this.isCashMethod(this.selectedPaymentMethodData);
+  }
+
+  get shouldShowCashChangeCalculator(): boolean {
+    return (
+      !this.isRefund &&
+      this.isCashPaymentSelected &&
+      this.normalizedPaymentAmount > 0
+    );
+  }
+
+  get cashAmountDue(): number {
+    return this.normalizedPaymentAmount;
+  }
+
+  get normalizedCashReceivedAmount(): number {
+    return Number(this.cashReceivedAmount || 0);
+  }
+
+  get cashChangeAmount(): number {
+    return Math.max(this.normalizedCashReceivedAmount - this.cashAmountDue, 0);
+  }
+
+  get cashMissingAmount(): number {
+    return Math.max(this.cashAmountDue - this.normalizedCashReceivedAmount, 0);
+  }
+
+  get isCashReceivedInsufficient(): boolean {
+    return (
+      this.shouldShowCashChangeCalculator &&
+      this.normalizedCashReceivedAmount < this.cashAmountDue
+    );
+  }
+
+  private isCashMethod(method: PaymentMethodI | null): boolean {
+    if (!method) {
+      return false;
+    }
+
+    const normalizedType = String(method.type || '').toLowerCase();
+
+    const normalizedName = String(method.name || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    return (
+      normalizedType === 'cash' ||
+      normalizedName.includes('efectivo') ||
+      normalizedName.includes('cash')
+    );
+  }
+
   get paymentProgressPercent(): number {
     if (!this.total) return 0;
 
@@ -244,6 +311,10 @@ export class PaymentComponent implements OnInit {
     if (this.isEditMode && this.paymentDifference === 0) return false;
 
     if (this.normalizedPaymentAmount <= 0) return false;
+
+    if (this.isCashReceivedInsufficient) {
+      return false;
+    }
 
     if (!this.isRefund && this.normalizedPaymentAmount > this.pendingAmount) {
       return false;
@@ -264,9 +335,61 @@ export class PaymentComponent implements OnInit {
     return Math.abs(this.normalizedPaymentAmount - this.pendingAmount) < 0.0001;
   }
 
+  onPaymentAmountChange(value: number | string | null | undefined): void {
+    this.paymentAmount =
+      value === null || value === undefined || value === ''
+        ? null
+        : Number(value);
+
+    this.paymentError = null;
+
+    if (this.isCashPaymentSelected && this.cashReceivedAmount === null) {
+      this.syncCashReceivedDefault();
+    }
+  }
+
+  onCashReceivedAmountChange(value: string | number | null | undefined): void {
+    const numericAmount = this.parseCurrencyInput(value);
+
+    this.cashReceivedAmount = numericAmount > 0 ? numericAmount : null;
+    this.cashReceivedDisplayValue =
+      numericAmount > 0 ? this.formatCurrencyInput(numericAmount) : '';
+
+    this.paymentError = null;
+  }
+
+  async selectCashReceivedAmount(event: any): Promise<void> {
+    const nativeInput = await event?.target?.getInputElement?.();
+
+    setTimeout(() => {
+      nativeInput?.select?.();
+    }, 0);
+  }
+
+  private parseCurrencyInput(
+    value: string | number | null | undefined,
+  ): number {
+    const onlyDigits = String(value ?? '').replace(/\D/g, '');
+
+    return onlyDigits ? Number(onlyDigits) : 0;
+  }
+
+  private formatCurrencyInput(value: number | null | undefined): string {
+    const amount = Number(value || 0);
+
+    if (amount <= 0) {
+      return '';
+    }
+
+    return `$${amount.toLocaleString('es-CO', {
+      maximumFractionDigits: 0,
+    })}`;
+  }
+
   setFullPendingAmount(): void {
     this.paymentAmount = this.pendingAmount;
     this.paymentError = null;
+    this.syncCashReceivedDefault();
   }
 
   onSplitPaymentToggle(event: CustomEvent): void {
@@ -288,10 +411,28 @@ export class PaymentComponent implements OnInit {
     const amount = this.isRefund ? this.total : this.pendingAmount;
 
     this.paymentAmount = amount > 0 ? amount : null;
+    this.syncCashReceivedDefault();
+  }
+
+  private syncCashReceivedDefault(): void {
+    if (!this.isCashPaymentSelected || this.isRefund) {
+      this.cashReceivedAmount = null;
+      this.cashReceivedDisplayValue = '';
+      return;
+    }
+
+    const amount = this.cashAmountDue;
+
+    this.cashReceivedAmount = amount > 0 ? amount : null;
+    this.cashReceivedDisplayValue = this.formatCurrencyInput(
+      this.cashReceivedAmount,
+    );
   }
 
   selectPaymentMethod(methodId: number) {
     this.selectedPaymentMethod = methodId;
+    this.paymentError = null;
+    this.syncCashReceivedDefault();
   }
 
   dismiss() {
@@ -304,6 +445,12 @@ export class PaymentComponent implements OnInit {
     if (!this.canConfirmPayment()) {
       if (!this.selectedPaymentMethod) {
         this.paymentError = 'Selecciona un método de pago.';
+        return;
+      }
+
+      if (this.isCashReceivedInsufficient) {
+        this.paymentError =
+          'El efectivo recibido no alcanza para cubrir el valor a cobrar.';
         return;
       }
 

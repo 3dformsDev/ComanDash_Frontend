@@ -360,6 +360,153 @@ ion-content.payment-modal-content {
 }
 
 /* ===================================================== */
+/* CASH CHANGE CALCULATOR */
+/* ===================================================== */
+
+.cash-change-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  margin-top: -4px;
+  margin-bottom: 12px;
+  padding: 12px;
+
+  border: 1px solid #f1d4d4;
+  border-radius: 14px;
+
+  background: #fffafa;
+}
+
+.cash-change-title {
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 2px;
+}
+
+.cash-change-title strong {
+  color: #111111;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.cash-calculator-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  min-height: 44px;
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  font-weight: 800;
+}
+
+.cash-calculator-row span,
+.cash-row-label {
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.cash-calculator-row strong {
+  flex-shrink: 0;
+
+  font-size: 1rem;
+  font-weight: 900;
+  text-align: right;
+}
+
+.cash-due-row {
+  color: #ffffff;
+  background: #111111;
+}
+
+.cash-due-row span {
+  opacity: 0.9;
+}
+
+.cash-received-row {
+  border: 1px solid #e6e6e6;
+  background: #ffffff;
+
+  cursor: text;
+
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.cash-received-row .cash-received-input {
+  margin-left: auto;
+}
+
+.cash-received-row:hover,
+.cash-received-row:focus-within {
+  border-color: rgba(255, 45, 45, 0.45);
+  box-shadow: 0 0 0 3px rgba(255, 45, 45, 0.08);
+}
+
+.cash-row-label {
+  color: #166534;
+  white-space: nowrap;
+}
+
+.cash-received-input {
+  flex: 1;
+  width: 100%;
+  min-width: 140px;
+  max-width: none;
+
+  --background: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  --highlight-height: 0;
+  --highlight-color-focused: transparent;
+  --highlight-color-valid: transparent;
+  --highlight-color-invalid: transparent;
+  --border-radius: 0;
+
+  min-height: auto;
+
+  border: none;
+  box-shadow: none;
+
+  color: #111111;
+  font-size: 1rem;
+  font-weight: 900;
+  text-align: right;
+}
+
+.cash-received-input::part(native) {
+  width: 100%;
+  text-align: right !important;
+  color: #111111;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.cash-received-input::part(native) {
+  text-align: right;
+  color: #111111;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.cash-change-result {
+  color: #166534;
+  background: #ecfdf5;
+}
+
+.cash-change-result.insufficient {
+  color: #b91c1c;
+  background: #fff1f2;
+}
+
+/* ===================================================== */
 /* PAYMENT METHODS */
 /* ===================================================== */
 
@@ -457,5 +604,49 @@ ion-content.payment-modal-content {
 
   .summary-item {
     font-size: 0.95rem;
+  }
+
+  .cash-change-card {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .cash-calculator-row {
+    min-height: 46px;
+    padding: 10px 12px;
+  }
+
+  .cash-received-input {
+    width: 140px;
+  }
+
+  .cash-received-input::part(native) {
+    text-align: right;
+  }
+
+  .cash-received-input {
+    max-width: 100%;
+    width: 100%;
+    text-align: left;
+  }
+
+  .cash-change-result {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 390px) {
+  .cash-calculator-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cash-received-input {
+    width: 100%;
+  }
+
+  .cash-received-input::part(native) {
+    text-align: left;
   }
 }

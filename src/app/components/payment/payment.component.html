@@ -195,7 +195,8 @@
                 [max]="pendingAmount"
                 [readonly]="requireFullPayment"
                 placeholder="Ingresa el valor"
-                [(ngModel)]="paymentAmount"
+                [ngModel]="paymentAmount"
+                (ngModelChange)="onPaymentAmountChange($event)"
               >
               </ion-input>
 
@@ -220,15 +221,77 @@
           <h4 class="payment-methods-title">Seleccionar Método de Pago</h4>
 
           <div class="payment-options-container">
-            <ion-button
-              *ngFor="let method of allPaymentMethods"
-              fill="clear"
-              class="payment-method-btn"
-              [class.selected]="selectedPaymentMethod === method.id"
-              (click)="selectPaymentMethod(method.id)"
-            >
-              {{ method.name }}
-            </ion-button>
+            <ng-container *ngFor="let method of allPaymentMethods">
+              <ion-button
+                fill="clear"
+                class="payment-method-btn"
+                [class.selected]="selectedPaymentMethod === method.id"
+                (click)="selectPaymentMethod(method.id)"
+              >
+                {{ method.name }}
+              </ion-button>
+
+              <div
+                class="cash-change-card"
+                *ngIf="
+                  selectedPaymentMethod === method.id &&
+                  shouldShowCashChangeCalculator
+                "
+              >
+                <div class="cash-change-title">
+                  <strong>Vueltas en efectivo</strong>
+                </div>
+
+                <div class="cash-calculator-row cash-due-row">
+                  <span>A cobrar</span>
+                  <strong>${{ cashAmountDue | number: "1.0-0" }}</strong>
+                </div>
+
+                <div
+                  class="cash-calculator-row cash-received-row"
+                  role="button"
+                  tabindex="0"
+                  (click)="cashReceivedInput.setFocus()"
+                >
+                  <span class="cash-row-label">Con cuánto paga</span>
+
+                  <ion-input
+                    #cashReceivedInput
+                    class="cash-received-input"
+                    type="text"
+                    inputmode="numeric"
+                    enterkeyhint="done"
+                    placeholder="$0"
+                    [ngModel]="cashReceivedDisplayValue"
+                    (ngModelChange)="onCashReceivedAmountChange($event)"
+                    (ionFocus)="selectCashReceivedAmount($event)"
+                  >
+                  </ion-input>
+                </div>
+
+                <div
+                  class="cash-calculator-row cash-change-result"
+                  [class.insufficient]="isCashReceivedInsufficient"
+                >
+                  <span>
+                    {{
+                      isCashReceivedInsufficient
+                        ? "Falta por recibir"
+                        : "Vueltas"
+                    }}
+                  </span>
+
+                  <strong>
+                    ${{
+                      (isCashReceivedInsufficient
+                        ? cashMissingAmount
+                        : cashChangeAmount
+                      ) | number: "1.0-0"
+                    }}
+                  </strong>
+                </div>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>
