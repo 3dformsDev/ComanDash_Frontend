@@ -148,11 +148,12 @@ export class SessionActivityService {
       header: 'Sesión próxima a expirar',
       message: 'Tu sesión se cerrará pronto por inactividad.',
       backdropDismiss: false,
-      cssClass: 'session-timeout-alert',
+      cssClass: ['confirmation-action-alert', 'session-timeout-alert'],
       buttons: [
         {
           text: 'Cerrar sesión',
           role: 'destructive',
+          cssClass: 'alert-secondary-action',
           handler: () => {
             this.warningAlertPresented = false;
             this.warningAlert = null;
@@ -163,8 +164,9 @@ export class SessionActivityService {
           },
         },
         {
-          text: 'Continuar sesión',
+          text: 'Continuar',
           role: 'confirm',
+          cssClass: 'alert-primary-action',
           handler: () => {
             this.updateLastActivity();
 

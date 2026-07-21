@@ -65,7 +65,7 @@ export class KitchenPage implements OnInit, OnDestroy {
           ...order,
           orderItems: (order.orderItems || []).map((item: any) => ({
             ...item,
-            isReady: item.kitchenStatus === 'pending'
+            isReady: ['pending', 'ready', 'served'].includes(item.kitchenStatus as string)
           }))
         }));
 
@@ -184,6 +184,9 @@ export class KitchenPage implements OnInit, OnDestroy {
   }
 
   toggleItemReady(order: any, itemToToggle: any) {
+    if (this.isKitchenItemLocked(itemToToggle)) {
+      return;
+    }
 
     this._kitchenRealtimeService.notifyItemStatusChange(
       order.id,
@@ -197,6 +200,22 @@ export class KitchenPage implements OnInit, OnDestroy {
 
   isOrderReady(order: any): boolean {
     return order.orderItems.every((item: any) => item.isReady);
+  }
+
+  isKitchenItemLocked(item: any): boolean {
+    return item.kitchenStatus === 'ready' || item.kitchenStatus === 'served';
+  }
+
+  isOrderReturnedToKitchen(order: any): boolean {
+    const items = order?.orderItems || [];
+    const hasServedItems = items.some(
+      (item: any) => item.kitchenStatus === 'served',
+    );
+    const hasActiveKitchenItems = items.some((item: any) =>
+      ['pending', 'in_preparation'].includes(item.kitchenStatus),
+    );
+
+    return hasServedItems && hasActiveKitchenItems;
   }
 
   async dispatchOrder(orderId: number) {

@@ -627,18 +627,6 @@ ion-modal#name-of-client-modal .confirm-button {
 //     --background: white;
 // }
 
-.session-timeout-alert {
-  .alert-button-role-confirm {
-    color: #2dd36f !important;
-    font-weight: 600;
-  }
-
-  .alert-button-role-destructive {
-    color: #eb445a !important;
-    font-weight: 600;
-  }
-}
-
 /* ===================================================== */
 /* PAYMENT MODAL */
 /* ===================================================== */
@@ -678,7 +666,9 @@ ion-modal.payment-modal-class {
 
 .receipt-download-alert,
 .adjustment-alert,
-.confirmation-action-alert {
+.confirmation-action-alert,
+.cancel-order-alert,
+.session-timeout-alert {
   .alert-wrapper {
     width: min(92vw, 400px) !important;
     max-width: 400px !important;
@@ -820,5 +810,15 @@ ion-modal.payment-modal-class {
 .confirmation-action-alert {
   .alert-message {
     margin-bottom: 10px !important;
+  }
+}
+
+.cancel-order-alert {
+  .alert-input {
+    height: 96px !important;
+    min-height: 96px !important;
+    padding: 14px 16px !important;
+    line-height: 1.4 !important;
+    resize: none !important;
   }
 }

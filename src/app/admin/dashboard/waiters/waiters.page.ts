@@ -306,6 +306,7 @@ export class WaitersPage implements OnInit, OnDestroy {
     const alert = await this.alertController.create({
       header: 'Cancelar Comanda',
       message: `¿Estás seguro de cancelar la comanda #${order.orderNumber}?`,
+      cssClass: ['confirmation-action-alert', 'cancel-order-alert'],
       inputs: [
         {
           name: 'reason',
@@ -314,9 +315,14 @@ export class WaitersPage implements OnInit, OnDestroy {
         },
       ],
       buttons: [
-        { text: 'Atrás', role: 'cancel' },
+        {
+          text: 'Atrás',
+          role: 'cancel',
+          cssClass: 'alert-secondary-action',
+        },
         {
           text: 'Sí, Cancelar',
+          cssClass: 'alert-primary-action',
           handler: (data) => {
             this._ordersService
               .cancelOrder({ orderId: order.id!, reason: data.reason })
@@ -388,6 +394,50 @@ export class WaitersPage implements OnInit, OnDestroy {
   }
 
   // ✅ NUEVAS ACCIONES PARA LOS BOTONES
+  private hasOrderLeftKitchen(order: Order): boolean {
+    return Boolean(
+      order.isReadyToServe ||
+        order.isServed ||
+        order.orderItems?.some((item) =>
+          ['ready', 'served'].includes(item.kitchenStatus || ''),
+        ),
+    );
+  }
+
+  canCancelOrder(order: Order): boolean {
+    if (!order || order.status === 'cancelled') {
+      return false;
+    }
+
+    return (
+      !order.isReadyToServe &&
+      !order.isServed &&
+      !this.hasOrderLeftKitchen(order)
+    );
+  }
+
+  canEditOrder(order: Order): boolean {
+    if (!order || order.status === 'cancelled') {
+      return false;
+    }
+
+    const isInKitchen = !order.isReadyToServe && !order.isServed;
+
+    if (isInKitchen) {
+      return true;
+    }
+
+    const isAdvancePaymentOrder = Boolean(
+      order.isAdvancePayment || order.isPrepaid,
+    );
+
+    return (
+      !isAdvancePaymentOrder &&
+      !order.paidAt &&
+      Boolean(order.isReadyToServe || order.isServed)
+    );
+  }
+
   editOrder(order: Order) {
     console.log(`Editando orden #${order.id}`);
     // ✅ 4. Despacha la acción para seleccionar la orden en el estado global

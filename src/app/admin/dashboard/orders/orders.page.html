@@ -96,6 +96,7 @@
               fill="clear"
               class="control-btn"
               (click)="removeItemById(item.id)"
+              [disabled]="!canDecreaseItem(item.id)"
             >
               <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
             </ion-button>

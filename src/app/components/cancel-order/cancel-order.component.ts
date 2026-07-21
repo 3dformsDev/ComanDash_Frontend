@@ -46,6 +46,25 @@ export class CancelOrderComponent implements OnInit {
       : 'charge-adjustment';
   }
 
+  private getNetPaidAmount(): number {
+    if (Array.isArray(this.order?.payments) && this.order.payments.length > 0) {
+      return Math.max(
+        0,
+        this.order.payments.reduce(
+          (total: number, payment: any) =>
+            total + Number(payment?.amount || 0),
+          0,
+        ),
+      );
+    }
+
+    if (this.order?.paymentSummary?.paidAmount !== undefined) {
+      return Math.max(0, Number(this.order.paymentSummary.paidAmount || 0));
+    }
+
+    return Math.max(0, Number(this.order?.totalAmount || 0));
+  }
+
   constructor(
     private modalCtrl: ModalController,
     private paymentMethodService: PaymentMethodService,
@@ -56,11 +75,7 @@ export class CancelOrderComponent implements OnInit {
     this.allPaymentMethods = await firstValueFrom(
       this.paymentMethodService.getPaymentMethods(true),
     );
-    // ✅ 2. Calculamos el monto a devolver cuando el componente se inicia
-    if (this.order && this.order.totalAmount) {
-      // Convertimos el totalAmount (que puede ser un string) a un número
-      this.refundAmount = parseFloat(this.order.totalAmount);
-    }
+    this.refundAmount = this.getNetPaidAmount();
   }
 
   dismiss() {

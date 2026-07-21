@@ -182,7 +182,7 @@ export class OrdersEffects {
             OrdersActions.updateOrderSuccess({ order: updatedOrder }),
           ),
           catchError((error) =>
-            of(OrdersActions.updateOrderFailure({ error: error.message })),
+            of(OrdersActions.updateOrderFailure({ error })),
           ),
         );
       }),

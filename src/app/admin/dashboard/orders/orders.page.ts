@@ -43,6 +43,7 @@ export class OrdersPage implements OnInit, OnDestroy {
   allCategories: CategoryI[] = [];
   allProducts: ProductI[] = [];
   public isEditMode = false; // ✅ Añade esta propiedad
+  public isAddOnlyEditMode = false;
   public currentOrderId: number | null = null;
   private destroy$ = new Subject<void>();
   private loadingIndicator: HTMLIonLoadingElement | null = null;
@@ -58,6 +59,7 @@ export class OrdersPage implements OnInit, OnDestroy {
   // Conserva temporalmente la nota general mientras el mesero cierra y reabre
   // el modal "Resumen del Pedido" antes de confirmar la comanda.
   private draftKitchenNotes: string | null = null;
+  public protectedItemQuantities: Record<number, number> = {};
 
   public protectedImages = new Map<number, string>();
 
@@ -160,9 +162,11 @@ export class OrdersPage implements OnInit, OnDestroy {
   // ✅ NUEVO MÉTODO PRIVADO PARA REINICIAR EL ESTADO
   private resetComponentState(): void {
     this.isEditMode = false;
+    this.isAddOnlyEditMode = false;
     this.currentOrderId = null;
     this.currentOrder = [];
     this.draftKitchenNotes = null;
+    this.protectedItemQuantities = {};
     this.currentFilter = 1; // O el ID de tu categoría por defecto
     this.searchTerm = '';
     // this.protectedImages.clear(); // Opcional: si quieres limpiar las imágenes cacheadas
@@ -247,6 +251,10 @@ export class OrdersPage implements OnInit, OnDestroy {
 
     if (!existingItem) return; // No hacer nada si no existe
 
+    if (!this.canDecreaseItem(item.id)) {
+      return;
+    }
+
     if (existingItem.quantity > 1) {
       // Si hay más de uno, solo reducimos la cantidad
       this.currentOrder = this.currentOrder.map((p) =>
@@ -267,6 +275,19 @@ export class OrdersPage implements OnInit, OnDestroy {
     if (existingItem) {
       this.removeItem(existingItem);
     }
+  }
+
+  public getProtectedQuantity(productId: number): number {
+    return Number(this.protectedItemQuantities[productId] || 0);
+  }
+
+  public canDecreaseItem(productId: number): boolean {
+    if (!this.isAddOnlyEditMode) {
+      return true;
+    }
+
+    const currentQuantity = this.getItemQuantity({ id: productId } as ProductI);
+    return currentQuantity > this.getProtectedQuantity(productId);
   }
 
   /**
@@ -317,8 +338,10 @@ export class OrdersPage implements OnInit, OnDestroy {
         modalId: 'orderSummaryModal',
         isOrderAlreadyPaid: isAlreadyPaid,
         isEditMode: this.isEditMode,
+        isAddOnlyEditMode: this.isAddOnlyEditMode,
         originalOrderItems: originalItems,
         originalKitchenNotes: originalKitchenNotes,
+        protectedItemQuantities: this.protectedItemQuantities,
 
         // Mantiene viva la nota aunque el modal se cierre y se vuelva a abrir.
         onDraftKitchenNotesChange: (notes: string) => {
@@ -379,8 +402,10 @@ export class OrdersPage implements OnInit, OnDestroy {
           }
         });
 
-      this.currentOrder = [];
-      this.draftKitchenNotes = null;
+      if (!this.isEditMode) {
+        this.currentOrder = [];
+        this.draftKitchenNotes = null;
+      }
     }
   }
 
@@ -447,7 +472,30 @@ export class OrdersPage implements OnInit, OnDestroy {
             'success',
           );
 
+          this.currentOrder = [];
+          this.draftKitchenNotes = null;
           this.router.navigate(['/dashboard/waiters']); // O a donde quieras redirigir
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe();
+
+    this.actions$
+      .pipe(
+        ofType(OrdersActions.updateOrderFailure),
+        tap(async ({ error }: any) => {
+          await this.hideLoading();
+
+          const message =
+            error?.error?.message ||
+            error?.message ||
+            error ||
+            'No se pudo actualizar la comanda.';
+
+          this.toastService.presentToast(
+            `Error al actualizar el pedido: ${message}`,
+            'danger',
+          );
         }),
         takeUntil(this.destroy$),
       )
@@ -578,6 +626,61 @@ export class OrdersPage implements OnInit, OnDestroy {
           .filter((item) => item.id); // Filtramos por si algún producto no fue encontrado
 
         this.currentOrder = groupedItems;
+
+        const isAdvancePaymentOrder = Boolean(
+          orderToEdit.isAdvancePayment || orderToEdit.isPrepaid,
+        );
+        const hasLeftKitchen = Boolean(
+          orderToEdit.isReadyToServe ||
+            orderToEdit.isServed ||
+            orderToEdit.orderItems.some((item) =>
+              ['ready', 'served'].includes(item.kitchenStatus || ''),
+            ),
+        );
+
+        this.isAddOnlyEditMode = Boolean(
+          this.isEditMode &&
+            !isAdvancePaymentOrder &&
+            !orderToEdit.paidAt &&
+            hasLeftKitchen,
+        );
+
+        this.protectedItemQuantities = {};
+
+        if (this.isAddOnlyEditMode) {
+          orderToEdit.orderItems.forEach((item) => {
+            this.protectedItemQuantities[item.productId] =
+              (this.protectedItemQuantities[item.productId] || 0) +
+              Number(item.quantity || 0);
+          });
+        }
+
+        const normalizedItems = new Map<number, GroupedProduct>();
+
+        orderToEdit.orderItems.forEach((item) => {
+          const product = this.allProducts.find((p) => p.id === item.productId);
+
+          if (!product) {
+            return;
+          }
+
+          const current = normalizedItems.get(product.id);
+
+          if (current) {
+            normalizedItems.set(product.id, {
+              ...current,
+              quantity: current.quantity + Number(item.quantity || 0),
+            });
+            return;
+          }
+
+          normalizedItems.set(product.id, {
+            ...product,
+            quantity: Number(item.quantity || 0),
+          });
+        });
+
+        this.currentOrder = Array.from(normalizedItems.values());
       });
   }
 }

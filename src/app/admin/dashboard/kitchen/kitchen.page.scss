@@ -181,6 +181,10 @@
         }
       }
 
+      &.locked {
+        pointer-events: none;
+      }
+
       .item-quantity {
         font-weight: bold;
         margin-right: 8px;
@@ -393,24 +397,29 @@ cdk-virtual-scroll-viewport {
   overflow: hidden;
   border-left-color: #fb923c;
   box-shadow: 0 0 12px 1px rgba(251, 146, 60, 0.6);
+}
 
-  &::after {
-    content: "MODIFICADO";
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background-color: #fb923c; // Naranja Tailwind naranja-400
-    color: white;
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 9999px; // pill shape
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    z-index: 10;
-    pointer-events: none;
-  }
+.order-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.order-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background-color: #fb923c;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 @keyframes subtle-pulse {
@@ -426,6 +435,6 @@ cdk-virtual-scroll-viewport {
   }
 }
 
-.order-card.modified::after {
+.order-tag {
   animation: subtle-pulse 2s infinite;
 }

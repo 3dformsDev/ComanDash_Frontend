@@ -39,13 +39,23 @@
           <div>
             <h2 class="order-id">
               Comanda #{{ order.orderNumber }} - Tomada por {{ order.waiter.fullName }}
-              <!-- <span *ngIf="order.justUpdated || order.wasModified" class="modified-tag">Modificado</span> -->
             </h2>
             <p class="order-info">{{
               order.table
               ? `Mesa ${order.table.tableNumber || order.table.name} ${order.customerName || ''}`
               : `Para llevar - ${order.customerName || 'Sin nombre'}`
               }}</p>
+            <div
+              class="order-tags"
+              *ngIf="order.wasModified || isOrderReturnedToKitchen(order)"
+            >
+              <span class="order-tag" *ngIf="order.wasModified">
+                Modificado
+              </span>
+              <span class="order-tag" *ngIf="isOrderReturnedToKitchen(order)">
+                En mesa
+              </span>
+            </div>
           </div>
           <div class="timer" [ngClass]="getTimerClass(order)">
             {{ order.timerDisplay }}
@@ -59,7 +69,8 @@
 
         <ion-list lines="none">
           <ion-item *ngFor="let item of order.orderItems" (click)="toggleItemReady(order, item)"
-            [class.ready]="item.isReady">
+            [class.ready]="item.isReady"
+            [class.locked]="isKitchenItemLocked(item)">
             <span class="item-quantity">{{ item.quantity }}x</span>
             <ion-label>{{item.product.category.name}} - {{ item.product.name }}</ion-label>
             <ion-icon slot="end" [name]="item.isReady ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>

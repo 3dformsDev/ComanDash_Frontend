@@ -25,8 +25,10 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   @Input() modalId!: string;
   @Input() isOrderAlreadyPaid: boolean = false;
   @Input() isEditMode: boolean = false;
+  @Input() isAddOnlyEditMode: boolean = false;
   @Input() originalOrderItems: any[] = [];
   @Input() originalKitchenNotes: string = '';
+  @Input() protectedItemQuantities: Record<number, number> = {};
   @Input() onDraftKitchenNotesChange?: (notes: string) => void;
   @ViewChild('confirmButton', { static: false }) confirmButton!: ElementRef;
 
@@ -110,12 +112,28 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   }
 
   removeItem(item: any) {
+    if (!this.canRemoveItem(item)) {
+      return;
+    }
+
     const index = this.orderItems.findIndex((i) => i.id === item.id);
     if (index > -1) {
       // ✅ Crea un nuevo array excluyendo el elemento
       this.orderItems = this.orderItems.filter((_, i) => i !== index);
       this.groupItems();
     }
+  }
+
+  getProtectedQuantity(productId: number): number {
+    return Number(this.protectedItemQuantities[productId] || 0);
+  }
+
+  canRemoveItem(item: any): boolean {
+    if (!this.isAddOnlyEditMode) {
+      return true;
+    }
+
+    return Number(item.quantity || 0) > this.getProtectedQuantity(item.id);
   }
 
   onKitchenNotesChange(notes: string): void {

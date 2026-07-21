@@ -33,7 +33,11 @@
           </p>
         </div>
         <div class="quantity-controls">
-          <button class="quantity-btn" (click)="removeItem(item)">
+          <button
+            class="quantity-btn"
+            (click)="removeItem(item)"
+            [disabled]="!canRemoveItem(item)"
+          >
             <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
           </button>
           <span class="quantity-number">{{ item.quantity }}</span>

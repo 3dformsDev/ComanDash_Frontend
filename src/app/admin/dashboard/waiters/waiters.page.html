@@ -101,7 +101,8 @@
             <ul class="order-items-list">
               <li *ngFor="let item of order.orderItems">
                 <span class="item-quantity">{{ item.quantity }}x</span>
-                {{item.product.category.name}} - {{ item.product.name }}
+                {{ item.product?.category?.name || 'Sin categoría' }} -
+                {{ item.product?.name || 'Producto no disponible' }}
               </li>
 
               <li
@@ -128,18 +129,20 @@
 
             <!-- ✅ NUEVO: Botones de acción dinámicos según el estado -->
             <div class="order-actions">
+              <ion-button
+                *ngIf="canEditOrder(order)"
+                class="action-btn edit-btn"
+                fill="solid"
+                color="primary"
+                (click)="$event.stopPropagation(); editOrder(order)"
+              >
+                <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+              </ion-button>
+
               <!-- Botones para 'En Proceso' -->
               <ng-container
-                *ngIf="!order.isReadyToServe && !order.isServed && order.status != 'cancelled'"
+                *ngIf="canCancelOrder(order)"
               >
-                <ion-button
-                  class="action-btn edit-btn"
-                  fill="solid"
-                  color="primary"
-                  (click)="$event.stopPropagation(); editOrder(order)"
-                >
-                  <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
-                </ion-button>
                 <!-- <ion-button class="action-btn change-btn" fill="solid" color="medium"
                   (click)="$event.stopPropagation(); changeModality(order)">
                   <ion-icon slot="icon-only" name="swap-horizontal-outline"></ion-icon>
@@ -200,7 +203,7 @@
             <ion-icon slot="icon-only" name="checkmark-done-outline"></ion-icon>
           </ion-item-option>
           <ion-item-option
-            *ngIf="order.status === 'pending' || order.status === 'ready'"
+            *ngIf="canCancelOrder(order)"
             color="danger"
             (click)="cancelOrder(order)"
           >
