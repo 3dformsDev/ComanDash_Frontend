@@ -20,6 +20,17 @@ export class CashBoxManagementPage implements OnInit {
   // Lista de cajas (vendría de un servicio)
   allCashRegisters: CashRegisterI[] = [];
   isSessionOpenInLocation: boolean = false;
+  businessDayCutoffHour = 4;
+  savedBusinessDayCutoffHour = 4;
+  isSavingBusinessDaySettings = false;
+  businessDaySettingsAvailable = false;
+  readonly businessDayHourOptions = Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    label: this.formatHourLabel(hour),
+  }));
+  readonly businessDaySelectOptions = {
+    cssClass: 'business-day-hour-popover',
+  };
 
   constructor(
     private alertCtrl: AlertController,
@@ -43,10 +54,102 @@ export class CashBoxManagementPage implements OnInit {
       this.isSessionOpenInLocation = this.allCashRegisters.some(
         (box) => box.cashRegisterSession.isOpen === true
       );
+
+      try {
+        const settings = await firstValueFrom(
+          this._cashRegisterSessionService.getBusinessDaySettings(),
+        );
+        this.businessDayCutoffHour = settings.cutoffHour;
+        this.savedBusinessDayCutoffHour = settings.cutoffHour;
+        this.businessDaySettingsAvailable = true;
+      } catch (error) {
+        this.businessDaySettingsAvailable = false;
+        console.error('Error al cargar la configuracion del dia operativo:', error);
+        this.presentToast(
+          'Las cajas cargaron, pero no se pudo consultar el día operativo.',
+          'warning',
+        );
+      }
     } catch (error) {
       console.error('Error al cargar los datos:', error);
       this.presentToast('Error al cargar los datos', 'danger');
     }
+  }
+
+  async saveBusinessDaySettings(): Promise<void> {
+    if (this.isSessionOpenInLocation) {
+      this.businessDayCutoffHour = this.savedBusinessDayCutoffHour;
+      this.presentToast(
+        'Cierra la caja antes de modificar el día operativo.',
+        'warning',
+      );
+      return;
+    }
+
+    if (
+      !Number.isInteger(this.businessDayCutoffHour) ||
+      this.businessDayCutoffHour < 0 ||
+      this.businessDayCutoffHour > 23
+    ) {
+      this.presentToast('Selecciona una hora válida.', 'danger');
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'Cambiar día operativo',
+      message:
+        `El nuevo día comenzará a las ${this.formatHourLabel(this.businessDayCutoffHour)}. ` +
+        'Este cambio redefine los límites diarios de los reportes, incluidos periodos anteriores.',
+      cssClass: 'confirmation-action-alert',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'alert-secondary-action',
+        },
+        {
+          text: 'Confirmar',
+          role: 'confirm',
+          cssClass: 'alert-primary-action',
+        },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+
+    if (role !== 'confirm') {
+      this.businessDayCutoffHour = this.savedBusinessDayCutoffHour;
+      return;
+    }
+
+    this.isSavingBusinessDaySettings = true;
+
+    try {
+      const settings = await firstValueFrom(
+        this._cashRegisterSessionService.updateBusinessDaySettings(
+          this.businessDayCutoffHour,
+        ),
+      );
+      this.businessDayCutoffHour = settings.cutoffHour;
+      this.savedBusinessDayCutoffHour = settings.cutoffHour;
+      this.businessDaySettingsAvailable = true;
+      this.presentToast('Día operativo actualizado.', 'success');
+    } catch (error: any) {
+      console.error('Error al actualizar el dia operativo:', error);
+      this.presentToast(
+        error.error?.message || 'No se pudo actualizar el día operativo.',
+        'danger',
+      );
+    } finally {
+      this.isSavingBusinessDaySettings = false;
+    }
+  }
+
+  private formatHourLabel(hour: number): string {
+    const displayHour = hour % 12 || 12;
+    const period = hour < 12 ? 'a. m.' : 'p. m.';
+
+    return `${displayHour}:00 ${period}`;
   }
 
   // Cambia el estado de una caja (abierta/cerrada)

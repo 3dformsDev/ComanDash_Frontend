@@ -9,6 +9,9 @@ export interface OrderItem {
   currentOrder?: Order | null;
   product?: {
     name: string;
+    category?: {
+      name: string;
+    };
   };
   unitPrice?: string;
   kitchenStatus?: 'pending' | 'in_preparation' | 'ready' | 'served';
@@ -36,6 +39,8 @@ export interface OrderPaymentRecord {
 // 2. Definimos cómo se ve una orden
 export interface Order {
   id?: number; // opcional, porque aún no existe hasta que backend la guarde
+  companyId?: number;
+  companyOrderNumber?: number | null;
   customerName?: string;
   orderType: 'dine_in' | 'takeaway' | 'delivery'; // puedes ajustar según tipos reales
   tableId?: number | null;
@@ -95,6 +100,7 @@ export interface Order {
   table?: {
     isBussy: boolean;
     tableNumber?: string | number;
+    name?: string;
   };
   isFreedTable?: boolean;
   waiter?: {

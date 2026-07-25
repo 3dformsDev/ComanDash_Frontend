@@ -1,0 +1,92 @@
+<article class="paid-order-row" [class.expanded]="expanded">
+  <div
+    class="paid-order-summary"
+    role="button"
+    tabindex="0"
+    [attr.aria-expanded]="expanded"
+    (click)="toggleExpanded()"
+    (keydown)="handleKeydown($event)"
+  >
+    <div class="identity">
+      <strong>
+        Comanda #{{ order.orderNumber }} - tomada por
+        {{ order.waiter?.fullName || 'Sin asignar' }}
+      </strong>
+      <span>{{ tableLabel }}</span>
+    </div>
+
+    <div class="summary-metadata">
+      <span>
+        <small>Orden</small>
+        #{{ visualOrderNumber }}
+      </span>
+      <span>
+        <small>Pago</small>
+        {{ paidTime }}
+      </span>
+      <span class="summary-total">
+        <small>Total</small>
+        {{ order.totalAmount | currency:'COP':'$':'1.0-0' }}
+      </span>
+    </div>
+
+    <ion-icon
+      class="expand-icon"
+      [name]="expanded ? 'chevron-up-outline' : 'chevron-down-outline'"
+      aria-hidden="true"
+    ></ion-icon>
+  </div>
+
+  <div class="paid-order-details" *ngIf="expanded">
+    <div class="detail-actions">
+      <span class="status-pill">
+        <ion-icon name="cash-outline"></ion-icon>
+        Pagada
+      </span>
+
+      <button class="action-pill receipt-pill" (click)="requestReceipt($event)">
+        <ion-icon name="download-outline"></ion-icon>
+        Recibo
+      </button>
+
+      <button
+        *ngIf="canRefund"
+        class="action-pill refund-pill"
+        (click)="requestRefund($event)"
+      >
+        <ion-icon name="return-down-back-outline"></ion-icon>
+        Devolucion
+      </button>
+    </div>
+
+    <ul class="order-items-list">
+      <li *ngFor="let item of order.orderItems">
+        <span class="item-quantity">{{ item.quantity }}x</span>
+        {{ item.product?.category?.name || 'Sin categoria' }} -
+        {{ item.product?.name || 'Producto no disponible' }}
+      </li>
+
+      <li
+        class="adjustment-item"
+        *ngFor="let adjustment of adjustments"
+        [class.charge-adjustment]="adjustment.type === 'charge'"
+        [class.discount-adjustment]="adjustment.type === 'discount'"
+      >
+        <span>
+          {{ adjustment.type === 'discount' ? '-' : '+' }}
+          {{ adjustment.description }}
+        </span>
+        <strong>
+          {{ adjustment.type === 'discount' ? '-' : '+' }}{{
+            adjustment.amount | currency:'COP':'$':'1.0-0'
+          }}
+        </strong>
+      </li>
+    </ul>
+
+    <div class="order-note" *ngIf="order.kitchenNotes">
+      <strong>Nota</strong>
+      <p>{{ order.kitchenNotes }}</p>
+    </div>
+  </div>
+</article>

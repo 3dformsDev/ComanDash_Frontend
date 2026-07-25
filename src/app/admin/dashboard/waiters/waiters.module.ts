@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { WaitersPageRoutingModule } from './waiters-routing.module';
 import { WaitersPage } from './waiters.page';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { PaidOrderRowComponent } from 'src/app/components/paid-order-row/paid-order-row.component';
 
 @NgModule({
   imports: [
@@ -12,7 +13,8 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
     FormsModule,
     IonicModule,
     WaitersPageRoutingModule,
-    ScrollingModule
+    ScrollingModule,
+    PaidOrderRowComponent
   ],
   declarations: [WaitersPage]
 })

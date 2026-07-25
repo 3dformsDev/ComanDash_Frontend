@@ -64,14 +64,14 @@ export class DashboardPage implements OnInit {
     // Asegurar que la orientación esté desbloqueada para permitir rotación libre
     await this.unlockOrientation();
 
-    this._ordersRealtimeService.init();
+    this._ordersRealtimeService.init('dashboard');
   }
 
   // Se ejecuta cuando la página está a punto de desaparecer
   async ionViewWillLeave() {
     // Mantener desbloqueada por defecto
     await this.unlockOrientation();
-    this._ordersRealtimeService.shutdown();
+    this._ordersRealtimeService.shutdown('dashboard');
   }
 
   subscribeToOrders() {

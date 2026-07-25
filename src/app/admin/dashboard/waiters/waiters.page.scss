@@ -131,6 +131,13 @@ ion-header.waiter-header {
   }
 }
 
+.paid-orders-list {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding-bottom: 16px;
+}
+
 ion-item.order-card-item {
   --background: transparent;
   --inner-padding-end: 0;

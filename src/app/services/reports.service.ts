@@ -7,12 +7,56 @@ import { Observable } from 'rxjs';
 
 // --- (Tus interfaces SalesReportResponse y PeakTimesResponse están perfectas) ---
 export interface SalesReportResponse {
+  businessTimeZone: string;
+  businessDayCutoffHour: number;
+  range: {
+    startDate: string;
+    endDate: string;
+  };
+  summary: SalesReportSummary;
   chartData: { label: string, total: number }[];
   tableRows: { productName: string, category: string, quantity: number, total: number }[];
-  dailySales: { day: string, total: number }[];
+  dailySales: { day: string, orderCount: number, total: number }[];
+  paymentMethods: PaymentMethodReport[];
+  cuts: CashRegisterCutReport[];
+}
+
+export interface SalesReportSummary {
+  totalOrders: number;
+  tableOrders: number;
+  takeawayOrders: number;
+  productsSubtotal: number;
+  charges: number;
+  discounts: number;
+  totalSales: number;
+  paymentsReceived: number;
+  refunds: number;
+  netPayments: number;
+  cancelledOrders: number;
+  inProcessOrders: number;
+}
+
+export interface PaymentMethodReport {
+  id: number;
+  name: string;
+  received: number;
+  refunded: number;
+  net: number;
+}
+
+export interface CashRegisterCutReport {
+  sessionId: number;
+  status: 'open' | 'closed';
+  openedAt: string;
+  closedAt?: string | null;
+  cashRegisterName: string;
+  orderCount: number;
+  totalSales: number;
 }
 
 export interface PeakTimesResponse {
+  businessTimeZone?: string;
+  businessDayCutoffHour?: number;
   peakHours: { hour: number, orderCount: number }[];
   peakDays: { dayIndex: number, dayName: string, orderCount: number }[];
 }
@@ -36,10 +80,13 @@ export class ReportsService {
    * y devuelve solo la parte de la fecha (ej: "2025-10-01").
    */
   private formatDate(isoString: string): string {
-    // new Date(isoString) lo convierte a la zona local
-    // .toISOString() lo revierte a UTC
-    // .split('T')[0] corta y devuelve solo la parte 'YYYY-MM-DD'
-    return new Date(isoString).toISOString().split('T')[0];
+    const datePart = isoString?.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+
+    if (!datePart) {
+      throw new Error('La fecha seleccionada no es valida.');
+    }
+
+    return datePart;
   }
 
   /**

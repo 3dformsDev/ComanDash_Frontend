@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Order } from '@store/orders/orders.state';
+import { CashRegisterCutReport, SalesReportSummary } from './reports.service';
 
 // Interfaz genérica para la respuesta de la API (puedes moverla a un archivo central)
 export interface ApiResponse<T> {
@@ -33,6 +35,9 @@ export interface CashRegisterSessionI {
 }
 
 export interface DailySummaryI {
+  businessDate?: string,
+  businessTimeZone?: string,
+  businessDayCutoffHour?: number,
   totalRevenue: number,
   totalOrders: number,
   tableOrders: number,
@@ -40,15 +45,22 @@ export interface DailySummaryI {
   ordersInProcess: number,
   ordersFinished: number,
   ordersCancelled: number,
-  topProducts: [
-    {
-      name: string,
-      count: number,
-      category?: {
-        name: string;
-      }
-    },
-  ]
+  topProducts: {
+    name: string,
+    count: number,
+    category?: {
+      name: string;
+    }
+  }[],
+  financialSummary?: SalesReportSummary,
+  cuts?: CashRegisterCutReport[],
+  paidOrders?: Order[],
+}
+
+export interface BusinessDaySettingsI {
+  businessTimeZone: string;
+  cutoffHour: number;
+  defaultCutoffHour: number;
 }
 
 /**
@@ -148,6 +160,25 @@ export class CashRegisterSessionService {
    */
   getDailySessionSummary(): Observable<DailySummaryI> {
     return this._http.get<ApiResponse<DailySummaryI>>(`${this.sessionsEndpoint}/dailysummary`)
+      .pipe(
+        map(response => response.data)
+      );
+  }
+
+  getBusinessDaySettings(): Observable<BusinessDaySettingsI> {
+    return this._http.get<ApiResponse<BusinessDaySettingsI>>(
+      `${this.sessionsEndpoint}/business-day-settings`
+    )
+      .pipe(
+        map(response => response.data)
+      );
+  }
+
+  updateBusinessDaySettings(cutoffHour: number): Observable<BusinessDaySettingsI> {
+    return this._http.put<ApiResponse<BusinessDaySettingsI>>(
+      `${this.sessionsEndpoint}/business-day-settings`,
+      { cutoffHour },
+    )
       .pipe(
         map(response => response.data)
       );

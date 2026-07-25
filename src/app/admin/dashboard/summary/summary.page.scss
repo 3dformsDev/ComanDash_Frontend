@@ -43,13 +43,14 @@ ion-header {
 /* 🎨 NUEVO ESTILO PARA LAS TARJETAS DE INDICADORES (KPIs) */
 .summary-card {
     background: #ffffff;
-    border-radius: 16px;
+    border-radius: 8px;
     padding: 16px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     height: 100%;
+    min-height: 140px;
     transition: transform 0.2s ease-in-out;
 
     &:active {
@@ -85,10 +86,26 @@ ion-header {
         &.orange {
             background: #f59e0b;
         }
+
+        &.teal {
+            background: #0f766e;
+        }
+
+        &.lime {
+            background: #16a34a;
+        }
+
+        &.red {
+            background: #dc2626;
+        }
+
+        &.amber {
+            background: #b45309;
+        }
     }
 
     .card-value {
-        font-size: clamp(1.2rem, 5vw, 1.7rem); // <-- ESTA ES LA LÍNEA CLAVE
+        font-size: 1.45rem;
         font-weight: 700;
         color: var(--ion-color-dark);
         line-height: 1.1;
@@ -100,6 +117,16 @@ ion-header {
         font-size: 0.8rem;
         color: var(--ion-color-medium-shade);
         font-weight: 500;
+    }
+}
+
+.financial-card {
+    &.positive .card-value {
+        color: #16803a;
+    }
+
+    &.negative .card-value {
+        color: #c62828;
     }
 }
 
@@ -115,13 +142,54 @@ ion-grid {
 
 
 /* 🎨 NUEVO ESTILO PARA LA LISTA DE PRODUCTOS */
+.top-products-section {
+    margin-bottom: 20px;
+    overflow: hidden;
+    border-left: 4px solid var(--ion-color-primary);
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.top-products-header {
+    width: 100%;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 0;
+    background: #fff7f7;
+    color: var(--ion-color-dark-shade);
+    cursor: pointer;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: left;
+}
+
+.top-products-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+}
+
+.product-total {
+    min-width: 28px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #4b5563;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-align: center;
+}
+
 .top-products-list {
     background: transparent;
     padding: 0;
-
-    ion-list-header {
-        padding: 0;
-    }
+    border-top: 1px solid #e5e7eb;
 
     p.empty-list {
         text-align: center;
@@ -131,11 +199,11 @@ ion-grid {
 
     ion-item {
         --background: #ffffff;
-        --border-radius: 12px;
+        --border-radius: 8px;
         --padding-start: 12px;
         --inner-padding-end: 16px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border-bottom: 1px solid #edf0f3;
+        margin-bottom: 0;
 
         .product-rank {
             width: 32px;
@@ -168,5 +236,83 @@ ion-grid {
             padding: 4px 8px;
             border-radius: 16px;
         }
+    }
+}
+
+.cuts-section,
+.paid-orders-section {
+    margin-bottom: 20px;
+}
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+
+    > span {
+        min-width: 28px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        color: #4b5563;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-align: center;
+    }
+}
+
+.cut-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 11px 12px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+
+    &:first-of-type {
+        border-radius: 8px 8px 0 0;
+    }
+
+    &:last-child {
+        border-bottom: 0;
+        border-radius: 0 0 8px 8px;
+    }
+
+    div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    strong {
+        color: #263142;
+        font-size: 0.86rem;
+    }
+
+    span {
+        color: #6b7280;
+        font-size: 0.74rem;
+    }
+}
+
+.paid-orders-list {
+    display: grid;
+    gap: 10px;
+}
+
+.empty-paid-orders {
+    padding: 18px;
+    background: #ffffff;
+    border-radius: 8px;
+    color: #6b7280;
+    font-size: 0.86rem;
+    text-align: center;
+}
+
+@media (max-width: 380px) {
+    .summary-card .card-value {
+        font-size: 1.1rem;
     }
 }

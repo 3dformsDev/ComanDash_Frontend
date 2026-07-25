@@ -813,6 +813,33 @@ ion-modal.payment-modal-class {
   }
 }
 
+ion-popover.business-day-hour-popover {
+  --width: min(320px, calc(100vw - 32px));
+  --max-height: min(420px, calc(100vh - 48px));
+
+  &::part(content) {
+    max-height: min(420px, calc(100vh - 48px));
+    border-radius: 8px;
+  }
+}
+
+.session-timeout-alert {
+  .alert-button-inner {
+    display: flex !important;
+    width: 100% !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: normal !important;
+    line-height: 1.15 !important;
+  }
+
+  .alert-button {
+    letter-spacing: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
 .cancel-order-alert {
   .alert-input {
     height: 96px !important;

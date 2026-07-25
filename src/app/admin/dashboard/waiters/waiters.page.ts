@@ -73,7 +73,7 @@ export class WaitersPage implements OnInit, OnDestroy {
     console.log(
       'WaitersPage: ionViewWillEnter - Iniciando servicio en tiempo real.',
     );
-    this._ordersRealtimeService.init();
+    this._ordersRealtimeService.init('waiters');
   }
 
   /**
@@ -84,7 +84,7 @@ export class WaitersPage implements OnInit, OnDestroy {
     console.log(
       'WaitersPage: ionViewWillLeave - Apagando servicio en tiempo real.',
     );
-    this._ordersRealtimeService.shutdown();
+    this._ordersRealtimeService.shutdown('waiters');
   }
 
   subscribeToOrders() {
@@ -168,7 +168,12 @@ export class WaitersPage implements OnInit, OnDestroy {
         // - Debe tener fecha de pago
         // - NO puede estar si tiene mesa ocupada
         filtered = baseOrders.filter((order) => {
-          if (!order.isReadyToServe || !order.isServed || !order.paidAt)
+          if (
+            order.status !== 'paid' ||
+            !order.isReadyToServe ||
+            !order.isServed ||
+            !order.paidAt
+          )
             return false;
 
           // Si no tiene mesa, puede estar en payed
@@ -268,11 +273,25 @@ export class WaitersPage implements OnInit, OnDestroy {
             if (order.id) {
               this._ordersService.markAsServedOrder(order.id).subscribe({
                 next: (response) => {
-                  this.applyFilters();
+                  this._ordersRealtimeService.syncOrder(response);
                   console.log(`Comanda con ID #${order.id} servida.`);
                 },
-                error: (err) => {
+                error: async (err) => {
+                  if (err?.status === 409) {
+                    this._ordersRealtimeService.refreshOrders();
+                    await this._toastService.presentToast(
+                      err?.error?.message ||
+                        'La comanda ya habia sido servida. Se actualizo la vista.',
+                      'success',
+                    );
+                    return;
+                  }
+
                   console.error('Error al servir la orden:', err);
+                  await this._toastService.presentToast(
+                    err?.error?.message || 'No se pudo servir la comanda.',
+                    'danger',
+                  );
                 },
                 complete: () => {
                   console.log('Petición finalizada.');
@@ -516,6 +535,7 @@ export class WaitersPage implements OnInit, OnDestroy {
   private applyPaymentSummaryToOrder(
     orderId: number,
     paymentSummary: any,
+    serverOrder?: Order,
   ): Order | null {
     const index = this.pendingOrders.findIndex((o) => o.id === orderId);
 
@@ -525,20 +545,26 @@ export class WaitersPage implements OnInit, OnDestroy {
 
     const currentOrder: any = this.pendingOrders[index];
 
-    this.pendingOrders[index] = {
+    const updatedOrder: Order = {
       ...currentOrder,
+      ...(serverOrder || {}),
       totalAmount: paymentSummary.totalAmount ?? currentOrder.totalAmount,
       paidAmount: paymentSummary.paidAmount ?? currentOrder.paidAmount,
       adjustments: Array.isArray(paymentSummary.adjustments)
         ? paymentSummary.adjustments
         : currentOrder.adjustments,
       paymentSummary,
+      status: paymentSummary.isFullyPaid
+        ? serverOrder?.status || 'paid'
+        : currentOrder.status,
       paidAt: paymentSummary.isFullyPaid
-        ? new Date().toString()
+        ? serverOrder?.paidAt || new Date().toISOString()
         : currentOrder.paidAt,
     };
 
-    return this.pendingOrders[index];
+    this._ordersRealtimeService.syncOrder(updatedOrder);
+
+    return updatedOrder;
   }
 
   async payOrder(order: any) {
@@ -606,9 +632,8 @@ export class WaitersPage implements OnInit, OnDestroy {
             const updatedOrder = this.applyPaymentSummaryToOrder(
               order.id,
               paymentSummary,
+              response.order,
             );
-
-            this.applyFilters();
 
             if (paymentSummary.isFullyPaid) {
               await this._toastService.presentToast(

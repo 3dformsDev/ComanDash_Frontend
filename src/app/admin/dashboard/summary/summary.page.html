@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-title>
-      <h1>Resumen del Día</h1>
+      <h1>Resumen del Dia</h1>
       <p>{{ summaryDate }}</p>
     </ion-title>
     <ion-buttons slot="end">
@@ -13,29 +13,34 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="loadDailySummary($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <h2 class="section-title">Indicadores Clave</h2>
   <ion-grid>
     <ion-row>
-      <ion-col size="6">
+      <ion-col size="6" size-md="3">
         <div class="summary-card">
           <div class="card-icon blue">
             <ion-icon name="document-text-outline"></ion-icon>
           </div>
           <span class="card-value">{{ summaryData.ordersFinished }}</span>
-          <span class="card-label">Comandas Válidas</span>
+          <span class="card-label">Comandas Pagadas</span>
         </div>
       </ion-col>
-      <ion-col size="6">
+      <ion-col size="6" size-md="3">
         <div class="summary-card">
           <div class="card-icon green">
             <ion-icon name="cash-outline"></ion-icon>
           </div>
-          <span class="card-value">{{ summaryData.totalRevenue| currency:'COP':'$' }}</span>
-          <span class="card-label">Ingresos Totales</span>
+          <span class="card-value">
+            {{ summaryData.totalRevenue | currency:'COP':'$':'1.0-0' }}
+          </span>
+          <span class="card-label">Total de Ventas</span>
         </div>
       </ion-col>
-      <ion-col size="6">
+      <ion-col size="6" size-md="3">
         <div class="summary-card">
           <div class="card-icon indigo">
             <ion-icon name="restaurant-outline"></ion-icon>
@@ -44,7 +49,7 @@
           <span class="card-label">En Mesas</span>
         </div>
       </ion-col>
-      <ion-col size="6">
+      <ion-col size="6" size-md="3">
         <div class="summary-card">
           <div class="card-icon orange">
             <ion-icon name="bag-handle-outline"></ion-icon>
@@ -56,26 +61,122 @@
     </ion-row>
   </ion-grid>
 
-  <ion-list class="top-products-list">
-    <ion-list-header>
-      <h2 class="section-title">Productos Más Vendidos</h2>
-    </ion-list-header>
+  <ng-container *ngIf="summaryData.financialSummary as financial">
+    <h2 class="section-title">Desglose de Ventas</h2>
+    <ion-grid class="financial-grid">
+      <ion-row>
+        <ion-col size="6" size-md="3">
+          <div class="summary-card financial-card">
+            <div class="card-icon teal">
+              <ion-icon name="fast-food-outline"></ion-icon>
+            </div>
+            <span class="card-value">
+              {{ financial.productsSubtotal | currency:'COP':'$':'1.0-0' }}
+            </span>
+            <span class="card-label">Total en Productos Vendidos</span>
+          </div>
+        </ion-col>
+        <ion-col size="6" size-md="3">
+          <div class="summary-card financial-card positive">
+            <div class="card-icon lime">
+              <ion-icon name="add-circle-outline"></ion-icon>
+            </div>
+            <span class="card-value">
+              + {{ financial.charges | currency:'COP':'$':'1.0-0' }}
+            </span>
+            <span class="card-label">Recargos</span>
+          </div>
+        </ion-col>
+        <ion-col size="6" size-md="3">
+          <div class="summary-card financial-card negative">
+            <div class="card-icon red">
+              <ion-icon name="pricetag-outline"></ion-icon>
+            </div>
+            <span class="card-value">
+              - {{ financial.discounts | currency:'COP':'$':'1.0-0' }}
+            </span>
+            <span class="card-label">Descuentos</span>
+          </div>
+        </ion-col>
+        <ion-col size="6" size-md="3">
+          <div class="summary-card financial-card negative">
+            <div class="card-icon amber">
+              <ion-icon name="return-down-back-outline"></ion-icon>
+            </div>
+            <span class="card-value">
+              - {{ financial.refunds | currency:'COP':'$':'1.0-0' }}
+            </span>
+            <span class="card-label">Devoluciones</span>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-container>
 
-    <p *ngIf="summaryData.topProducts[0].name === 'Ninguno'" class="empty-list">
-      No hay datos de productos vendidos.
+  <section class="cuts-section" *ngIf="summaryData.cuts?.length">
+    <div class="section-heading">
+      <h2 class="section-title">Cortes de Caja</h2>
+      <span>{{ summaryData.cuts?.length }}</span>
+    </div>
+    <div class="cut-row" *ngFor="let cut of summaryData.cuts; let i = index">
+      <div>
+        <strong>Corte {{ i + 1 }} - {{ cut.cashRegisterName }}</strong>
+        <span>{{ cut.orderCount }} comandas</span>
+      </div>
+      <strong>{{ cut.totalSales | currency:'COP':'$':'1.0-0' }}</strong>
+    </div>
+  </section>
+
+  <section class="paid-orders-section">
+    <div class="section-heading">
+      <h2 class="section-title">Comandas Pagadas</h2>
+      <span>{{ summaryData.paidOrders?.length || 0 }}</span>
+    </div>
+
+    <p *ngIf="!summaryData.paidOrders?.length" class="empty-paid-orders">
+      No hay comandas pagadas para este dia.
     </p>
 
-    <ion-item *ngFor="let product of summaryData.topProducts; let i = index" lines="none">
-      <div class="product-rank" slot="start">
-        <span>{{ i + 1 }}</span>
-      </div>
-      <ion-label>
-        <h3>{{product.category?.name}} - {{ product.name }}</h3>
-      </ion-label>
-      <div slot="end" class="product-count">
-        {{ product.count }} vendidos
-      </div>
-    </ion-item>
-  </ion-list>
+    <div class="paid-orders-list">
+      <app-paid-order-row
+        *ngFor="let order of summaryData.paidOrders; trackBy: trackByOrder"
+        [order]="order"
+        [canRefund]="false"
+        (receiptRequested)="downloadReceipt($event)"
+      ></app-paid-order-row>
+    </div>
+  </section>
 
+  <section class="top-products-section">
+    <button
+      type="button"
+      class="top-products-header"
+      [attr.aria-expanded]="topProductsExpanded"
+      (click)="toggleTopProducts()"
+    >
+      <span>Productos Mas Vendidos</span>
+      <span class="top-products-actions">
+        <span class="product-total">{{ summaryData.topProducts.length }}</span>
+        <ion-icon [name]="topProductsExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </span>
+    </button>
+
+    <ion-list class="top-products-list" *ngIf="topProductsExpanded">
+      <p *ngIf="summaryData.topProducts.length === 0" class="empty-list">
+        No hay productos vendidos.
+      </p>
+
+      <ion-item *ngFor="let product of summaryData.topProducts; let i = index" lines="none">
+        <div class="product-rank" slot="start">
+          <span>{{ i + 1 }}</span>
+        </div>
+        <ion-label>
+          <h3>{{ product.category?.name }} - {{ product.name }}</h3>
+        </ion-label>
+        <div slot="end" class="product-count">
+          {{ product.count }} vendidos
+        </div>
+      </ion-item>
+    </ion-list>
+  </section>
 </ion-content>

@@ -1,17 +1,29 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReportsPage } from './reports.page';
 
 describe('ReportsPage', () => {
   let component: ReportsPage;
-  let fixture: ComponentFixture<ReportsPage>;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ReportsPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    component = new ReportsPage(
+      jasmine.createSpyObj('LoadingController', ['create']),
+      jasmine.createSpyObj('ToastController', ['create']),
+      jasmine.createSpyObj('ReportsService', [
+        'generateReportSalesWithDateRange',
+        'generateReportPeakTimesWithDateRange',
+      ]),
+      jasmine.createSpyObj('CashRegisterSessionService', [
+        'getBusinessDaySettings',
+      ]),
+    );
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('keeps payment reconciliation collapsed until requested', () => {
+    expect(component.paymentReconciliationExpanded).toBeFalse();
+
+    component.togglePaymentReconciliation();
+    expect(component.paymentReconciliationExpanded).toBeTrue();
+
+    component.togglePaymentReconciliation();
+    expect(component.paymentReconciliationExpanded).toBeFalse();
   });
 });

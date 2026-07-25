@@ -17,6 +17,67 @@
     margin-top: 16px;
 }
 
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.metric {
+    min-width: 0;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    min-height: 104px;
+
+    span,
+    small {
+        display: block;
+        color: #6b7280;
+        font-size: 0.76rem;
+    }
+
+    strong {
+        display: block;
+        margin: 5px 0 3px;
+        color: #111827;
+        font-size: 1.25rem;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+}
+
+.metric-primary {
+    border-left: 4px solid var(--ion-color-primary);
+}
+
+.metric-positive strong {
+    color: #16803a;
+}
+
+.metric-negative strong {
+    color: #c62828;
+}
+
+.payment-reconciliation-section {
+    margin-bottom: 16px;
+}
+
+.reconciliation-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 10px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+
+    .metric {
+        min-height: 96px;
+    }
+}
+
 /* Toolbar de exportación */
 .export-toolbar {
     --background: transparent;
@@ -97,6 +158,161 @@ table {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     margin-bottom: 16px;
     overflow: hidden; // Para que el header se vea bien
+}
+
+.report-section {
+    margin-bottom: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid var(--ion-color-primary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff7f7;
+
+    h2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        color: #1f2937;
+        font-size: 0.95rem;
+    }
+
+    > span {
+        color: #6b7280;
+        font-size: 0.76rem;
+    }
+
+    ion-icon {
+        color: var(--ion-color-primary);
+        font-size: 1.05rem;
+    }
+}
+
+.compact-list {
+    display: grid;
+}
+
+.compact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 11px 14px;
+    border-bottom: 1px solid #edf0f3;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    > div:first-child,
+    .row-totals {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    strong {
+        color: #263142;
+        font-size: 0.86rem;
+    }
+
+    span {
+        color: #6b7280;
+        font-size: 0.74rem;
+    }
+}
+
+.row-totals {
+    flex: 0 0 auto;
+    text-align: right;
+}
+
+.collapsible-header {
+    width: 100%;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 0;
+    background: #fff7f7;
+    color: #1f2937;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+}
+
+.collapsible-title,
+.collapsible-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.collapsible-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+
+    ion-icon {
+        color: var(--ion-color-primary);
+        font-size: 1.05rem;
+    }
+}
+
+.collapsible-actions {
+    flex: 0 0 auto;
+    color: #6b7280;
+
+    > ion-icon {
+        font-size: 1.1rem;
+    }
+}
+
+.section-count {
+    min-width: 28px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #4b5563;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.products-section ion-list {
+    border-top: 1px solid #e5e7eb;
+}
+
+ion-modal.report-date-modal {
+    --backdrop-opacity: 0.16;
+    --border-radius: 8px;
+}
+
+@media (max-width: 760px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .reconciliation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .compact-row {
+        align-items: flex-start;
+    }
 }
 
 // 2. Quita el fondo de la lista

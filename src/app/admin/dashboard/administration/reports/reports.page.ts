@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { IonModal } from '@ionic/angular/common';
+import { CashRegisterSessionService } from '@services/cash-register-session.service';
 import { PeakTimesResponse, ReportsService, SalesReportResponse } from '@services/reports.service'; // Asegúrate de importar tu interfaz
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -20,9 +21,9 @@ export class ReportsPage implements OnInit {
   @ViewChild('modalEnd', { static: false }) modalEnd!: IonModal;
 
   // Rango de fechas
-  startDate: string;
-  endDate: string;
-  maxDate: string;
+  startDate = '';
+  endDate = '';
+  maxDate = '';
 
   isLoading: boolean = false;
 
@@ -30,6 +31,8 @@ export class ReportsPage implements OnInit {
   reportData: SalesReportResponse | null = null;
   reportPeaks: PeakTimesResponse | null = null;
   grandTotalSales: number = 0;
+  productsExpanded = false;
+  paymentReconciliationExpanded = false;
 
   // 4. INSTANCIAS PARA AMBOS GRÁFICOS
   private categoryChartInstance: any = null;
@@ -41,16 +44,21 @@ export class ReportsPage implements OnInit {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private _reportsService: ReportsService,
+    private cashRegisterSessionService: CashRegisterSessionService,
   ) {
-    // Inicializar fechas
-    const today = new Date();
-    this.endDate = today.toISOString();
-    this.maxDate = today.toISOString();
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    this.startDate = startOfMonth.toISOString();
+    const today = this.getBogotaDate();
+    this.setDefaultDateRange(today);
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
+    this.cashRegisterSessionService.getBusinessDaySettings().subscribe({
+      next: ({ cutoffHour }) => {
+        this.setDefaultDateRange(this.getBogotaBusinessDate(cutoffHour));
+      },
+      error: (error) => {
+        console.error('No se pudo cargar la configuracion del dia operativo:', error);
+      },
+    });
   }
 
   /**
@@ -60,6 +68,8 @@ export class ReportsPage implements OnInit {
     this.isLoading = true;
     this.reportData = null;
     this.reportPeaks = null;
+    this.productsExpanded = false;
+    this.paymentReconciliationExpanded = false;
 
     // 5. DESTRUYE AMBOS GRÁFICOS
     if (this.categoryChartInstance) this.categoryChartInstance.destroy();
@@ -74,13 +84,20 @@ export class ReportsPage implements OnInit {
 
     try {
       // 6. ¡CONECTADO! Llama al servicio y guarda la respuesta
-      const data = await firstValueFrom(
-        this._reportsService.generateReportSalesWithDateRange(this.startDate, this.endDate)
-      );
-
-      const dataPeaks = await firstValueFrom(
-        this._reportsService.generateReportPeakTimesWithDateRange(this.startDate, this.endDate)
-      );
+      const [data, dataPeaks] = await Promise.all([
+        firstValueFrom(
+          this._reportsService.generateReportSalesWithDateRange(
+            this.startDate,
+            this.endDate,
+          ),
+        ),
+        firstValueFrom(
+          this._reportsService.generateReportPeakTimesWithDateRange(
+            this.startDate,
+            this.endDate,
+          ),
+        ),
+      ]);
 
       if (!data || !dataPeaks) {
         // Lanzamos un error para que lo capture el 'catch' de abajo
@@ -90,12 +107,7 @@ export class ReportsPage implements OnInit {
       this.reportData = data; // Asigna los datos REALES
       this.reportPeaks = dataPeaks;
 
-      if (this.reportData?.dailySales.length) {
-        // Suma todos los 'total' del array 'dailySales'
-        this.grandTotalSales = this.reportData.dailySales.reduce((acc, day) => {
-          return acc + Number(day.total);
-        }, 0);
-      }
+      this.grandTotalSales = Number(this.reportData.summary.totalSales || 0);
 
       if (!data.chartData.length && !data.tableRows.length) {
         this.presentToast('No se encontraron datos en este rango.', 'warning');
@@ -175,7 +187,11 @@ export class ReportsPage implements OnInit {
     // --- (Tu código de labels corregido está perfecto) ---
     const labels = data.map(d => {
       // CORRECCIÓN: 'd.day' ya es una fecha ISO completa.
-      const date = new Date(d.day); // <-- Mucho más simple y correcto.
+      const [year, month, day] = String(d.day)
+        .slice(0, 10)
+        .split('-')
+        .map(Number);
+      const date = new Date(year, month - 1, day);
       return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
     });
     const totals = data.map(d => d.total);
@@ -258,8 +274,8 @@ export class ReportsPage implements OnInit {
     doc.text('Reporte de Ventas', 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
-    const startStr = new Date(this.startDate).toLocaleDateString('es-CO');
-    const endStr = new Date(this.endDate).toLocaleDateString('es-CO');
+    const startStr = this.formatReportDate(this.startDate);
+    const endStr = this.formatReportDate(this.endDate);
     doc.text(`Rango de fechas: ${startStr} al ${endStr}`, 14, 29);
 
     const catChartCanvas = document.getElementById('categoryChart') as HTMLCanvasElement;
@@ -298,7 +314,7 @@ export class ReportsPage implements OnInit {
       }
     });
 
-    doc.save(`reporte_detallado_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`reporte_detallado_${this.getBogotaDate()}.pdf`);
     // 10. QUITA EL TOAST DE "NO IMPLEMENTADO"
   }
 
@@ -322,7 +338,7 @@ export class ReportsPage implements OnInit {
     ];
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Ventas');
-    XLSX.writeFile(wb, `reporte_ventas_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(wb, `reporte_ventas_${this.getBogotaDate()}.xlsx`);
     // 11. QUITA EL TOAST DE "NO IMPLEMENTADO"
   }
 
@@ -353,6 +369,14 @@ export class ReportsPage implements OnInit {
   onEndDateChange(event: any) {
     this.endDate = event.detail.value;
     this.modalEnd.dismiss();
+  }
+
+  toggleProducts(): void {
+    this.productsExpanded = !this.productsExpanded;
+  }
+
+  togglePaymentReconciliation(): void {
+    this.paymentReconciliationExpanded = !this.paymentReconciliationExpanded;
   }
 
   /**
@@ -442,5 +466,72 @@ export class ReportsPage implements OnInit {
       'Friday': 'Viernes', 'Saturday': 'Sábado'
     };
     return map[dayName] || dayName;
+  }
+
+  formatBogotaDateTime(value?: string | null): string {
+    if (!value) {
+      return 'En curso';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return 'Sin fecha';
+    }
+
+    return new Intl.DateTimeFormat('es-CO', {
+      timeZone: 'America/Bogota',
+      day: '2-digit',
+      month: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }).format(date);
+  }
+
+  private getBogotaDate(): string {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Bogota',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(new Date());
+    const values = parts.reduce<Record<string, string>>((result, part) => {
+      result[part.type] = part.value;
+      return result;
+    }, {});
+
+    return `${values['year']}-${values['month']}-${values['day']}`;
+  }
+
+  private getBogotaBusinessDate(cutoffHour: number): string {
+    const cutoff = Number.isInteger(cutoffHour) && cutoffHour >= 0 && cutoffHour <= 23
+      ? cutoffHour
+      : 4;
+    const shiftedNow = new Date(Date.now() - cutoff * 60 * 60 * 1000);
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Bogota',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(shiftedNow);
+    const values = parts.reduce<Record<string, string>>((result, part) => {
+      result[part.type] = part.value;
+      return result;
+    }, {});
+
+    return `${values['year']}-${values['month']}-${values['day']}`;
+  }
+
+  private setDefaultDateRange(referenceDate: string): void {
+    this.endDate = referenceDate;
+    this.maxDate = referenceDate;
+    this.startDate = `${referenceDate.slice(0, 8)}01`;
+  }
+
+  private formatReportDate(value: string): string {
+    const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+
+    return new Date(year, month - 1, day).toLocaleDateString('es-CO');
   }
 }

@@ -11,6 +11,59 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <section class="business-day-settings">
+    <div class="settings-heading">
+      <div class="settings-icon">
+        <ion-icon name="time-outline"></ion-icon>
+      </div>
+      <div>
+        <h2>Día Operativo</h2>
+        <p>Las ventas anteriores a esta hora pertenecen al día anterior.</p>
+      </div>
+    </div>
+
+    <div class="settings-controls">
+      <ion-select
+        label="Inicio del nuevo día"
+        label-placement="stacked"
+        interface="popover"
+        [interfaceOptions]="businessDaySelectOptions"
+        [(ngModel)]="businessDayCutoffHour"
+        [disabled]="
+          !businessDaySettingsAvailable ||
+          isSavingBusinessDaySettings ||
+          isSessionOpenInLocation
+        "
+      >
+        <ion-select-option
+          *ngFor="let option of businessDayHourOptions"
+          [value]="option.hour"
+        >
+          {{ option.label }}
+        </ion-select-option>
+      </ion-select>
+
+      <ion-button
+        (click)="saveBusinessDaySettings()"
+        [disabled]="
+          !businessDaySettingsAvailable ||
+          isSavingBusinessDaySettings ||
+          isSessionOpenInLocation ||
+          businessDayCutoffHour === savedBusinessDayCutoffHour
+        "
+      >
+        <ion-spinner *ngIf="isSavingBusinessDaySettings" name="crescent" slot="start"></ion-spinner>
+        <ion-icon *ngIf="!isSavingBusinessDaySettings" name="save-outline" slot="start"></ion-icon>
+        Guardar
+      </ion-button>
+    </div>
+
+    <p class="settings-lock-note" *ngIf="isSessionOpenInLocation">
+      <ion-icon name="lock-closed-outline"></ion-icon>
+      Cierra la caja activa para modificar esta hora.
+    </p>
+  </section>
+
   <ion-list lines="none">
     <ion-item *ngFor="let box of allCashRegisters" [ngClass]="{'item-inactive': !box.isActive}">
 

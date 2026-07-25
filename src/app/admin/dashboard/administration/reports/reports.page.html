@@ -30,12 +30,6 @@
 
     <ion-toolbar class="export-toolbar">
       <ion-title size="small">Resultados</ion-title>
-      <div class="kpi-card">
-        <ion-label class="kpi-title">Ventas Totales</ion-label>
-        <h1 class="kpi-value">
-          {{ grandTotalSales | currency:'COP':'$' }}
-        </h1>
-      </div>
       <!-- <ion-buttons slot="end">
         <ion-button fill="clear" color="success" (click)="exportExcel()">
           <ion-icon slot="icon-only" name="grid-outline"></ion-icon>
@@ -45,6 +39,61 @@
         </ion-button>
       </ion-buttons> -->
     </ion-toolbar>
+
+    <div class="metrics-grid">
+      <div class="metric metric-primary">
+        <span>Total de Ventas</span>
+        <strong>{{ grandTotalSales | currency:'COP':'$':'1.0-0' }}</strong>
+        <small>{{ reportData.summary.totalOrders }} comandas pagadas</small>
+      </div>
+      <div class="metric">
+        <span>Total en Productos Vendidos</span>
+        <strong>{{ reportData.summary.productsSubtotal | currency:'COP':'$':'1.0-0' }}</strong>
+      </div>
+      <div class="metric metric-positive">
+        <span>Recargos</span>
+        <strong>+ {{ reportData.summary.charges | currency:'COP':'$':'1.0-0' }}</strong>
+      </div>
+      <div class="metric metric-negative">
+        <span>Descuentos</span>
+        <strong>- {{ reportData.summary.discounts | currency:'COP':'$':'1.0-0' }}</strong>
+      </div>
+    </div>
+
+    <section class="report-section payment-reconciliation-section">
+      <button
+        type="button"
+        class="collapsible-header"
+        (click)="togglePaymentReconciliation()"
+        [attr.aria-expanded]="paymentReconciliationExpanded"
+      >
+        <span class="collapsible-title">
+          <ion-icon name="wallet-outline"></ion-icon>
+          Conciliación de Pagos
+        </span>
+        <span class="collapsible-actions">
+          <ion-icon
+            [name]="paymentReconciliationExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"
+          ></ion-icon>
+        </span>
+      </button>
+
+      <div class="reconciliation-grid" *ngIf="paymentReconciliationExpanded">
+        <div class="metric">
+          <span>Pagos Recibidos</span>
+          <strong>{{ reportData.summary.paymentsReceived | currency:'COP':'$':'1.0-0' }}</strong>
+        </div>
+        <div class="metric metric-negative">
+          <span>Devoluciones</span>
+          <strong>- {{ reportData.summary.refunds | currency:'COP':'$':'1.0-0' }}</strong>
+        </div>
+        <div class="metric">
+          <span>Neto Recibido</span>
+          <strong>{{ reportData.summary.netPayments | currency:'COP':'$':'1.0-0' }}</strong>
+          <small>Pagos recibidos menos devoluciones</small>
+        </div>
+      </div>
+    </section>
 
     <!-- <div class="chart-container">
       <ion-toolbar class="chart-header">
@@ -88,12 +137,63 @@
       </div>
     </div>
 
-    <div class="list-container">
-      <ion-toolbar class="chart-header">
-        <ion-title size="small">Productos Vendidos</ion-title>
-      </ion-toolbar>
+    <section class="report-section" *ngIf="reportData.cuts.length">
+      <div class="section-header">
+        <h2><ion-icon name="receipt-outline"></ion-icon>Cortes de Caja</h2>
+        <span>{{ reportData.cuts.length }} cortes</span>
+      </div>
+      <div class="compact-list">
+        <div class="compact-row" *ngFor="let cut of reportData.cuts; let i = index">
+          <div>
+            <strong>Corte {{ i + 1 }} - {{ cut.cashRegisterName }}</strong>
+            <span>
+              {{ formatBogotaDateTime(cut.openedAt) }} a
+              {{ formatBogotaDateTime(cut.closedAt) }}
+            </span>
+          </div>
+          <div class="row-totals">
+            <strong>{{ cut.totalSales | currency:'COP':'$':'1.0-0' }}</strong>
+            <span>{{ cut.orderCount }} comandas</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <ion-list lines="full">
+    <section class="report-section" *ngIf="reportData.paymentMethods.length">
+      <div class="section-header">
+        <h2><ion-icon name="card-outline"></ion-icon>Métodos de Pago</h2>
+      </div>
+      <div class="compact-list">
+        <div class="compact-row" *ngFor="let method of reportData.paymentMethods">
+          <strong>{{ method.name }}</strong>
+          <div class="row-totals">
+            <strong>{{ method.net | currency:'COP':'$':'1.0-0' }}</strong>
+            <span *ngIf="method.refunded > 0">
+              Devuelto: {{ method.refunded | currency:'COP':'$':'1.0-0' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="report-section products-section">
+      <button
+        type="button"
+        class="collapsible-header"
+        [attr.aria-expanded]="productsExpanded"
+        (click)="toggleProducts()"
+      >
+        <span class="collapsible-title">
+          <ion-icon name="fast-food-outline"></ion-icon>
+          Productos Vendidos
+        </span>
+        <span class="collapsible-actions">
+          <span class="section-count">{{ reportData.tableRows.length }}</span>
+          <ion-icon [name]="productsExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </span>
+      </button>
+
+      <ion-list lines="full" *ngIf="productsExpanded">
 
         <ion-item *ngFor="let row of reportData.tableRows">
 
@@ -115,7 +215,7 @@
         </p>
 
       </ion-list>
-    </div>
+    </section>
 
     <!-- <div class="table-container">
       <div class="table-responsive">
@@ -143,7 +243,7 @@
 </ion-content>
 
 <!-- MODALES FUERA DEL ION-CONTENT -->
-<ion-modal [keepContentsMounted]="true" #modalStart>
+<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalStart>
   <ng-template>
     <ion-datetime id="datetimeStart" presentation="date" [(ngModel)]="startDate" [max]="endDate"
       (ionChange)="onStartDateChange($event)">
@@ -151,7 +251,7 @@
   </ng-template>
 </ion-modal>
 
-<ion-modal [keepContentsMounted]="true" #modalEnd>
+<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalEnd>
   <ng-template>
     <ion-datetime id="datetimeEnd" presentation="date" [(ngModel)]="endDate" [min]="startDate" [max]="maxDate"
       (ionChange)="onEndDateChange($event)">

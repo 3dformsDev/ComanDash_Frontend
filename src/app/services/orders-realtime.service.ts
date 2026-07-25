@@ -1,121 +1,205 @@
 import { Injectable } from '@angular/core';
-import { OrderService } from './order.service';
-import { SocketService } from './socket.service';
 import { AppState } from '@capacitor/app';
 import { Store } from '@ngrx/store';
-import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, Subscription, take } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  distinctUntilChanged,
+  filter,
+  Subscription,
+} from 'rxjs';
 import { Order } from '@store/orders/orders.state';
-import { selectCurrentCompanyId, selectLocationId } from '@store/auth/selectors/auth.selectors';
+import {
+  selectCurrentCompanyId,
+  selectLocationId,
+} from '@store/auth/selectors/auth.selectors';
+import { OrderService } from './order.service';
+import { SocketService } from './socket.service';
+
+export type OrdersRealtimeConsumer = 'dashboard' | 'waiters';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class OrdersRealtimeService {
-
   private ordersSubject = new BehaviorSubject<Order[]>([]);
   public orders$ = this.ordersSubject.asObservable();
 
-  // ✅ Propiedad para gestionar la suscripción
-  private listenersSubscription: Subscription | undefined;
+  private lifecycleSubscription = new Subscription();
+  private socketListenersSubscription = new Subscription();
+  private loadSubscription?: Subscription;
+  private currentContext?: { companyId: number; locationId: number };
+  private activeConsumers = new Set<OrdersRealtimeConsumer>();
+  private initialized = false;
+  private wasConnected = false;
+  private hasConnectedOnce = false;
 
   constructor(
     private _orderService: OrderService,
     private _socketService: SocketService,
-    private store: Store<AppState>
-  ) { }
+    private store: Store<AppState>,
+  ) {}
 
-  /**
-   * ✅ MÉTODO PÚBLICO: Lo llamará el componente desde ionViewWillEnter
-   */
-  public init() {
-    console.log('▶️ OrdersRealtimeService.init() llamado.');
-
-    // Prevenimos suscripciones duplicadas
-    if (this.listenersSubscription) {
-      this.listenersSubscription.unsubscribe();
+  public init(consumer: OrdersRealtimeConsumer): void {
+    if (this.activeConsumers.has(consumer)) {
+      return;
     }
 
-    // Carga las órdenes iniciales
-    this._orderService.getActiveWaiterOrders().subscribe(initialOrders => {
-      this.ordersSubject.next(initialOrders);
-    });
+    this.activeConsumers.add(consumer);
 
-    // Establece todos los listeners
-    this.listenersSubscription = combineLatest([
+    if (this.initialized) {
+      return;
+    }
+
+    this.initialized = true;
+    this.clearOrders();
+
+    const contextSubscription = combineLatest([
       this.store.select(selectCurrentCompanyId),
-      this.store.select(selectLocationId)
-    ]).pipe(
-      filter(([companyId, locationId]) => !!companyId && !!locationId),
-      distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-      // ❌ SIN take(1)
-    ).subscribe(([companyId, locationId]) => {
-      console.log(`[OrdersRealtime] Uniéndose a la sala: company-${companyId}, location-${locationId}`);
-      // Asumo que el mesero y la cocina pueden compartir sala, o puedes crear una 'waiter_room'
-      this._socketService.emit('join_kitchen_room', { companyId, locationId });
+      this.store.select(selectLocationId),
+      this._socketService.isConnected$,
+    ])
+      .pipe(
+        filter(
+          ([companyId, locationId]) =>
+            Number(companyId) > 0 && Number(locationId) > 0,
+        ),
+        distinctUntilChanged(
+          (previous, current) =>
+            Number(previous[0]) === Number(current[0]) &&
+            Number(previous[1]) === Number(current[1]) &&
+            previous[2] === current[2],
+        ),
+      )
+      .subscribe(([companyId, locationId, isConnected]) => {
+        const nextContext = {
+          companyId: Number(companyId),
+          locationId: Number(locationId),
+        };
+        const contextChanged =
+          !this.currentContext ||
+          this.currentContext.companyId !== nextContext.companyId ||
+          this.currentContext.locationId !== nextContext.locationId;
+        const reconnected =
+          isConnected &&
+          this.hasConnectedOnce &&
+          !this.wasConnected &&
+          !contextChanged;
 
-      // ✅ Re-adjuntamos los listeners cada vez que init() es llamado.
-      // Socket.IO es inteligente y no duplica los listeners si la referencia a la función es la misma,
-      // pero al estar dentro de una nueva suscripción, es más seguro gestionarlo así.
-      this.setupSocketListeners();
-    });
+        this.currentContext = nextContext;
+
+        if (contextChanged) {
+          this.hasConnectedOnce = isConnected;
+          this.refreshOrders();
+        }
+
+        if (isConnected) {
+          this.attachSocketListeners();
+          this._socketService.emit('join_kitchen_room', nextContext);
+
+          if (reconnected) {
+            this.refreshOrders();
+          }
+
+          this.hasConnectedOnce = true;
+        }
+
+        this.wasConnected = isConnected;
+      });
+
+    this.lifecycleSubscription.add(contextSubscription);
   }
 
-  /**
-   * ✅ MÉTODO PÚBLICO: Lo llamará el componente desde ionViewWillLeave
-   */
-  public shutdown() {
-    console.log('⏹️ OrdersRealtimeService.shutdown() llamado.');
-    if (this.listenersSubscription) {
-      this.listenersSubscription.unsubscribe();
-      this.listenersSubscription = undefined;
+  public shutdown(consumer: OrdersRealtimeConsumer): void {
+    const consumerWasActive = this.activeConsumers.delete(consumer);
+
+    if (!consumerWasActive || this.activeConsumers.size > 0) {
+      return;
     }
-    // Opcional: podrías emitir un evento para salir de la sala del socket aquí si es necesario
-    // this._socketService.emit('leave_waiter_room', ...);
+
+    this.lifecycleSubscription.unsubscribe();
+    this.lifecycleSubscription = new Subscription();
+
+    this.socketListenersSubscription.unsubscribe();
+    this.socketListenersSubscription = new Subscription();
+
+    this.loadSubscription?.unsubscribe();
+    this.loadSubscription = undefined;
+    this.currentContext = undefined;
+    this.initialized = false;
+    this.wasConnected = false;
+    this.hasConnectedOnce = false;
   }
 
-  // ✅ Método privado para organizar los listeners
-  private setupSocketListeners() {
-    // Listener para ÓRDENES ACTUALIZADAS (en proceso)
-    this._socketService.listen('order_in_proccess').subscribe((updatedOrder: Order) => {
-      this.updateOrAddOrder(updatedOrder);
-    });
+  public refreshOrders(): void {
+    this.loadSubscription?.unsubscribe();
+    this.loadSubscription = this._orderService.getActiveWaiterOrders().subscribe({
+      next: (orders) => this.ordersSubject.next(orders),
+      error: (error) => {
+        if (error?.status === 403) {
+          this.clearOrders();
+          return;
+        }
 
-    // Listener para ÓRDENES LISTAS
-    this._socketService.listen('order_is_ready').subscribe((updatedOrder: Order) => {
-      this.updateOrAddOrder(updatedOrder);
-    });
-
-    // Listener para ÓRDENES SERVIDAS
-    this._socketService.listen('order_is_served').subscribe((servedOrder: Order) => {
-      this.updateOrAddOrder(servedOrder);
-    });
-
-    // Listener para ÓRDENES PAGADAS
-    this._socketService.listen('order_payment_completed').subscribe((paidOrder: Order) => {
-      this.updateOrAddOrder(paidOrder);
-    });
-
-    // Listener para MESA LIBERADA
-    this._socketService.listen('table_is_free').subscribe((orderWithFreeTable: Order) => {
-      this.updateOrAddOrder(orderWithFreeTable);
-    });
-
-    this._socketService.listen('order_is_cancelled').subscribe((cancelledOrder: Order) => {
-      console.log(`❌ Orden cancelada recibida en realtime de meseros: #${cancelledOrder.orderNumber}`);
-      this.updateOrAddOrder(cancelledOrder);
+        console.error('No se pudieron actualizar las comandas:', error);
+      },
     });
   }
 
-  // ✅ Helper para no repetir código
-  private updateOrAddOrder(order: Order) {
+  public syncOrder(order: Order): void {
+    this.updateOrAddOrder(order);
+  }
+
+  public clearOrders(): void {
+    this.ordersSubject.next([]);
+  }
+
+  private attachSocketListeners(): void {
+    this.socketListenersSubscription.unsubscribe();
+    this.socketListenersSubscription = new Subscription();
+
+    const events = [
+      'order_in_proccess',
+      'order_is_ready',
+      'order_is_served',
+      'order_updated',
+      'order_payment_completed',
+      'table_is_free',
+      'order_is_cancelled',
+    ];
+
+    events.forEach((eventName) => {
+      this.socketListenersSubscription.add(
+        this._socketService
+          .listen(eventName)
+          .subscribe((order: Order) => this.updateOrAddOrder(order)),
+      );
+    });
+
+    this.socketListenersSubscription.add(
+      this._socketService
+        .listen('cash_register_closed')
+        .subscribe(() => this.clearOrders()),
+    );
+  }
+
+  private updateOrAddOrder(order: Order): void {
+    if (!order?.id) {
+      return;
+    }
+
     const current = this.ordersSubject.getValue();
-    const index = current.findIndex(o => o.id === order.id);
+    const existingOrder = current.find((item) => item.id === order.id);
 
-    if (index !== -1) {
-      current[index] = { ...current[index], ...order };
-      this.ordersSubject.next([...current]);
-    } else {
+    if (!existingOrder) {
       this.ordersSubject.next([...current, order]);
+      return;
     }
+
+    this.ordersSubject.next(
+      current.map((item) =>
+        item.id === order.id ? { ...item, ...order } : item,
+      ),
+    );
   }
 }
