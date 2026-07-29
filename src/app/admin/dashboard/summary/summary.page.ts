@@ -41,6 +41,7 @@ export class SummaryPage implements OnInit, OnDestroy {
     topProducts: [],
     cuts: [],
     paidOrders: [],
+    cancelledOrders: [],
   };
 
   private summaryRequest?: Subscription;

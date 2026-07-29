@@ -4,6 +4,7 @@ import { environment } from '@environments/environment';
 import { ApiResponse } from './table.service';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { Order } from '@store/orders/orders.state';
 
 // --- (Tus interfaces SalesReportResponse y PeakTimesResponse están perfectas) ---
 export interface SalesReportResponse {
@@ -61,6 +62,12 @@ export interface PeakTimesResponse {
   peakDays: { dayIndex: number, dayName: string, orderCount: number }[];
 }
 
+export interface DailyOrdersReportResponse extends SalesReportResponse {
+  businessDate: string;
+  paidOrders: Order[];
+  cancelledOrders: Order[];
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -105,6 +112,16 @@ export class ReportsService {
       .pipe(
         map(response => response.data)
       );
+  }
+
+  generateDailyOrdersReport(date: string): Observable<DailyOrdersReportResponse> {
+    const dateFormatted = this.formatDate(date);
+
+    return this._http
+      .get<ApiResponse<DailyOrdersReportResponse>>(
+        `${this.reportsEndpoint}/daily-orders?date=${dateFormatted}`,
+      )
+      .pipe(map(response => response.data));
   }
 
   /**

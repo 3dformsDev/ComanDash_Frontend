@@ -42,20 +42,22 @@
   </div>
 
   <div
-    *ngIf="currentFilter === 'paid' && filteredOrders.length > 0"
+    *ngIf="(currentFilter === 'paid' || currentFilter === 'cancelled') && filteredOrders.length > 0"
     class="paid-orders-list"
   >
     <app-paid-order-row
       *ngFor="let order of filteredOrders; trackBy: trackByOrder"
       [order]="order"
-      [canRefund]="canManagePaidRefund(order)"
+      [mode]="currentFilter === 'cancelled' ? 'cancelled' : 'paid'"
+      [showReceipt]="currentFilter === 'paid'"
+      [canRefund]="currentFilter === 'paid' && canManagePaidRefund(order)"
       (receiptRequested)="showReceiptDownloadAlert($event)"
       (refundRequested)="cancelOrder($event)"
     ></app-paid-order-row>
   </div>
 
   <cdk-virtual-scroll-viewport
-    *ngIf="currentFilter !== 'paid'"
+    *ngIf="currentFilter !== 'paid' && currentFilter !== 'cancelled'"
     itemSize="215"
     minBufferPx="900"
     maxBufferPx="1350"

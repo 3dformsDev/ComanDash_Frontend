@@ -55,6 +55,7 @@ export interface DailySummaryI {
   financialSummary?: SalesReportSummary,
   cuts?: CashRegisterCutReport[],
   paidOrders?: Order[],
+  cancelledOrders?: Order[],
 }
 
 export interface BusinessDaySettingsI {

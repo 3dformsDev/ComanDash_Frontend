@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Personalizacion del recibo</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <section class="branding-panel">
+    <div class="panel-heading">
+      <span class="heading-icon">
+        <ion-icon name="receipt-outline"></ion-icon>
+      </span>
+      <div>
+        <h1>Logo del recibo</h1>
+        <p>Se ajustara automaticamente para impresiones compactas.</p>
+      </div>
+    </div>
+
+    <input
+      #fileInput
+      class="file-input"
+      type="file"
+      accept="image/png,image/jpeg"
+      (change)="onFileSelected($event)"
+    />
+
+    <div class="preview-area" [class.empty]="!previewUrl">
+      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+
+      <img
+        *ngIf="!isLoading && previewUrl"
+        [src]="previewUrl"
+        alt="Vista previa del logo del recibo"
+      />
+
+      <div *ngIf="!isLoading && !previewUrl" class="empty-state">
+        <ion-icon name="image-outline"></ion-icon>
+        <strong>Sin logo configurado</strong>
+        <span>Los recibos continuan funcionando normalmente.</span>
+      </div>
+    </div>
+
+    <div *ngIf="metadata && !selectedFile" class="logo-metadata">
+      <span>{{ metadata.width }} x {{ metadata.height }} px</span>
+      <span>{{ formatBytes(metadata.sizeBytes) }}</span>
+      <span>PNG optimizado</span>
+    </div>
+
+    <p *ngIf="selectedFile" class="pending-file">
+      <ion-icon name="time-outline"></ion-icon>
+      {{ selectedFile.name }} esta pendiente de guardar.
+    </p>
+
+    <p class="requirements">
+      Usa PNG o JPEG de hasta 2 MB. El sistema conserva una copia pequena,
+      optimizada y en escala de grises.
+    </p>
+
+    <div class="actions">
+      <ion-button fill="outline" (click)="openFilePicker()" [disabled]="isSaving">
+        <ion-icon slot="start" name="image-outline"></ion-icon>
+        {{ metadata || selectedFile ? 'Cambiar imagen' : 'Seleccionar imagen' }}
+      </ion-button>
+
+      <ion-button
+        *ngIf="selectedFile"
+        (click)="saveLogo()"
+        [disabled]="isSaving"
+      >
+        <ion-spinner *ngIf="isSaving" slot="start" name="crescent"></ion-spinner>
+        <ion-icon *ngIf="!isSaving" slot="start" name="save-outline"></ion-icon>
+        Guardar
+      </ion-button>
+
+      <ion-button
+        *ngIf="metadata && !selectedFile"
+        fill="clear"
+        color="danger"
+        (click)="confirmDelete()"
+        [disabled]="isSaving"
+      >
+        <ion-icon slot="start" name="trash-outline"></ion-icon>
+        Eliminar
+      </ion-button>
+    </div>
+  </section>
+</ion-content>

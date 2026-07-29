@@ -51,6 +51,12 @@ export class AdministrationPage implements OnInit {
       icon: 'stats-chart-outline',
       url: '/dashboard/administration/reports', // Ruta a la página de cajas
       roleVerify: ['super_admin', 'admin', 'cashier']
+    },
+    {
+      title: 'Personalizacion del recibo',
+      icon: 'receipt-outline',
+      url: '/dashboard/administration/receipt-branding',
+      roleVerify: ['super_admin', 'admin', 'manager']
     }
   ];
 
@@ -70,14 +76,17 @@ export class AdministrationPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Confirmar',
       message: '¿Estás seguro de que quieres cerrar la sesión?',
+      cssClass: ['confirmation-action-alert', 'logout-confirmation-alert'],
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: 'Cerrar Sesión',
           role: 'destructive',
+          cssClass: 'alert-primary-action',
           handler: async () => {
             this._store.dispatch(AuthActions.logout());
             // try {

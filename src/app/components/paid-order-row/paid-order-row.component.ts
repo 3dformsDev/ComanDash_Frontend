@@ -13,6 +13,8 @@ import { Order } from '@store/orders/orders.state';
 export class PaidOrderRowComponent {
   @Input({ required: true }) order!: Order;
   @Input() canRefund = false;
+  @Input() mode: 'paid' | 'cancelled' = 'paid';
+  @Input() showReceipt = true;
 
   @Output() receiptRequested = new EventEmitter<number>();
   @Output() refundRequested = new EventEmitter<Order>();
@@ -40,12 +42,15 @@ export class PaidOrderRowComponent {
     return String(this.order.id || this.order.orderNumber || 'Sin numero');
   }
 
-  get paidTime(): string {
-    if (!this.order.paidAt) {
+  get eventTime(): string {
+    const timestamp =
+      this.mode === 'cancelled' ? this.order.cancelledAt : this.order.paidAt;
+
+    if (!timestamp) {
       return 'Sin hora';
     }
 
-    const date = new Date(this.order.paidAt);
+    const date = new Date(timestamp);
 
     if (Number.isNaN(date.getTime())) {
       return 'Sin hora';
@@ -57,6 +62,39 @@ export class PaidOrderRowComponent {
       minute: '2-digit',
       hour12: true,
     }).format(date);
+  }
+
+  get eventTimeLabel(): string {
+    return this.mode === 'cancelled' ? 'Cancelacion' : 'Pago';
+  }
+
+  get statusLabel(): string {
+    return this.mode === 'cancelled' ? 'Cancelada' : 'Pagada';
+  }
+
+  get paymentMethodsLabel(): string {
+    const grouped = (this.order.payments || [])
+      .filter((payment) => Number(payment.amount || 0) > 0)
+      .reduce<Map<string, number>>((result, payment) => {
+        const methodName =
+          payment.paymentMethod?.name?.trim() || 'Metodo no especificado';
+        const amount = Number(payment.amount || 0);
+
+        result.set(methodName, (result.get(methodName) || 0) + amount);
+        return result;
+      }, new Map<string, number>());
+
+    return Array.from(grouped.entries())
+      .map(([name, amount]) => {
+        const formattedAmount = new Intl.NumberFormat('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          maximumFractionDigits: 0,
+        }).format(amount);
+
+        return `${name}: ${formattedAmount}`;
+      })
+      .join(' + ');
   }
 
   get tableLabel(): string {

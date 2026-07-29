@@ -668,6 +668,7 @@ ion-modal.payment-modal-class {
 .adjustment-alert,
 .confirmation-action-alert,
 .cancel-order-alert,
+.logout-confirmation-alert,
 .session-timeout-alert {
   .alert-wrapper {
     width: min(92vw, 400px) !important;
@@ -823,7 +824,8 @@ ion-popover.business-day-hour-popover {
   }
 }
 
-.session-timeout-alert {
+.session-timeout-alert,
+.logout-confirmation-alert {
   .alert-button-inner {
     display: flex !important;
     width: 100% !important;

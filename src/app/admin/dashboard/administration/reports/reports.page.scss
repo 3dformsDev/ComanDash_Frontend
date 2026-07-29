@@ -1,3 +1,21 @@
+.reports-tabs {
+    margin-bottom: 16px;
+    padding: 4px;
+    --background: #f1f2f4;
+    border-radius: 6px;
+
+    ion-segment-button {
+        min-height: 38px;
+        --border-radius: 5px;
+        --color: #4b5563;
+        --color-checked: var(--ion-color-primary);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+}
+
 /* Contenedor para los selectores de fecha */
 .selector-container {
     background: #ffffff;
@@ -10,6 +28,61 @@
         --background: transparent;
         --padding-start: 0;
     }
+}
+
+.daily-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    h2 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.1rem;
+    }
+
+    span {
+        color: #6b7280;
+        font-size: 0.8rem;
+    }
+}
+
+.daily-metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.daily-orders-section {
+    margin-bottom: 14px;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid var(--ion-color-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.cancelled-orders-section {
+    border-left-color: #b42318;
+}
+
+.daily-orders-list {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-top: 1px solid #e5e7eb;
+    background: #f7f8fa;
+}
+
+.empty-section-message {
+    margin: 6px 0;
+    color: #6b7280;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.daily-empty-message {
+    margin-top: 15%;
 }
 
 /* Contenedor principal para los resultados */
@@ -312,6 +385,14 @@ ion-modal.report-date-modal {
 
     .compact-row {
         align-items: flex-start;
+    }
+
+    .daily-results-header {
+        align-items: flex-start;
+    }
+
+    .daily-orders-list {
+        padding: 8px;
     }
 }
 

@@ -1,0 +1,153 @@
+.branding-panel {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid var(--ion-color-primary);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+
+  h1 {
+    margin: 0 0 4px;
+    color: #1f2937;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+}
+
+.heading-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #fff0f0;
+  color: var(--ion-color-primary);
+
+  ion-icon {
+    font-size: 1.3rem;
+  }
+}
+
+.file-input {
+  display: none;
+}
+
+.preview-area {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #f8fafc;
+
+  img {
+    max-width: min(100%, 400px);
+    max-height: 200px;
+    object-fit: contain;
+  }
+
+  &.empty {
+    border-style: dashed;
+  }
+}
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: #6b7280;
+  text-align: center;
+
+  ion-icon {
+    font-size: 2rem;
+    color: #9ca3af;
+  }
+
+  strong {
+    color: #374151;
+    font-size: 0.9rem;
+  }
+
+  span {
+    font-size: 0.78rem;
+  }
+}
+
+.logo-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+
+  span {
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 0.72rem;
+  }
+}
+
+.pending-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  color: #9a3412;
+  font-size: 0.8rem;
+}
+
+.requirements {
+  margin: 14px 0;
+  color: #6b7280;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  ion-button {
+    min-height: 42px;
+    margin: 0;
+    text-transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .branding-panel {
+    padding: 14px;
+  }
+
+  .preview-area {
+    min-height: 150px;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+
+    ion-button {
+      width: 100%;
+    }
+  }
+}

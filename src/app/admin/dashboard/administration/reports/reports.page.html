@@ -8,6 +8,20 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <ion-segment
+    class="reports-tabs"
+    [value]="activeTab"
+    (ionChange)="selectTab($any($event.detail.value))"
+  >
+    <ion-segment-button value="summary">
+      <ion-label>Resumen</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="daily">
+      <ion-label>Comandas por dia</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <section [hidden]="activeTab !== 'summary'">
 
   <div class="selector-container">
     <ion-item lines="full">
@@ -239,6 +253,196 @@
   <p *ngIf="!reportData && !isLoading" class="empty-message">
     Selecciona un rango de fechas y presiona "Generar Reporte".
   </p>
+  </section>
+
+  <section [hidden]="activeTab !== 'daily'">
+    <div class="selector-container daily-selector">
+      <ion-item lines="full">
+        <ion-label position="stacked" class="mb-2">Dia operativo</ion-label>
+        <ion-datetime-button datetime="datetimeDaily"></ion-datetime-button>
+      </ion-item>
+
+      <ion-button
+        (click)="generateDailyReport()"
+        [disabled]="isDailyLoading"
+        expand="block"
+        class="ion-margin-top"
+      >
+        <ion-spinner
+          *ngIf="isDailyLoading"
+          name="crescent"
+          slot="start"
+        ></ion-spinner>
+        {{ isDailyLoading ? 'Consultando...' : 'Consultar comandas' }}
+      </ion-button>
+    </div>
+
+    <div *ngIf="dailyReportData" class="report-container daily-report">
+      <div class="daily-results-header">
+        <div>
+          <h2>Resultados del dia</h2>
+          <span>{{ dailyReportData.businessDate }}</span>
+        </div>
+        <ion-button
+          fill="outline"
+          size="small"
+          (click)="exportDailyOrdersExcel()"
+        >
+          <ion-icon name="grid-outline" slot="start"></ion-icon>
+          Descargar
+        </ion-button>
+      </div>
+
+      <div class="metrics-grid daily-metrics-grid">
+        <div class="metric metric-primary">
+          <span>Ventas totales</span>
+          <strong>
+            {{ dailyReportData.summary.totalSales | currency:'COP':'$':'1.0-0' }}
+          </strong>
+        </div>
+        <div class="metric metric-positive">
+          <span>Recargos</span>
+          <strong>
+            + {{ dailyReportData.summary.charges | currency:'COP':'$':'1.0-0' }}
+          </strong>
+        </div>
+        <div class="metric metric-negative">
+          <span>Descuentos</span>
+          <strong>
+            - {{ dailyReportData.summary.discounts | currency:'COP':'$':'1.0-0' }}
+          </strong>
+        </div>
+        <div class="metric metric-negative">
+          <span>Devoluciones</span>
+          <strong>
+            - {{ dailyReportData.summary.refunds | currency:'COP':'$':'1.0-0' }}
+          </strong>
+        </div>
+        <div class="metric">
+          <span>Comandas pagadas</span>
+          <strong>{{ dailyReportData.summary.totalOrders }}</strong>
+        </div>
+        <div class="metric">
+          <span>Comandas canceladas</span>
+          <strong>{{ dailyReportData.cancelledOrders.length }}</strong>
+        </div>
+      </div>
+
+      <section class="report-section" *ngIf="dailyReportData.cuts.length">
+        <div class="section-header">
+          <h2>
+            <ion-icon name="receipt-outline"></ion-icon>
+            Cortes de Caja
+          </h2>
+          <span>{{ dailyReportData.cuts.length }} cortes</span>
+        </div>
+        <div class="compact-list">
+          <div
+            class="compact-row"
+            *ngFor="let cut of dailyReportData.cuts; let i = index"
+          >
+            <div>
+              <strong>Corte {{ i + 1 }} - {{ cut.cashRegisterName }}</strong>
+              <span>
+                {{ formatBogotaDateTime(cut.openedAt) }} a
+                {{ formatBogotaDateTime(cut.closedAt) }}
+              </span>
+            </div>
+            <div class="row-totals">
+              <strong>
+                {{ cut.totalSales | currency:'COP':'$':'1.0-0' }}
+              </strong>
+              <span>{{ cut.orderCount }} comandas</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="daily-orders-section">
+        <button
+          type="button"
+          class="collapsible-header"
+          (click)="toggleDailyPaid()"
+          [attr.aria-expanded]="dailyPaidExpanded"
+        >
+          <span class="collapsible-title">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            Comandas pagadas
+          </span>
+          <span class="collapsible-actions">
+            <span class="section-count">
+              {{ dailyReportData.paidOrders.length }}
+            </span>
+            <ion-icon
+              [name]="dailyPaidExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"
+            ></ion-icon>
+          </span>
+        </button>
+
+        <div class="daily-orders-list" *ngIf="dailyPaidExpanded">
+          <app-paid-order-row
+            *ngFor="let order of dailyReportData.paidOrders; trackBy: trackByOrder"
+            [order]="order"
+            [canRefund]="false"
+            (receiptRequested)="downloadReceipt($event)"
+          ></app-paid-order-row>
+
+          <p
+            *ngIf="!dailyReportData.paidOrders.length"
+            class="empty-section-message"
+          >
+            No hay comandas pagadas.
+          </p>
+        </div>
+      </section>
+
+      <section class="daily-orders-section cancelled-orders-section">
+        <button
+          type="button"
+          class="collapsible-header"
+          (click)="toggleDailyCancelled()"
+          [attr.aria-expanded]="dailyCancelledExpanded"
+        >
+          <span class="collapsible-title">
+            <ion-icon name="close-circle-outline"></ion-icon>
+            Comandas canceladas
+          </span>
+          <span class="collapsible-actions">
+            <span class="section-count">
+              {{ dailyReportData.cancelledOrders.length }}
+            </span>
+            <ion-icon
+              [name]="dailyCancelledExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"
+            ></ion-icon>
+          </span>
+        </button>
+
+        <div class="daily-orders-list" *ngIf="dailyCancelledExpanded">
+          <app-paid-order-row
+            *ngFor="let order of dailyReportData.cancelledOrders; trackBy: trackByOrder"
+            [order]="order"
+            mode="cancelled"
+            [showReceipt]="false"
+            [canRefund]="false"
+          ></app-paid-order-row>
+
+          <p
+            *ngIf="!dailyReportData.cancelledOrders.length"
+            class="empty-section-message"
+          >
+            No hay comandas canceladas.
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <p
+      *ngIf="!dailyReportData && !isDailyLoading"
+      class="empty-message daily-empty-message"
+    >
+      Selecciona un dia operativo para consultar sus comandas.
+    </p>
+  </section>
 
 </ion-content>
 
@@ -256,5 +460,17 @@
     <ion-datetime id="datetimeEnd" presentation="date" [(ngModel)]="endDate" [min]="startDate" [max]="maxDate"
       (ionChange)="onEndDateChange($event)">
     </ion-datetime>
+  </ng-template>
+</ion-modal>
+
+<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalDaily>
+  <ng-template>
+    <ion-datetime
+      id="datetimeDaily"
+      presentation="date"
+      [(ngModel)]="dailyDate"
+      [max]="maxDate"
+      (ionChange)="onDailyDateChange($event)"
+    ></ion-datetime>
   </ng-template>
 </ion-modal>

@@ -92,6 +92,7 @@
 }
 
 .status-pill,
+.payment-method-pill,
 .action-pill {
   display: inline-flex;
   align-items: center;
@@ -108,6 +109,18 @@
 .status-pill {
   background: #f0f2f5;
   color: #4b5563;
+}
+
+.cancelled-status-pill {
+  background: #fff0f0;
+  color: #b42318;
+}
+
+.payment-method-pill {
+  max-width: 100%;
+  background: #eef4ff;
+  color: #344054;
+  overflow-wrap: anywhere;
 }
 
 .action-pill {

@@ -34,6 +34,11 @@ export interface OrderPaymentRecord {
   processedBy?: number;
   processedAt?: string;
   notes?: string | null;
+  paymentMethod?: {
+    id?: number;
+    name: string;
+    type?: string;
+  };
 }
 
 // 2. Definimos cómo se ve una orden
@@ -95,6 +100,7 @@ export interface Order {
   isReadyToServe?: boolean;
   isServed?: boolean;
   paidAt?: string | null;
+  cancelledAt?: string | null;
   payments?: OrderPaymentRecord[];
   paymentSummary?: PaymentSummary;
   table?: {

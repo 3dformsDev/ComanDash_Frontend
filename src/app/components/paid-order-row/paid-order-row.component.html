@@ -21,8 +21,8 @@
         #{{ visualOrderNumber }}
       </span>
       <span>
-        <small>Pago</small>
-        {{ paidTime }}
+        <small>{{ eventTimeLabel }}</small>
+        {{ eventTime }}
       </span>
       <span class="summary-total">
         <small>Total</small>
@@ -39,12 +39,21 @@
 
   <div class="paid-order-details" *ngIf="expanded">
     <div class="detail-actions">
-      <span class="status-pill">
+      <span class="status-pill" [class.cancelled-status-pill]="mode === 'cancelled'">
         <ion-icon name="cash-outline"></ion-icon>
-        Pagada
+        {{ statusLabel }}
       </span>
 
-      <button class="action-pill receipt-pill" (click)="requestReceipt($event)">
+      <span class="payment-method-pill" *ngIf="paymentMethodsLabel">
+        <ion-icon name="card-outline"></ion-icon>
+        {{ paymentMethodsLabel }}
+      </span>
+
+      <button
+        *ngIf="showReceipt"
+        class="action-pill receipt-pill"
+        (click)="requestReceipt($event)"
+      >
         <ion-icon name="download-outline"></ion-icon>
         Recibo
       </button>

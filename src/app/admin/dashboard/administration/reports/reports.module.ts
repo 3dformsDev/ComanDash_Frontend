@@ -7,13 +7,15 @@ import { IonicModule } from '@ionic/angular';
 import { ReportsPageRoutingModule } from './reports-routing.module';
 
 import { ReportsPage } from './reports.page';
+import { PaidOrderRowComponent } from '../../../../components/paid-order-row/paid-order-row.component';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    ReportsPageRoutingModule
+    ReportsPageRoutingModule,
+    PaidOrderRowComponent
   ],
   declarations: [ReportsPage]
 })

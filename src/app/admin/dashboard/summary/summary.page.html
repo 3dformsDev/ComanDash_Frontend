@@ -147,6 +147,27 @@
     </div>
   </section>
 
+  <section class="paid-orders-section cancelled-orders-section">
+    <div class="section-heading">
+      <h2 class="section-title">Comandas Canceladas</h2>
+      <span>{{ summaryData.cancelledOrders?.length || 0 }}</span>
+    </div>
+
+    <p *ngIf="!summaryData.cancelledOrders?.length" class="empty-paid-orders">
+      No hay comandas canceladas para este dia.
+    </p>
+
+    <div class="paid-orders-list">
+      <app-paid-order-row
+        *ngFor="let order of summaryData.cancelledOrders; trackBy: trackByOrder"
+        [order]="order"
+        mode="cancelled"
+        [showReceipt]="false"
+        [canRefund]="false"
+      ></app-paid-order-row>
+    </div>
+  </section>
+
   <section class="top-products-section">
     <button
       type="button"

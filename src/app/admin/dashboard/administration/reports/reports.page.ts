@@ -1,8 +1,15 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { IonModal } from '@ionic/angular/common';
 import { CashRegisterSessionService } from '@services/cash-register-session.service';
-import { PeakTimesResponse, ReportsService, SalesReportResponse } from '@services/reports.service'; // Asegúrate de importar tu interfaz
+import {
+  DailyOrdersReportResponse,
+  PeakTimesResponse,
+  ReportsService,
+  SalesReportResponse,
+} from '@services/reports.service';
+import { OrderService } from '@services/order.service';
+import { Order } from '@store/orders/orders.state';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -19,13 +26,17 @@ export class ReportsPage implements OnInit {
 
   @ViewChild('modalStart', { static: false }) modalStart!: IonModal;
   @ViewChild('modalEnd', { static: false }) modalEnd!: IonModal;
+  @ViewChild('modalDaily', { static: false }) modalDaily!: IonModal;
 
   // Rango de fechas
   startDate = '';
   endDate = '';
   maxDate = '';
+  dailyDate = '';
 
   isLoading: boolean = false;
+  isDailyLoading = false;
+  activeTab: 'summary' | 'daily' = 'summary';
 
   // 3. USA LA INTERFAZ CORRECTA
   reportData: SalesReportResponse | null = null;
@@ -33,12 +44,16 @@ export class ReportsPage implements OnInit {
   grandTotalSales: number = 0;
   productsExpanded = false;
   paymentReconciliationExpanded = false;
+  dailyReportData: DailyOrdersReportResponse | null = null;
+  dailyPaidExpanded = true;
+  dailyCancelledExpanded = false;
 
   // 4. INSTANCIAS PARA AMBOS GRÁFICOS
   private categoryChartInstance: any = null;
   private dailyChartInstance: any = null;
   private hoursChartInstance: any = null;
   private daysChartInstance: any = null;
+  private readonly orderService = inject(OrderService);
 
   constructor(
     private loadingCtrl: LoadingController,
@@ -138,6 +153,135 @@ export class ReportsPage implements OnInit {
       this.isLoading = false;
       loading.dismiss();
     }
+  }
+
+  async generateDailyReport(): Promise<void> {
+    this.isDailyLoading = true;
+    this.dailyReportData = null;
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Consultando comandas...',
+    });
+    await loading.present();
+
+    try {
+      this.dailyReportData = await firstValueFrom(
+        this._reportsService.generateDailyOrdersReport(this.dailyDate),
+      );
+      this.dailyPaidExpanded = true;
+      this.dailyCancelledExpanded = false;
+
+      if (
+        !this.dailyReportData.paidOrders.length &&
+        !this.dailyReportData.cancelledOrders.length
+      ) {
+        this.presentToast(
+          'No se encontraron comandas en este dia operativo.',
+          'warning',
+        );
+      }
+    } catch (error) {
+      console.error('Error al generar el reporte diario:', error);
+      this.presentToast('No se pudo generar el reporte diario.', 'danger');
+    } finally {
+      this.isDailyLoading = false;
+      await loading.dismiss();
+    }
+  }
+
+  selectTab(tab: 'summary' | 'daily'): void {
+    this.activeTab = tab;
+  }
+
+  toggleDailyPaid(): void {
+    this.dailyPaidExpanded = !this.dailyPaidExpanded;
+  }
+
+  toggleDailyCancelled(): void {
+    this.dailyCancelledExpanded = !this.dailyCancelledExpanded;
+  }
+
+  downloadReceipt(orderId: number): void {
+    this.orderService.downloadReceipt(orderId).subscribe({
+      error: () =>
+        this.presentToast('No se pudo descargar el recibo.', 'danger'),
+    });
+  }
+
+  trackByOrder(_: number, order: Order): number | undefined {
+    return order.id;
+  }
+
+  exportDailyOrdersExcel(): void {
+    if (!this.dailyReportData) {
+      this.presentToast('Consulta primero un dia operativo.', 'warning');
+      return;
+    }
+
+    const orders = [
+      ...this.dailyReportData.paidOrders,
+      ...this.dailyReportData.cancelledOrders,
+    ];
+
+    if (!orders.length) {
+      this.presentToast('No hay comandas para exportar.', 'warning');
+      return;
+    }
+
+    const rows = orders.map((order) => {
+      const isCancelled = order.status === 'cancelled';
+      const dateValue = isCancelled ? order.cancelledAt : order.paidAt;
+
+      return {
+        Estado: isCancelled ? 'Cancelada' : 'Pagada',
+        Comanda: order.orderNumber || order.id || '',
+        Mesero: order.waiter?.fullName || 'Sin asignar',
+        Tipo: order.table ? 'Mesa' : 'Para llevar',
+        Mesa: order.table
+          ? order.table.tableNumber || order.table.name || order.tableId || ''
+          : '',
+        Orden: this.getVisualOrderNumber(order),
+        'Fecha y hora': this.formatBogotaDateTime(dateValue),
+        Total: Number(order.totalAmount || 0),
+        'Metodo de pago': this.getPaymentMethodsLabel(order),
+        Recargos: this.getAdjustmentTotal(order, 'charge'),
+        Descuentos: this.getAdjustmentTotal(order, 'discount'),
+        Devoluciones: this.getRefundTotal(order),
+        Items: (order.orderItems || [])
+          .map(
+            (item) =>
+              `${item.quantity}x ${item.product?.name || item.name || 'Producto'}`,
+          )
+          .join(' + '),
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet['!cols'] = [
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 24 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 14 },
+      { wch: 30 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 50 },
+    ];
+    worksheet['!autofilter'] = {
+      ref: worksheet['!ref'] || 'A1:M1',
+    };
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Comandas');
+    XLSX.writeFile(
+      workbook,
+      `comandas_${this.dailyReportData.businessDate}.xlsx`,
+    );
   }
 
   /**
@@ -371,6 +515,11 @@ export class ReportsPage implements OnInit {
     this.modalEnd.dismiss();
   }
 
+  onDailyDateChange(event: any): void {
+    this.dailyDate = event.detail.value;
+    this.modalDaily.dismiss();
+  }
+
   toggleProducts(): void {
     this.productsExpanded = !this.productsExpanded;
   }
@@ -527,6 +676,66 @@ export class ReportsPage implements OnInit {
     this.endDate = referenceDate;
     this.maxDate = referenceDate;
     this.startDate = `${referenceDate.slice(0, 8)}01`;
+    this.dailyDate = referenceDate;
+  }
+
+  private getVisualOrderNumber(order: Order): string {
+    if (order.companyId && order.companyOrderNumber) {
+      return `${order.companyId}${String(order.companyOrderNumber).padStart(7, '0')}`;
+    }
+
+    return String(order.id || order.orderNumber || '');
+  }
+
+  private getPaymentMethodsLabel(order: Order): string {
+    const grouped = (order.payments || [])
+      .filter((payment) => Number(payment.amount || 0) > 0)
+      .reduce<Map<string, number>>((result, payment) => {
+        const name =
+          payment.paymentMethod?.name?.trim() || 'Metodo no especificado';
+        result.set(
+          name,
+          (result.get(name) || 0) + Number(payment.amount || 0),
+        );
+        return result;
+      }, new Map<string, number>());
+
+    return Array.from(grouped.entries())
+      .map(
+        ([name, amount]) =>
+          `${name}: ${new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            maximumFractionDigits: 0,
+          }).format(amount)}`,
+      )
+      .join(' + ');
+  }
+
+  private getAdjustmentTotal(
+    order: Order,
+    type: 'charge' | 'discount',
+  ): number {
+    const adjustments =
+      ((order.paymentSummary as any)?.adjustments as Order['adjustments']) ||
+      order.adjustments ||
+      [];
+
+    return adjustments
+      .filter((adjustment) => adjustment.type === type)
+      .reduce(
+        (total, adjustment) => total + Number(adjustment.amount || 0),
+        0,
+      );
+  }
+
+  private getRefundTotal(order: Order): number {
+    return (order.payments || [])
+      .filter((payment) => Number(payment.amount || 0) < 0)
+      .reduce(
+        (total, payment) => total + Math.abs(Number(payment.amount || 0)),
+        0,
+      );
   }
 
   private formatReportDate(value: string): string {
