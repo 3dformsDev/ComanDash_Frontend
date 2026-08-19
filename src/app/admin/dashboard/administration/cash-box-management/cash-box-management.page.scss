@@ -1,3 +1,62 @@
+.previous-cash-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding: 14px;
+    border: 1px solid #fed7aa;
+    border-left: 4px solid #ea580c;
+    border-radius: 8px;
+    background: #fff7ed;
+
+    &.recovery-active {
+        border-color: #bae6fd;
+        border-left-color: #0284c7;
+        background: #f0f9ff;
+    }
+}
+
+.previous-cash-copy {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    > ion-icon {
+        flex: 0 0 auto;
+        margin-top: 2px;
+        color: #c2410c;
+        font-size: 1.35rem;
+    }
+
+    h2 {
+        margin: 0 0 3px;
+        color: #1f2937;
+        font-size: 0.95rem;
+    }
+
+    p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+
+    .recovery-reason {
+        margin-top: 6px;
+        color: #334155;
+        overflow-wrap: anywhere;
+
+        strong {
+            color: #0c4a6e;
+        }
+    }
+}
+
+.recovery-active .previous-cash-copy > ion-icon {
+    color: #0369a1;
+}
+
 .business-day-settings {
     margin-bottom: 18px;
     padding: 14px;
@@ -162,4 +221,62 @@ h2 {
 
 .badge-status {
     padding: .5rem;
+}
+
+.cash-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.session-action {
+    min-height: 40px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+    .previous-cash-card {
+        align-items: stretch;
+        flex-direction: column;
+
+        ion-button {
+            width: 100%;
+            margin: 0;
+        }
+    }
+
+    ion-item {
+        --inner-padding-end: 10px;
+        align-items: flex-start;
+    }
+
+    .cash-actions {
+        max-width: 164px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .session-action {
+        width: 100%;
+        margin-inline: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    ion-item {
+        --padding-start: 12px;
+    }
+
+    .badge-status {
+        display: none;
+    }
+
+    .cash-actions {
+        max-width: 142px;
+    }
+
+    .session-action {
+        font-size: 0.76rem;
+    }
 }

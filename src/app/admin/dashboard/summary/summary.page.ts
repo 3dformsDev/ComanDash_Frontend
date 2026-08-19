@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AppState } from '@capacitor/app';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import {
   CashRegisterSessionService,
@@ -55,6 +56,7 @@ export class SummaryPage implements OnInit, OnDestroy {
     private socketService: SocketService,
     private toastService: ToastService,
     private store: Store<AppState>,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -119,6 +121,30 @@ export class SummaryPage implements OnInit, OnDestroy {
     this.topProductsExpanded = !this.topProductsExpanded;
   }
 
+  goToCashManagement(): void {
+    this.router.navigate(['/dashboard/administration/cash-box-management']);
+  }
+
+  goToPreviousBusinessDayReport(): void {
+    const businessDate = this.summaryData.cashRegisterState?.sessionBusinessDate;
+    if (!businessDate) return;
+
+    this.router.navigate(['/dashboard/administration/reports'], {
+      queryParams: { businessDate, tab: 'daily' },
+    });
+  }
+
+  formatBusinessDate(value: string | null): string {
+    if (!value) return '';
+
+    return new Date(`${value}T12:00:00-05:00`).toLocaleDateString('es-CO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'America/Bogota',
+    });
+  }
+
   private setFormattedDate(businessDate?: string): void {
     const date = businessDate
       ? new Date(`${businessDate}T12:00:00-05:00`)
@@ -170,6 +196,7 @@ export class SummaryPage implements OnInit, OnDestroy {
       'order_payment_completed',
       'order_is_cancelled',
       'order_updated',
+      'cash_register_recovery_changed',
     ].forEach((eventName) => {
       this.realtimeEvents.add(
         this.socketService

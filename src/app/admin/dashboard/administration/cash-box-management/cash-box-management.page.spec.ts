@@ -17,6 +17,7 @@ describe('CashBoxManagementPage', () => {
       jasmine.createSpyObj('CashRegisterService', ['getCashRegisters']),
       cashRegisterSessionService,
       jasmine.createSpyObj('Store', ['select']),
+      jasmine.createSpyObj('Router', ['navigate']),
     );
   });
 

@@ -1,36 +1,63 @@
-import { Injectable, NgZone } from '@angular/core';
+import { inject, Injectable, NgZone } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { fromEvent, merge, Subscription, interval } from 'rxjs';
+import { firstValueFrom, fromEvent, interval, merge, Subscription } from 'rxjs';
 import { throttleTime } from 'rxjs/operators';
 import * as AuthActions from '@store/auth/actions/auth.actions';
+import { AuthService } from '@services/auth.service';
+import { SocketService } from '@services/socket.service';
+
+interface SessionMonitoringOptions {
+  resetActivity?: boolean;
+  refreshToken?: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class SessionActivityService {
-  // Configuración de tiempos en milisegundos
-  private readonly SESSION_TIMEOUT_MS = 4 * 60 * 60 * 1000;
+  private readonly ngZone = inject(NgZone);
+  private readonly store = inject(Store);
+  private readonly alertController = inject(AlertController);
+  private readonly authService = inject(AuthService);
+  private readonly socketService = inject(SocketService);
 
-  private readonly WARNING_TIMEOUT_MS = 10 * 60 * 1000;
+  private readonly SESSION_TIMEOUT_MS = 6 * 60 * 60 * 1000;
+  private readonly WARNING_LEAD_MS = 10 * 60 * 1000;
+  private readonly WARNING_TIMEOUT_MS =
+    this.SESSION_TIMEOUT_MS - this.WARNING_LEAD_MS;
+  private readonly TOKEN_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
+  private readonly TOKEN_REFRESH_RETRY_MS = 5 * 60 * 1000;
+  private readonly CHECK_INTERVAL_MS = 60 * 1000;
+  private readonly LAST_ACTIVITY_KEY = 'last_activity';
+  private readonly LAST_TOKEN_REFRESH_KEY = 'last_token_refresh';
 
   private activitySubscription?: Subscription;
   private checkSubscription?: Subscription;
+  private visibilitySubscription?: Subscription;
 
   private warningShown = false;
   private warningAlertPresented = false;
   private warningAlert: HTMLIonAlertElement | null = null;
+  private tokenRefreshInProgress = false;
+  private lastTokenRefreshAttemptAt = 0;
+  private logoutInProgress = false;
 
-  constructor(
-    private ngZone: NgZone,
-    private store: Store,
-    private alertController: AlertController,
-  ) {}
+  startMonitoring(options: SessionMonitoringOptions = {}): boolean {
+    this.unsubscribeMonitoring();
+    this.logoutInProgress = false;
 
-  startMonitoring(): void {
-    this.validateExistingSession();
+    if (options.resetActivity) {
+      this.clearWarningState();
+      this.updateLastActivity();
+      this.markTokenRefreshed();
+    } else if (!this.validateExistingSession()) {
+      return false;
+    }
 
-    this.updateLastActivity();
+    if (!this.getLastActivity()) {
+      this.updateLastActivity();
+    }
 
     this.ngZone.runOutsideAngular(() => {
       const activityEvents$ = merge(
@@ -42,103 +69,143 @@ export class SessionActivityService {
       ).pipe(throttleTime(30000));
 
       this.activitySubscription = activityEvents$.subscribe(() => {
-        this.updateLastActivity();
+        this.registerActivity();
       });
 
-      this.checkSubscription = interval(60000).subscribe(() => {
+      this.visibilitySubscription = fromEvent(
+        document,
+        'visibilitychange',
+      ).subscribe(() => {
+        if (document.visibilityState === 'visible') {
+          this.handleApplicationResume();
+        }
+      });
+
+      this.checkSubscription = interval(this.CHECK_INTERVAL_MS).subscribe(() => {
         this.checkSessionTimeout();
       });
     });
+
+    this.checkSessionTimeout();
+
+    if (options.refreshToken) {
+      void this.refreshTokenIfNeeded(true);
+    }
+
+    return true;
   }
 
   stopMonitoring(): void {
-    this.activitySubscription?.unsubscribe();
-    this.checkSubscription?.unsubscribe();
-
+    this.unsubscribeMonitoring();
     this.resetSessionState();
   }
 
   resetSessionState(): void {
-    this.warningShown = false;
-    this.warningAlertPresented = false;
+    this.logoutInProgress = false;
+    this.tokenRefreshInProgress = false;
+    this.lastTokenRefreshAttemptAt = 0;
+    this.clearWarningState();
+    localStorage.removeItem(this.LAST_ACTIVITY_KEY);
+    localStorage.removeItem(this.LAST_TOKEN_REFRESH_KEY);
+  }
 
-    if (this.warningAlert) {
-      this.warningAlert.dismiss();
-      this.warningAlert = null;
+  private unsubscribeMonitoring(): void {
+    this.activitySubscription?.unsubscribe();
+    this.checkSubscription?.unsubscribe();
+    this.visibilitySubscription?.unsubscribe();
+    this.activitySubscription = undefined;
+    this.checkSubscription = undefined;
+    this.visibilitySubscription = undefined;
+  }
+
+  private registerActivity(): void {
+    if (this.warningAlertPresented || this.logoutInProgress) {
+      return;
     }
 
-    localStorage.removeItem('last_activity');
+    if (this.hasSessionExpired()) {
+      this.expireSession('Sesión cerrada por inactividad.');
+      return;
+    }
+
+    this.updateLastActivity();
+    void this.refreshTokenIfNeeded();
+  }
+
+  private handleApplicationResume(): void {
+    if (this.hasSessionExpired()) {
+      this.expireSession('Sesión expirada al volver a la aplicación.');
+      return;
+    }
+
+    this.checkSessionTimeout();
+    void this.refreshTokenIfNeeded();
   }
 
   private updateLastActivity(): void {
-    localStorage.setItem('last_activity', Date.now().toString());
+    localStorage.setItem(this.LAST_ACTIVITY_KEY, Date.now().toString());
+  }
 
-    if (this.warningShown) {
-      this.warningShown = false;
-    }
+  private getLastActivity(): number | null {
+    const storedValue = localStorage.getItem(this.LAST_ACTIVITY_KEY);
+    const timestamp = Number(storedValue);
+
+    return storedValue && Number.isFinite(timestamp) && timestamp > 0
+      ? timestamp
+      : null;
+  }
+
+  private getInactiveTime(): number | null {
+    const lastActivity = this.getLastActivity();
+    return lastActivity ? Math.max(0, Date.now() - lastActivity) : null;
+  }
+
+  private hasSessionExpired(): boolean {
+    const inactiveTime = this.getInactiveTime();
+    return inactiveTime !== null && inactiveTime >= this.SESSION_TIMEOUT_MS;
   }
 
   private checkSessionTimeout(): void {
-    const lastActivity = localStorage.getItem('last_activity');
+    const inactiveTime = this.getInactiveTime();
 
-    if (!lastActivity) {
+    if (inactiveTime === null || this.logoutInProgress) {
       return;
     }
 
-    const inactiveTime = Date.now() - Number(lastActivity);
+    if (inactiveTime >= this.SESSION_TIMEOUT_MS) {
+      this.expireSession('Sesión cerrada por inactividad.');
+      return;
+    }
 
-    // Warning previo
-    if (inactiveTime >= this.WARNING_TIMEOUT_MS && !this.warningShown) {
+    if (
+      inactiveTime >= this.WARNING_TIMEOUT_MS &&
+      !this.warningShown &&
+      !this.warningAlertPresented
+    ) {
       this.warningShown = true;
 
       this.ngZone.run(() => {
-        this.presentSessionWarning();
-      });
-    }
-
-    // Logout definitivo
-    if (inactiveTime >= this.SESSION_TIMEOUT_MS) {
-      console.warn('Sesión cerrada por inactividad.');
-
-      this.ngZone.run(async () => {
-        // Cerrar modal si sigue abierto
-        if (this.warningAlert) {
-          await this.warningAlert.dismiss();
-          this.warningAlert = null;
-        }
-
-        this.warningShown = false;
-        this.warningAlertPresented = false;
-
-        this.store.dispatch(AuthActions.logout());
+        void this.presentSessionWarning();
       });
     }
   }
 
-  private validateExistingSession(): void {
-    const lastActivity = localStorage.getItem('last_activity');
-
-    if (!lastActivity) {
-      return;
+  private validateExistingSession(): boolean {
+    if (!this.hasSessionExpired()) {
+      return true;
     }
 
-    const inactiveTime = Date.now() - Number(lastActivity);
-
-    if (inactiveTime >= this.SESSION_TIMEOUT_MS) {
-      console.warn('Sesión expirada al iniciar aplicación.');
-
-      this.ngZone.run(() => {
-        this.store.dispatch(AuthActions.logout());
-      });
-
-      return;
-    }
-
-    console.log('Sesión válida. Restaurando monitoreo.');
+    this.expireSession('Sesión expirada al iniciar la aplicación.');
+    return false;
   }
 
   private async presentSessionWarning(): Promise<void> {
-    if (this.warningAlertPresented) {
+    if (this.warningAlertPresented || this.logoutInProgress) {
+      return;
+    }
+
+    if (this.hasSessionExpired()) {
+      this.expireSession('Sesión cerrada por inactividad.');
       return;
     }
 
@@ -146,7 +213,8 @@ export class SessionActivityService {
 
     this.warningAlert = await this.alertController.create({
       header: 'Sesión próxima a expirar',
-      message: 'Tu sesión se cerrará pronto por inactividad.',
+      message:
+        'Tu sesión se cerrará en 10 minutos por inactividad. ¿Deseas continuar?',
       backdropDismiss: false,
       cssClass: ['confirmation-action-alert', 'session-timeout-alert'],
       buttons: [
@@ -155,11 +223,10 @@ export class SessionActivityService {
           role: 'destructive',
           cssClass: 'alert-secondary-action',
           handler: () => {
+            this.logoutInProgress = true;
             this.warningAlertPresented = false;
             this.warningAlert = null;
-
             this.store.dispatch(AuthActions.logout());
-
             return true;
           },
         },
@@ -169,13 +236,10 @@ export class SessionActivityService {
           cssClass: 'alert-primary-action',
           handler: () => {
             this.updateLastActivity();
-
             this.warningShown = false;
             this.warningAlertPresented = false;
             this.warningAlert = null;
-
-            console.log('✅ Sesión extendida por el usuario.');
-
+            void this.refreshTokenIfNeeded(true);
             return true;
           },
         },
@@ -188,5 +252,87 @@ export class SessionActivityService {
       this.warningAlertPresented = false;
       this.warningAlert = null;
     });
+  }
+
+  private expireSession(message: string): void {
+    if (this.logoutInProgress) {
+      return;
+    }
+
+    this.logoutInProgress = true;
+    console.warn(message);
+
+    this.ngZone.run(() => {
+      void this.dismissWarning().finally(() => {
+        this.store.dispatch(AuthActions.logout());
+      });
+    });
+  }
+
+  private clearWarningState(): void {
+    this.warningShown = false;
+    this.warningAlertPresented = false;
+    void this.dismissWarning();
+  }
+
+  private async dismissWarning(): Promise<void> {
+    const alert = this.warningAlert;
+    this.warningAlert = null;
+
+    if (alert) {
+      try {
+        await alert.dismiss();
+      } catch (error) {
+        console.warn('No fue posible cerrar la alerta de sesión:', error);
+      }
+    }
+  }
+
+  private markTokenRefreshed(): void {
+    localStorage.setItem(this.LAST_TOKEN_REFRESH_KEY, Date.now().toString());
+  }
+
+  private async refreshTokenIfNeeded(force = false): Promise<void> {
+    if (this.tokenRefreshInProgress || this.logoutInProgress) {
+      return;
+    }
+
+    const now = Date.now();
+    const lastRefresh = Number(
+      localStorage.getItem(this.LAST_TOKEN_REFRESH_KEY),
+    );
+    const refreshIsDue =
+      !Number.isFinite(lastRefresh) ||
+      lastRefresh <= 0 ||
+      now - lastRefresh >= this.TOKEN_REFRESH_INTERVAL_MS;
+
+    if (!force && !refreshIsDue) {
+      return;
+    }
+
+    if (
+      !force &&
+      now - this.lastTokenRefreshAttemptAt < this.TOKEN_REFRESH_RETRY_MS
+    ) {
+      return;
+    }
+
+    this.tokenRefreshInProgress = true;
+    this.lastTokenRefreshAttemptAt = now;
+
+    try {
+      const newToken = await firstValueFrom(this.authService.refreshToken());
+      this.markTokenRefreshed();
+      this.socketService.renewToken(newToken);
+    } catch (error) {
+      const status = (error as { status?: number })?.status;
+      if (status === 401) {
+        this.expireSession('La sesión ya no es válida.');
+      } else {
+        console.warn('No fue posible renovar la sesión en este momento.', error);
+      }
+    } finally {
+      this.tokenRefreshInProgress = false;
+    }
   }
 }

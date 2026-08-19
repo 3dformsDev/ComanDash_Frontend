@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { IonModal } from '@ionic/angular/common';
 import { CashRegisterSessionService } from '@services/cash-register-session.service';
@@ -60,20 +61,39 @@ export class ReportsPage implements OnInit {
     private toastCtrl: ToastController,
     private _reportsService: ReportsService,
     private cashRegisterSessionService: CashRegisterSessionService,
+    private route: ActivatedRoute,
   ) {
     const today = this.getBogotaDate();
     this.setDefaultDateRange(today);
   }
 
   ngOnInit(): void {
+    const requestedBusinessDate = this.route.snapshot.queryParamMap.get('businessDate');
+    const requestedTab = this.route.snapshot.queryParamMap.get('tab');
+
     this.cashRegisterSessionService.getBusinessDaySettings().subscribe({
       next: ({ cutoffHour }) => {
         this.setDefaultDateRange(this.getBogotaBusinessDate(cutoffHour));
+        this.applyRequestedDailyReport(requestedBusinessDate, requestedTab);
       },
       error: (error) => {
         console.error('No se pudo cargar la configuracion del dia operativo:', error);
+        this.applyRequestedDailyReport(requestedBusinessDate, requestedTab);
       },
     });
+  }
+
+  private applyRequestedDailyReport(
+    businessDate: string | null,
+    tab: string | null,
+  ): void {
+    if (tab !== 'daily' || !businessDate || !/^\d{4}-\d{2}-\d{2}$/.test(businessDate)) {
+      return;
+    }
+
+    this.activeTab = 'daily';
+    this.dailyDate = businessDate;
+    void this.generateDailyReport();
   }
 
   /**

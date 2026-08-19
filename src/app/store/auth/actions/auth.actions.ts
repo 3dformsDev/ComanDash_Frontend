@@ -10,7 +10,7 @@ export const login = createAction(
 // Acción para cuando el inicio de sesión es exitoso
 export const loginSuccess = createAction(
     '[Auth API] Login Success',
-    props<{ user: User, token: string }>() // La acción lleva los datos del usuario
+    props<{ user: User, token: string, restored?: boolean }>() // La acción lleva los datos del usuario
 );
 
 // Acción para cuando el inicio de sesión falla

@@ -93,7 +93,7 @@ export class NotificationService {
 
       // Listener para cuando se obtiene el token
       PushNotifications.addListener('registration', (token: Token) => {
-        console.log('✅ Token NATIVO obtenido:', token.value);
+        console.log('✅ Token NATIVO obtenido correctamente.');
         this.sendTokenToBackend(token.value, locationId);
       });
 
@@ -158,7 +158,7 @@ export class NotificationService {
         });
 
         if (fcmToken) {
-          console.log('✅ ¡Token WEB de notificación obtenido exitosamente!:', fcmToken);
+          console.log('✅ Token WEB de notificación obtenido correctamente.');
           this.sendTokenToBackend(fcmToken, locationId);
         } else {
           console.log('❌ No se pudo obtener el token WEB.');

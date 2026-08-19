@@ -21,7 +21,7 @@ export class SocketService {
 
   // CAMBIO 2: Nuevo método para establecer la conexión.
   connect(authToken: string) {
-    console.log("Se conectó y ese es el token ", authToken);
+    console.log('Iniciando conexión segura al socket.');
 
     // Guardar token actual
     this.currentToken = authToken;
@@ -85,15 +85,18 @@ export class SocketService {
     console.log('🔄 Renovando token...');
     this.currentToken = newToken;
 
-    if (this.socket?.connected) {
-      // Actualizar auth del socket
+    if (this.socket) {
+      // La próxima reconexión usará el token actualizado sin perder listeners.
       this.socket.auth = { token: newToken };
-      // Emitir evento de renovación
-      this.socket.emit('renew_token', { token: newToken });
-    } else {
-      // Si no está conectado, reconectar con nuevo token
-      this.connect(newToken);
+
+      if (!this.socket.connected) {
+        this.socket.connect();
+      }
+
+      return;
     }
+
+    this.connect(newToken);
   }
 
   // MÉTODO PARA EMITIR EVENTOS

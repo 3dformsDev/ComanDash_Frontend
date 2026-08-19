@@ -18,6 +18,7 @@ import { authReducer } from './store/auth/reducer/auth.reducer';
 
 import { environment } from '../environments/environment';
 import { AuthInterceptor } from './auth/interceptors/auth.interceptor';
+import { CashSessionAlertInterceptor } from './auth/interceptors/cash-session-alert.interceptor';
 
 // Importaciones de localización
 import { registerLocaleData } from '@angular/common';
@@ -32,12 +33,13 @@ import { OrdersEffects } from '@store/orders/effects/orders.effects';
 import { ordersReducer } from '@store/orders/reducer/orders.reducer';
 
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { CashSessionAlertComponent } from './components/cash-session-alert/cash-session-alert.component';
 
 // Registrar datos de localización
 registerLocaleData(localeEsCo, 'es-CO');
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, CashSessionAlertComponent],
   imports: [
     BrowserModule,
     IonicModule.forRoot(),
@@ -72,6 +74,11 @@ registerLocaleData(localeEsCo, 'es-CO');
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CashSessionAlertInterceptor,
       multi: true
     },
     { provide: LOCALE_ID, useValue: 'es-CO' },

@@ -50,3 +50,14 @@ export const selectAuthWithLocation = createSelector(
         locationId
     })
 );
+
+export const selectCashSessionAlertContext = createSelector(
+    selectIsAuthenticated,
+    selectLocationId,
+    selectUser,
+    (isAuthenticated, locationId, user) => ({
+        isAuthenticated,
+        locationId,
+        user,
+    }),
+);

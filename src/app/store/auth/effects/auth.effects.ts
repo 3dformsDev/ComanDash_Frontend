@@ -32,7 +32,7 @@ export class AuthEffects {
                                     return this.authService.validateToken(token).pipe(
                                         map(() => {
                                             // Token válido, establecer estado de autenticado
-                                            return AuthActions.loginSuccess({ user, token });
+                                            return AuthActions.loginSuccess({ user, token, restored: true });
                                         }),
                                         catchError(() => {
                                             // Token inválido, limpiar storage y redirigir
@@ -63,7 +63,6 @@ export class AuthEffects {
                     business_code: action.business_code
                 }).pipe(
                     map((response) => {
-                        console.log(JSON.stringify(response));
                         return AuthActions.loginSuccess({
                             user: response.data.user,
                             token: response.data.token
@@ -89,15 +88,21 @@ export class AuthEffects {
     loginSuccess$ = createEffect(() =>
         this.actions$.pipe(
             ofType(AuthActions.loginSuccess),
-            exhaustMap(({ user, token }) =>
+            exhaustMap(({ user, token, restored }) =>
                 this.authService.saveAuthData(token, user).pipe(
                     tap(() => {
+                        const monitoringStarted = this.sessionActivityService.startMonitoring({
+                            resetActivity: !restored,
+                            refreshToken: Boolean(restored),
+                        });
+
+                        if (!monitoringStarted) {
+                            return;
+                        }
 
                         this.socketService.connect(token);
 
                         this.notificationService.init();
-
-                        this.sessionActivityService.startMonitoring();
 
                         this.toastService.presentToast('¡Bienvenido!', 'success');
 

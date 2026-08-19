@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { AppState } from '@capacitor/app';
+import { Router } from '@angular/router';
 import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { CashRegisterSessionService } from '@services/cash-register-session.service';
+import {
+  CashRegisterOperatingStateI,
+  CashRegisterSessionService,
+} from '@services/cash-register-session.service';
 import { CashRegisterI, CashRegisterService, CreateCashRegisterDto, UpdateCashRegisterDto } from '@services/cash-register.service';
 import { selectLocationId } from '@store/auth/selectors/auth.selectors';
 import { firstValueFrom } from 'rxjs';
@@ -24,6 +28,7 @@ export class CashBoxManagementPage implements OnInit {
   savedBusinessDayCutoffHour = 4;
   isSavingBusinessDaySettings = false;
   businessDaySettingsAvailable = false;
+  operatingState: CashRegisterOperatingStateI | null = null;
   readonly businessDayHourOptions = Array.from({ length: 24 }, (_, hour) => ({
     hour,
     label: this.formatHourLabel(hour),
@@ -39,7 +44,8 @@ export class CashBoxManagementPage implements OnInit {
     private loadingCtrl: LoadingController,
     private _cashRegisterService: CashRegisterService,
     private _cashRegisterSessionService: CashRegisterSessionService,
-    private store: Store<AppState>
+    private store: Store<AppState>,
+    private router: Router,
   ) { }
 
   async ngOnInit() {
@@ -54,6 +60,15 @@ export class CashBoxManagementPage implements OnInit {
       this.isSessionOpenInLocation = this.allCashRegisters.some(
         (box) => box.cashRegisterSession.isOpen === true
       );
+
+      try {
+        this.operatingState = await firstValueFrom(
+          this._cashRegisterSessionService.getOperatingState(),
+        );
+      } catch (error) {
+        this.operatingState = null;
+        console.error('Error al consultar el estado operativo de caja:', error);
+      }
 
       try {
         const settings = await firstValueFrom(
@@ -150,6 +165,28 @@ export class CashBoxManagementPage implements OnInit {
     const period = hour < 12 ? 'a. m.' : 'p. m.';
 
     return `${displayHour}:00 ${period}`;
+  }
+
+  formatBusinessDate(value: string | null): string {
+    if (!value) return '';
+
+    return new Date(`${value}T12:00:00-05:00`).toLocaleDateString('es-CO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'America/Bogota',
+    });
+  }
+
+  viewPreviousBusinessDayReport(): void {
+    if (!this.operatingState?.sessionBusinessDate) return;
+
+    this.router.navigate(['/dashboard/administration/reports'], {
+      queryParams: {
+        businessDate: this.operatingState.sessionBusinessDate,
+        tab: 'daily',
+      },
+    });
   }
 
   // Cambia el estado de una caja (abierta/cerrada)

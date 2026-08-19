@@ -14,6 +14,11 @@ describe('ReportsPage', () => {
       jasmine.createSpyObj('CashRegisterSessionService', [
         'getBusinessDaySettings',
       ]),
+      {
+        snapshot: {
+          queryParamMap: { get: () => null },
+        },
+      } as any,
     );
   });
 

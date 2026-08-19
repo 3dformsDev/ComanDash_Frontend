@@ -32,6 +32,26 @@ export interface CashRegisterSessionI {
   createdAt: string;           // ISO string
   updatedAt: string;           // ISO string
   closedAt?: string | null;    // ISO string
+  openedAt?: string;
+  businessDate?: string | null;
+  businessDayCutoffHour?: number | null;
+  recoveryAuthorizedUntil?: string | null;
+  recoveryAuthorizedBy?: number | null;
+  recoveryReason?: string | null;
+}
+
+export interface CashRegisterOperatingStateI {
+  status: 'no_open_session' | 'open_current' | 'open_previous';
+  sessionId: number | null;
+  currentBusinessDate: string;
+  sessionBusinessDate: string | null;
+  businessDayCutoffHour: number;
+  openedAt: string | null;
+  isPreviousBusinessDay: boolean;
+  recoveryIsActive: boolean;
+  recoveryAuthorizedUntil: string | null;
+  recoveryAuthorizedBy: number | null;
+  recoveryReason: string | null;
 }
 
 export interface DailySummaryI {
@@ -56,6 +76,7 @@ export interface DailySummaryI {
   cuts?: CashRegisterCutReport[],
   paidOrders?: Order[],
   cancelledOrders?: Order[],
+  cashRegisterState?: CashRegisterOperatingStateI,
 }
 
 export interface BusinessDaySettingsI {
@@ -183,6 +204,31 @@ export class CashRegisterSessionService {
       .pipe(
         map(response => response.data)
       );
+  }
+
+  getOperatingState(): Observable<CashRegisterOperatingStateI> {
+    return this._http.get<ApiResponse<CashRegisterOperatingStateI>>(
+      `${this.sessionsEndpoint}/operating-state`,
+    )
+      .pipe(map(response => response.data));
+  }
+
+  authorizeRecovery(
+    sessionId: number,
+    reason: string,
+  ): Observable<CashRegisterOperatingStateI> {
+    return this._http.post<ApiResponse<CashRegisterOperatingStateI>>(
+      `${this.sessionsEndpoint}/${sessionId}/recovery`,
+      { reason },
+    )
+      .pipe(map(response => response.data));
+  }
+
+  endRecovery(sessionId: number): Observable<CashRegisterOperatingStateI> {
+    return this._http.delete<ApiResponse<CashRegisterOperatingStateI>>(
+      `${this.sessionsEndpoint}/${sessionId}/recovery`,
+    )
+      .pipe(map(response => response.data));
   }
 
   /**

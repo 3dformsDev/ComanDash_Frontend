@@ -11,6 +11,41 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <section
+    *ngIf="operatingState?.status === 'open_previous'"
+    class="previous-cash-card"
+    [class.recovery-active]="operatingState?.recoveryIsActive"
+  >
+    <div class="previous-cash-copy">
+      <ion-icon [name]="operatingState?.recoveryIsActive ? 'time-outline' : 'warning-outline'"></ion-icon>
+      <div>
+        <h2>
+          Caja del día operativo
+          {{ formatBusinessDate(operatingState?.sessionBusinessDate || null) }}
+        </h2>
+        <p *ngIf="!operatingState?.recoveryIsActive">
+          Las transacciones nuevas están bloqueadas. Puedes cerrar esta caja o solicitar una
+          recuperación temporal desde el aviso superior.
+        </p>
+        <p *ngIf="operatingState?.recoveryIsActive">
+          Recuperación temporal activa. Las transacciones autorizadas pertenecerán a este día
+          operativo hasta finalizar o vencer el permiso.
+        </p>
+        <p
+          *ngIf="operatingState?.recoveryIsActive && operatingState?.recoveryReason"
+          class="recovery-reason"
+        >
+          <strong>Motivo registrado:</strong>
+          {{ operatingState?.recoveryReason }}
+        </p>
+      </div>
+    </div>
+    <ion-button fill="outline" size="small" (click)="viewPreviousBusinessDayReport()">
+      <ion-icon name="document-text-outline" slot="start"></ion-icon>
+      Ver reporte del día
+    </ion-button>
+  </section>
+
   <section class="business-day-settings">
     <div class="settings-heading">
       <div class="settings-icon">
@@ -78,14 +113,16 @@
         {{ (box.cashRegisterSession.isOpen) ? 'Abierta' : 'Cerrada' }}
       </ion-badge>
 
-      <ion-buttons slot="end">
-        <ion-button *ngIf="(!box.cashRegisterSession.isOpen) && box.isActive" fill="clear" color="success"
+      <ion-buttons slot="end" class="cash-actions">
+        <ion-button class="session-action open-action" *ngIf="(!box.cashRegisterSession.isOpen) && box.isActive" fill="outline" color="success"
           [disabled]="isSessionOpenInLocation" (click)="openSession(box)">
-          <ion-icon slot="icon-only" name="play-outline"></ion-icon>
+          <ion-icon slot="start" name="play-outline"></ion-icon>
+          Abrir caja
         </ion-button>
 
-        <ion-button *ngIf="box.cashRegisterSession.isOpen" fill="clear" color="primary" (click)="closeSession(box)">
-          <ion-icon slot="icon-only" name="stop-circle-outline"></ion-icon>
+        <ion-button class="session-action close-action" *ngIf="box.cashRegisterSession.isOpen" fill="solid" color="primary" (click)="closeSession(box)">
+          <ion-icon slot="start" name="stop-circle-outline"></ion-icon>
+          Cerrar caja
         </ion-button>
 
         <ion-button fill="clear" color="medium" (click)="editCashRegister(box)">
@@ -112,7 +149,7 @@
 
 </ion-content>
 
-<ion-fab *ngIf="allCashRegisters.length == 0" vertical="bottom" horizontal="end" slot="fixed">
+<ion-fab *ngIf="allCashRegisters.length === 0" vertical="bottom" horizontal="end" slot="fixed">
   <ion-fab-button (click)="addCashRegister()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

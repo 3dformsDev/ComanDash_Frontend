@@ -18,6 +18,14 @@ export interface AuthResponse {
   };
 }
 
+interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
+  data: {
+    token: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -68,5 +76,17 @@ export class AuthService {
     // Endpoint que valide el token en tu backend AdonisJS
     // Puede ser /auth/me, /auth/verify, o cualquier endpoint protegido
     return this._http.get(`${this.apiUrl}/v1/auth/me`);
+  }
+
+  refreshToken(): Observable<string> {
+    return this._http
+      .post<RefreshTokenResponse>(`${this.apiUrl}/v1/auth/refresh`, {})
+      .pipe(
+        switchMap((response) =>
+          from(Preferences.set({ key: 'token', value: response.data.token })).pipe(
+            map(() => response.data.token),
+          ),
+        ),
+      );
   }
 }

@@ -17,6 +17,34 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <section
+    *ngIf="summaryData.cashRegisterState?.status === 'open_previous'"
+    class="previous-day-summary-alert"
+    [class.recovery-active]="summaryData.cashRegisterState?.recoveryIsActive"
+  >
+    <div class="previous-day-copy">
+      <ion-icon [name]="summaryData.cashRegisterState?.recoveryIsActive ? 'time-outline' : 'warning-outline'"></ion-icon>
+      <div>
+        <strong>
+          Hay una caja abierta desde el día operativo
+          {{ formatBusinessDate(summaryData.cashRegisterState?.sessionBusinessDate || null) }}.
+        </strong>
+        <p>
+          Este resumen corresponde únicamente a {{ summaryDate }}. Las ventas de la caja
+          anterior no se mezclan con los indicadores actuales.
+        </p>
+      </div>
+    </div>
+    <div class="previous-day-actions">
+      <ion-button fill="outline" size="small" (click)="goToPreviousBusinessDayReport()">
+        Ver día anterior
+      </ion-button>
+      <ion-button size="small" (click)="goToCashManagement()">
+        Gestionar caja
+      </ion-button>
+    </div>
+  </section>
+
   <h2 class="section-title">Indicadores Clave</h2>
   <ion-grid>
     <ion-row>

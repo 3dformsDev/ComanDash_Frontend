@@ -3,6 +3,60 @@ ion-content {
     --background: #f4f5f8; // Un fondo gris muy claro para que las tarjetas resalten
 }
 
+.previous-day-summary-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding: 14px;
+    border: 1px solid #fed7aa;
+    border-left: 4px solid #ea580c;
+    border-radius: 8px;
+    background: #fff7ed;
+
+    &.recovery-active {
+        border-color: #bae6fd;
+        border-left-color: #0284c7;
+        background: #f0f9ff;
+    }
+}
+
+.previous-day-copy {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    > ion-icon {
+        flex: 0 0 auto;
+        margin-top: 2px;
+        color: #c2410c;
+        font-size: 1.35rem;
+    }
+
+    strong {
+        color: #263142;
+        font-size: 0.9rem;
+    }
+
+    p {
+        margin: 3px 0 0;
+        color: #6b7280;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+}
+
+.recovery-active .previous-day-copy > ion-icon {
+    color: #0369a1;
+}
+
+.previous-day-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 6px;
+}
+
 .section-title {
     font-size: 1.1rem;
     font-weight: 600;
@@ -314,5 +368,27 @@ ion-grid {
 @media (max-width: 380px) {
     .summary-card .card-value {
         font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 720px) {
+    .previous-day-summary-alert {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .previous-day-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+
+        ion-button {
+            margin: 0;
+        }
+    }
+}
+
+@media (max-width: 420px) {
+    .previous-day-actions {
+        grid-template-columns: 1fr;
     }
 }
