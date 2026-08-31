@@ -1,126 +1,71 @@
-/*
- * Estilos para el Modal de Formulario de Producto
- * -------------------------------------------------------------------
- */
+.method-form-header ion-toolbar,
+.method-form-footer ion-toolbar { --background: #ffffff; }
 
-// --- HEADER ---
-.custom-header ion-toolbar {
-    --background: var(--ion-background-color);
-    --border-width: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+.method-form-header ion-toolbar {
+  --padding-start: 18px;
+  --padding-end: 8px;
+  --padding-top: 9px;
+  --padding-bottom: 9px;
+  border-bottom: 1px solid #e7e9ee;
 }
 
-.header-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--ion-text-color);
-    padding: 0 1rem;
+.method-form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  h1 { margin: 0; color: #1f2937; font-size: 1.15rem; font-weight: 800; line-height: 1.2; }
+  p { margin: 3px 0 0; color: #6b7280; font-size: 0.78rem; }
+  ion-button { width: 42px; height: 42px; margin: 0; --color: #687180; }
 }
 
-.cancel-btn {
-    --color: var(--ion-color-medium);
-    font-weight: 500;
-    text-transform: none;
-    font-size: 1rem;
+.method-form-content {
+  --background: #f7f8fa;
+  --padding-start: 18px;
+  --padding-end: 18px;
+  --padding-top: 20px;
+  --padding-bottom: 20px;
 }
 
+.method-form-fields { display: grid; gap: 20px; }
 
-// --- CONTENIDO DEL FORMULARIO ---
-.form-content {
-    // Un fondo ligeramente distinto para que el formulario resalte
-    --background: #f7f8fa;
-}
+.form-field {
+  display: grid;
+  gap: 7px;
 
-.form-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    padding: 16px;
-}
+  label { color: #374151; font-size: 0.82rem; font-weight: 800; }
 
-.section-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--ion-color-medium);
-    margin-bottom: 16px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-
-// --- GRUPOS DE INPUTS ---
-// Se eliminaron las reglas de .input-row y .half-width.
-// Ahora cada .input-group se comportará como un bloque, ocupando el 100% del ancho.
-.input-group {
-    margin-bottom: 20px;
-    width: 100%;
-}
-
-
-// --- ESTILO DE LOS ITEMS Y LABELS ---
-.custom-item {
+  ion-input,
+  ion-select {
     --background: #ffffff;
-    --padding-start: 12px;
-    --inner-padding-end: 12px;
+    --border-color: #d8dde5;
     --border-radius: 12px;
-    --border-color: #e0e0e0;
-    --border-width: 1px;
-    --border-style: solid;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    overflow: visible; // Permite que el label "flote" correctamente
-    width: 100%;
+    --highlight-color-focused: var(--ion-color-primary);
+    min-height: 52px;
+  }
 
-    // Estilo al estar enfocado
-    &.item-has-focus {
-        --border-color: var(--ion-color-primary);
-        box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.2);
-    }
+  p { margin: 0; color: #737c89; font-size: 0.72rem; line-height: 1.35; }
 }
 
-.custom-label {
-    color: var(--ion-color-medium);
-    font-size: 0.9rem;
-    font-weight: 500;
+.method-form-footer ion-toolbar {
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 9px;
+  --padding-bottom: 9px;
+  border-top: 1px solid #e7e9ee;
 }
 
+.method-form-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 10px;
 
-// --- ESTILO DE LOS INPUTS, SELECTS Y TEXTAREAS ---
-.custom-input,
-.custom-select,
-.custom-textarea {
-    --color: var(--ion-text-color);
-    font-size: 1rem;
-    margin-top: 8px; // Espacio para el label
+  ion-button { min-height: 46px; margin: 0; font-size: 0.82rem; font-weight: 800; }
+  .cancel-action { --background: #e9ebef; --color: #273142; --border-radius: 12px; }
+  .save-action { --border-radius: 12px; }
 }
 
-.custom-select::part(icon) {
-    color: var(--ion-color-medium);
-}
-
-.currency-symbol {
-    color: var(--ion-color-medium);
-    font-weight: 500;
-    margin-right: 8px;
-}
-
-
-// --- BOTÓN DE GUARDAR ---
-.button-section {
-    padding-top: 10px;
-}
-
-.save-btn {
-    --background: var(--ion-color-primary);
-    --background-activated: var(--ion-color-primary-shade);
-    --background-hover: var(--ion-color-primary-tint);
-    --border-radius: 12px;
-    --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
-    --color: var(--ion-color-primary-contrast);
-
-    height: 48px;
-    font-size: 1rem;
-    font-weight: 600;
-    text-transform: none;
+@media (max-width: 520px) {
+  .method-form-content { --padding-start: 14px; --padding-end: 14px; }
 }

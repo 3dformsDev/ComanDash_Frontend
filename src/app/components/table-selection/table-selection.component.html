@@ -1,47 +1,76 @@
-<!-- El ion-header se muestra siempre -->
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border table-modal-header">
   <ion-toolbar>
-    <ion-title class="modal-title">Selecciona una Mesa</ion-title>
+    <div class="table-modal-heading">
+      <div>
+        <h1>Selecciona una mesa</h1>
+        <p>Elige una mesa disponible para comenzar la comanda.</p>
+      </div>
+      <ion-button fill="clear" class="close-button" aria-label="Cerrar" (click)="closeModal()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<!-- El contenido cambia dependiendo de si hay mesas o no -->
-<ion-content class="ion-padding">
-
-  <!-- Caso 1: Hay mesas para mostrar -->
+<ion-content class="table-modal-content">
   <ng-container *ngIf="tables && tables.length > 0; else noTablesTemplate">
-    <ion-grid>
-      <ion-row>
-        <ion-col size="4" *ngFor="let table of tables" class="ion-text-center">
-          <ion-button class="table-button" [disabled]="table.isBussy" (click)="selectT(table, false)">
-            {{ table.tableNumber }}
-          </ion-button>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+    <div class="zone-tabs" role="tablist" aria-label="Zonas del establecimiento">
+      <button
+        type="button"
+        role="tab"
+        *ngFor="let group of zoneGroups"
+        [class.is-selected]="isZoneSelected(group)"
+        [attr.aria-selected]="isZoneSelected(group)"
+        (click)="selectZone(group)"
+      >
+        {{ group.name }}
+      </button>
+    </div>
+
+    <section class="zone-plan" *ngIf="activeZoneGroup as group" role="tabpanel">
+      <div class="table-grid">
+        <button
+          type="button"
+          class="table-card"
+          *ngFor="let table of group.tables"
+          [class.is-occupied]="table.isBussy"
+          [class.is-round]="group.iconType === 'table'"
+          [class.is-wide]="group.iconType === 'bar'"
+          [disabled]="table.isBussy"
+          [attr.aria-label]="table.tableNumber + (table.isBussy ? ', ocupada' : ', disponible')"
+          (click)="selectT(table, false)"
+        >
+          <span class="table-card-icon">
+            <ion-icon [name]="getZoneIcon(group.iconType)"></ion-icon>
+          </span>
+          <strong>{{ table.tableNumber }}</strong>
+          <span class="table-capacity">
+            {{ table.capacity || 1 }} {{ (table.capacity || 1) === 1 ? 'puesto' : 'puestos' }}
+          </span>
+        </button>
+      </div>
+
+      <div class="plan-entry">
+        <ion-icon name="enter-outline"></ion-icon>
+        Entrada
+      </div>
+    </section>
+
+    <div class="availability-summary" aria-label="Estado de las mesas">
+      <span class="availability-key is-available"><i></i>Disponible ({{ availableTablesCount }})</span>
+      <span class="availability-key is-occupied"><i></i>Ocupada ({{ occupiedTablesCount }})</span>
+    </div>
   </ng-container>
 
-  <!-- Caso 2: No hay mesas. Se muestra esta plantilla -->
   <ng-template #noTablesTemplate>
-    <div class="ion-padding h-full flex flex-col items-center justify-center text-center">
-      <i class="fas fa-chair text-6xl text-gray-300 mb-4"></i>
-      <h2 class="text-xl font-bold text-gray-700">Aún no hay mesas</h2>
-      <p class="text-gray-500 my-2">Para comenzar a tomar pedidos, primero debes configurar las mesas.</p>
-      <!-- Este botón emitirá un evento para que el dashboard sepa que debe redirigir -->
-      <ion-button (click)="redirectToAddTables()" shape="round" class="mt-4">
-        <i class="fas fa-plus mr-2" slot="start"></i>
+    <div class="empty-tables">
+      <span class="empty-icon"><ion-icon name="restaurant-outline"></ion-icon></span>
+      <h2>Aún no hay mesas</h2>
+      <p>Configura la primera mesa para comenzar a tomar pedidos.</p>
+      <ion-button (click)="redirectToAddTables()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
         Agregar mesas ahora
       </ion-button>
     </div>
   </ng-template>
-
 </ion-content>
-
-<!-- El footer solo se muestra si hay mesas, para dar la opción de cancelar la selección -->
-<ion-footer class="ion-no-border" *ngIf="tables && tables.length > 0">
-  <ion-toolbar>
-    <ion-button expand="block" fill="clear" class="cancel-button" (click)="closeModal()">
-      Cancelar
-    </ion-button>
-  </ion-toolbar>
-</ion-footer>

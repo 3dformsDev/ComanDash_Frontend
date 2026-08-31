@@ -1,47 +1,252 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border cd-management-header">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
-    </ion-buttons>
-    <ion-title>
-      <h1>Gestión de Mesas</h1>
-      <p>Añade, edita o elimina mesas</p>
-    </ion-title>
+    <div class="cd-toolbar-layout">
+      <ion-buttons>
+        <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+      </ion-buttons>
+      <div class="cd-title-group">
+        <h1>Gestión de Mesas</h1>
+        <p>Organiza las mesas y zonas de tu establecimiento</p>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding cd-management-content">
+  <div class="zone-guide" *ngIf="allTables.length > 0">
+    <ion-icon name="map-outline"></ion-icon>
+    <div class="zone-guide-copy">
+      <strong>Plano organizado por zonas</strong>
+      <p>Usa nombres como Salón principal, Barra o Terraza para agrupar las mesas.</p>
+    </div>
+    <ion-button fill="outline" size="small" (click)="openZoneManagement()">
+      Administrar zonas
+    </ion-button>
+  </div>
 
-  <ion-list lines="none">
-    <ion-item *ngFor="let table of allTables" [ngClass]="{'item-inactive': !table.isActive}">
+  <ion-button *ngIf="allTables.length === 0 && allZones.length > 0" fill="outline" class="standalone-zone-action" (click)="openZoneManagement()">
+    <ion-icon name="map-outline" slot="start"></ion-icon>
+    Administrar zonas
+  </ion-button>
 
-      <ion-icon name="restaurant-outline" slot="start" color="medium"></ion-icon>
-      <ion-label>{{ table.tableNumber }}</ion-label>
+  <ion-list lines="none" class="cd-management-list">
+    <ion-item
+      *ngFor="let table of allTables"
+      class="cd-management-item table-management-item"
+      [class.is-inactive]="!table.isActive"
+    >
+      <span slot="start" class="table-type-icon">
+        <ion-icon [name]="getTableIcon(table)"></ion-icon>
+      </span>
 
-      <ion-badge class="badge-status" slot="end" [color]="table.isActive ? 'success' : 'medium'">
+      <ion-label>
+        <h2>{{ table.tableNumber }}</h2>
+        <p>
+          {{ getZoneLabel(table) }} · {{ table.capacity || 1 }}
+          {{ (table.capacity || 1) === 1 ? 'persona' : 'personas' }}
+        </p>
+      </ion-label>
+
+      <span slot="end" class="cd-status-pill" [class.is-active]="table.isActive">
         {{ table.isActive ? 'Activa' : 'Inactiva' }}
-      </ion-badge>
+      </span>
 
-      <ion-buttons slot="end">
-        <ion-button fill="clear" color="medium" (click)="editTable(table)">
+      <ion-buttons slot="end" class="table-actions">
+        <ion-button class="cd-icon-action" fill="clear" color="medium" [attr.aria-label]="'Editar ' + table.tableNumber" (click)="editTable(table)">
           <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
         </ion-button>
-        <ion-button fill="clear" [color]="table.isActive ? 'danger' : 'warning'" (click)="toggleTableStatus(table)">
-          <ion-icon slot="icon-only" [name]="table.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+        <ion-button class="cd-icon-action" fill="clear" [color]="table.isActive ? 'danger' : 'warning'" [attr.aria-label]="(table.isActive ? 'Desactivar ' : 'Reactivar ') + table.tableNumber" (click)="toggleTableStatus(table)">
+          <ion-icon slot="icon-only" [name]="table.isActive ? 'pause-outline' : 'refresh-outline'"></ion-icon>
         </ion-button>
       </ion-buttons>
-
     </ion-item>
   </ion-list>
 
-  <p *ngIf="allTables.length === 0" class="empty-message">
-    No has añadido ninguna mesa todavía.
-  </p>
+  <div *ngIf="!isLoading && allTables.length === 0" class="empty-state">
+    <ion-icon name="restaurant-outline"></ion-icon>
+    <h2>Aún no tienes mesas</h2>
+    <p>Crea la primera y asígnala a una zona para organizar tu plano.</p>
+    <ion-button (click)="addTable()">Crear primera mesa</ion-button>
+  </div>
 
+  <ion-fab class="cd-management-fab" vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="addTable()" aria-label="Crear mesa">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
 
-<ion-fab vertical="bottom" horizontal="end" slot="fixed">
-  <ion-fab-button (click)="addTable()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+<ion-modal class="cd-table-form-modal" [isOpen]="isTableFormOpen" [backdropDismiss]="!isSaving" (didDismiss)="closeTableForm()">
+  <ng-template>
+    <ion-header class="ion-no-border table-form-header">
+      <ion-toolbar>
+        <div class="table-form-heading">
+          <div>
+            <h2>{{ tableToEdit ? 'Editar mesa' : 'Nueva mesa' }}</h2>
+            <p>Define el nombre, la capacidad y la zona.</p>
+          </div>
+          <ion-button fill="clear" aria-label="Cerrar" (click)="closeTableForm()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="table-form-content">
+      <div class="table-form-fields">
+        <div class="form-field">
+          <label for="table-name">Nombre de la mesa</label>
+          <ion-input id="table-name" fill="outline" maxlength="50" placeholder="Ej. Mesa 1 o Barra 2" [(ngModel)]="tableForm.tableNumber"></ion-input>
+        </div>
+
+        <div class="form-field">
+          <label for="table-capacity">Capacidad</label>
+          <ion-input id="table-capacity" fill="outline" type="number" min="1" max="100" inputmode="numeric" placeholder="Ej. 4" [(ngModel)]="tableForm.capacity"></ion-input>
+        </div>
+
+        <div class="zone-mode-switch" role="group" aria-label="Cómo asignar la zona">
+          <button type="button" [class.is-selected]="zoneMode === 'existing'" [disabled]="allZones.length === 0" (click)="setZoneMode('existing')">
+            Escoger zona
+          </button>
+          <button type="button" [class.is-selected]="zoneMode === 'new'" (click)="setZoneMode('new')">
+            Crear zona
+          </button>
+        </div>
+
+        <div class="form-field" *ngIf="zoneMode === 'existing'">
+          <label for="existing-zone">Zona</label>
+          <ion-select id="existing-zone" fill="outline" interface="popover" placeholder="Selecciona una zona" [(ngModel)]="tableForm.zoneId">
+            <ion-select-option *ngFor="let zone of allZones" [value]="zone.id">
+              {{ zone.name }}
+            </ion-select-option>
+          </ion-select>
+          <p class="field-help">La mesa aparecerá dentro de esta pestaña al tomar una comanda.</p>
+        </div>
+
+        <ng-container *ngIf="zoneMode === 'new'">
+          <div class="form-field">
+            <label for="new-zone-name">Nombre de la nueva zona</label>
+            <ion-input id="new-zone-name" fill="outline" maxlength="100" placeholder="Ej. Salón, Barra o Terraza" [(ngModel)]="newZoneName"></ion-input>
+          </div>
+
+          <div class="form-field">
+            <label for="new-zone-icon">Icono de la zona</label>
+            <div class="icon-select-row">
+              <span class="selected-zone-icon"><ion-icon [name]="selectedNewZoneIcon"></ion-icon></span>
+              <ion-select id="new-zone-icon" fill="outline" interface="popover" [(ngModel)]="newZoneIcon">
+                <ion-select-option *ngFor="let option of zoneIconOptions" [value]="option.value">
+                  {{ option.label }}
+                </ion-select-option>
+              </ion-select>
+            </div>
+            <p class="field-help">Este icono identificará todas las mesas de la zona.</p>
+          </div>
+        </ng-container>
+      </div>
+    </ion-content>
+
+    <ion-footer class="ion-no-border table-form-footer">
+      <ion-toolbar>
+        <div class="table-form-actions">
+          <ion-button fill="clear" class="cancel-action" [disabled]="isSaving" (click)="closeTableForm()">Cancelar</ion-button>
+          <ion-button class="save-action" [disabled]="!isFormValid || isSaving" (click)="saveTable()">
+            <ion-spinner *ngIf="isSaving" name="crescent" slot="start"></ion-spinner>
+            <ion-icon *ngIf="!isSaving" name="checkmark-outline" slot="start"></ion-icon>
+            {{ tableToEdit ? 'Guardar cambios' : 'Crear mesa' }}
+          </ion-button>
+        </div>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>
+
+<ion-modal class="cd-zone-management-modal" [isOpen]="isZoneManagementOpen" [backdropDismiss]="!isSavingZone && removingZoneId === null" (didDismiss)="closeZoneManagement()">
+  <ng-template>
+    <ion-header class="ion-no-border table-form-header">
+      <ion-toolbar>
+        <div class="table-form-heading">
+          <div>
+            <h2>Administrar zonas</h2>
+            <p>Edita su nombre o icono y quita las que ya no utilizas.</p>
+          </div>
+          <ion-button fill="clear" aria-label="Cerrar" (click)="closeZoneManagement()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="table-form-content">
+      <section class="zone-edit-panel" *ngIf="zoneToEdit">
+        <div class="zone-edit-heading">
+          <div>
+            <strong>Editar {{ zoneToEdit.name }}</strong>
+            <p>El cambio se aplicará a todas sus mesas.</p>
+          </div>
+          <ion-button fill="clear" size="small" [disabled]="isSavingZone" (click)="cancelZoneEdit()">Cancelar</ion-button>
+        </div>
+
+        <div class="form-field">
+          <label for="zone-edit-name">Nombre de la zona</label>
+          <ion-input id="zone-edit-name" fill="outline" maxlength="100" [(ngModel)]="zoneEditName"></ion-input>
+        </div>
+
+        <div class="form-field">
+          <label for="zone-edit-icon">Icono</label>
+          <div class="icon-select-row">
+            <span class="selected-zone-icon"><ion-icon [name]="selectedZoneEditIcon"></ion-icon></span>
+            <ion-select id="zone-edit-icon" fill="outline" interface="popover" [(ngModel)]="zoneEditIcon">
+              <ion-select-option *ngFor="let option of zoneIconOptions" [value]="option.value">
+                {{ option.label }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+
+        <ion-button expand="block" class="zone-save-action" [disabled]="!isZoneEditValid || isSavingZone" (click)="saveZoneChanges()">
+          <ion-spinner *ngIf="isSavingZone" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!isSavingZone" name="checkmark-outline" slot="start"></ion-icon>
+          Guardar zona
+        </ion-button>
+      </section>
+
+      <div class="zone-management-list" *ngIf="allZones.length > 0; else noZonesTemplate">
+        <article class="zone-management-row" *ngFor="let zone of allZones" [class.is-being-edited]="zoneToEdit?.id === zone.id">
+          <span class="table-type-icon"><ion-icon [name]="getZoneIcon(zone.iconType)"></ion-icon></span>
+          <div class="zone-management-copy">
+            <strong>{{ zone.name }}</strong>
+            <span>
+              {{ getZoneTablesCount(zone) }}
+              {{ getZoneTablesCount(zone) === 1 ? 'mesa asociada' : 'mesas asociadas' }}
+            </span>
+          </div>
+          <div class="zone-management-actions">
+            <ion-button fill="clear" class="cd-icon-action" color="medium" [attr.aria-label]="'Editar ' + zone.name" (click)="editZone(zone)">
+              <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" class="cd-icon-action" color="danger" [class.is-blocked]="getZoneTablesCount(zone) > 0" [attr.aria-label]="'Quitar ' + zone.name" (click)="removeZone(zone)">
+              <ion-spinner *ngIf="removingZoneId === zone.id" name="crescent"></ion-spinner>
+              <ion-icon *ngIf="removingZoneId !== zone.id" slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #noZonesTemplate>
+        <div class="zone-empty-state">
+          <ion-icon name="map-outline"></ion-icon>
+          <strong>No hay zonas activas</strong>
+          <p>Puedes crear una nueva mientras agregas una mesa.</p>
+        </div>
+      </ng-template>
+    </ion-content>
+
+    <ion-footer class="ion-no-border table-form-footer">
+      <ion-toolbar>
+        <ion-button expand="block" fill="clear" class="zone-close-action" [disabled]="isSavingZone || removingZoneId !== null" (click)="closeZoneManagement()">
+          Cerrar
+        </ion-button>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

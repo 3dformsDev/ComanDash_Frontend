@@ -17,6 +17,10 @@ const routes: Routes = [
     loadChildren: () => import('./category-management/category-management.module').then( m => m.CategoryManagementPageModule)
   },
   {
+    path: 'personalizations',
+    loadChildren: () => import('./personalizations/personalizations.module').then(m => m.PersonalizationsPageModule)
+  },
+  {
     path: 'table-management',
     loadChildren: () => import('./table-management/table-management.module').then( m => m.TableManagementPageModule)
   },

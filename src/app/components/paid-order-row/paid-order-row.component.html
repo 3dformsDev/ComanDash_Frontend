@@ -73,6 +73,11 @@
         <span class="item-quantity">{{ item.quantity }}x</span>
         {{ item.product?.category?.name || 'Sin categoria' }} -
         {{ item.product?.name || 'Producto no disponible' }}
+        <div class="compact-modifier-list" *ngIf="item.modifierSelections?.length">
+          <span *ngFor="let selection of item.modifierSelections">
+            {{ selection.quantity > 1 ? selection.quantity + 'x ' : '' }}{{ selection.optionNameSnapshot }}
+          </span>
+        </div>
       </li>
 
       <li

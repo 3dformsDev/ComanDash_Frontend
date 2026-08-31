@@ -15,6 +15,18 @@ export interface OrderItem {
   };
   unitPrice?: string;
   kitchenStatus?: 'pending' | 'in_preparation' | 'ready' | 'served';
+  orderItemId?: number;
+  lineKey?: string;
+  modifierSelections?: {
+    modifierGroupId: number;
+    modifierOptionId: number;
+    groupName?: string;
+    optionName?: string;
+    groupNameSnapshot?: string;
+    optionNameSnapshot?: string;
+    quantity: number;
+    priceAdjustment?: 0;
+  }[];
 }
 
 export interface PaymentSummary {

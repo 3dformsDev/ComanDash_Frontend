@@ -1,0 +1,176 @@
+.cd-management-header {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: saturate(180%) blur(20px);
+
+  ion-toolbar {
+    --background: #ffffff;
+    --padding-start: 10px;
+    --padding-end: 16px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+}
+
+.cd-toolbar-layout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.cd-title-group {
+  min-width: 0;
+
+  h1 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.25;
+  }
+}
+
+.cd-management-content {
+  --background: #f7f8fa;
+}
+
+.cd-management-list {
+  padding: 0;
+  background: transparent;
+}
+
+.cd-management-item {
+  --background: #ffffff;
+  --border-radius: 14px;
+  --padding-start: 14px;
+  --inner-padding-end: 10px;
+  --min-height: 68px;
+  margin-bottom: 10px;
+  border: 1px solid #e7e9ee;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+
+  &.is-inactive {
+    opacity: 0.72;
+  }
+}
+
+.cd-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  min-height: 28px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: #eef0f3;
+  color: #626b78;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+
+  &.is-active {
+    background: #e7f8ed;
+    color: #168443;
+  }
+}
+
+.cd-icon-action {
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  --border-radius: 10px;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.cd-management-fab ion-fab-button {
+  width: 56px;
+  height: 56px;
+  --background: var(--ion-color-primary);
+  --background-activated: var(--ion-color-primary-shade);
+  --border-radius: 50%;
+  --box-shadow: 0 10px 24px rgba(var(--ion-color-primary-rgb), 0.32);
+}
+
+ion-modal.cd-product-form-modal {
+  --width: min(620px, calc(100vw - 32px));
+  --height: min(860px, calc(100vh - 32px));
+  --border-radius: 20px;
+}
+
+ion-modal.cd-table-form-modal {
+  --width: min(520px, calc(100vw - 32px));
+  --height: min(690px, calc(100vh - 32px));
+  --border-radius: 20px;
+}
+
+ion-modal.cd-zone-management-modal {
+  --width: min(540px, calc(100vw - 32px));
+  --height: min(720px, calc(100vh - 32px));
+  --border-radius: 20px;
+}
+
+ion-modal.cd-payment-method-form-modal {
+  --width: min(520px, calc(100vw - 32px));
+  --height: min(520px, calc(100vh - 32px));
+  --border-radius: 20px;
+}
+
+@media (max-width: 560px) {
+  .cd-management-header ion-toolbar {
+    --padding-end: 10px;
+  }
+
+  .cd-title-group {
+    h1 {
+      font-size: 1.12rem;
+    }
+
+    p {
+      font-size: 0.78rem;
+    }
+  }
+
+  .cd-status-pill {
+    min-width: 64px;
+    padding-inline: 9px;
+  }
+
+  ion-modal.cd-product-form-modal {
+    --width: 100%;
+    --height: 94%;
+    --border-radius: 20px 20px 0 0;
+    align-items: flex-end;
+  }
+
+  ion-modal.cd-table-form-modal {
+    --width: 100%;
+    --height: 92%;
+    --border-radius: 20px 20px 0 0;
+    align-items: flex-end;
+  }
+
+  ion-modal.cd-zone-management-modal {
+    --width: 100%;
+    --height: 92%;
+    --border-radius: 20px 20px 0 0;
+    align-items: flex-end;
+  }
+
+  ion-modal.cd-payment-method-form-modal {
+    --width: 100%;
+    --height: min(560px, 82%);
+    --border-radius: 20px 20px 0 0;
+    align-items: flex-end;
+  }
+}

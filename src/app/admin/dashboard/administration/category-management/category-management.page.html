@@ -1,47 +1,70 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border cd-management-header">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
-    </ion-buttons>
-    <ion-title>
-      <h1>Gestión de Categorías</h1>
-      <p>Añade, edita o elimina categorías</p>
-    </ion-title>
+    <div class="cd-toolbar-layout">
+      <ion-buttons>
+        <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+      </ion-buttons>
+      <div class="cd-title-group">
+        <h1>Gestión de Categorías</h1>
+        <p>Organiza las secciones de tu menú</p>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-list lines="none">
-    <ion-item *ngFor="let category of allCategories; let i = index" [ngClass]="{'item-inactive': !category.isActive}">
+<ion-content class="ion-padding cd-management-content">
+  <ion-list lines="none" class="cd-management-list">
+    <ion-item
+      *ngFor="let category of allCategories"
+      class="cd-management-item category-item"
+      [class.is-inactive]="!category.isActive"
+    >
+      <span slot="start" class="category-icon">
+        <ion-icon name="folder-open-outline"></ion-icon>
+      </span>
 
       <ion-label>
-        <h2 class="dark">{{ category.name }}</h2>
+        <h2>{{ category.name }}</h2>
+        <p>{{ category.isActive ? 'Disponible en el menú' : 'No disponible en el menú' }}</p>
       </ion-label>
 
-      <ion-badge class="badge-status" slot="end" [color]="category.isActive ? 'success' : 'medium'">
+      <span slot="end" class="cd-status-pill" [class.is-active]="category.isActive">
         {{ category.isActive ? 'Activa' : 'Inactiva' }}
-      </ion-badge>
+      </span>
 
-      <ion-buttons slot="end">
-        <ion-button fill="clear" color="medium" (click)="editCategory(category)">
+      <ion-buttons slot="end" class="category-actions">
+        <ion-button
+          class="cd-icon-action"
+          fill="clear"
+          color="medium"
+          [attr.aria-label]="'Editar ' + category.name"
+          (click)="editCategory(category)"
+        >
           <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
         </ion-button>
-        <ion-button fill="clear" [color]="category.isActive ? 'danger' : 'warning'"
-          (click)="toggleCategoryStatus(category)">
-          <ion-icon slot="icon-only" [name]="category.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+        <ion-button
+          class="cd-icon-action"
+          fill="clear"
+          [color]="category.isActive ? 'danger' : 'warning'"
+          [attr.aria-label]="(category.isActive ? 'Desactivar ' : 'Reactivar ') + category.name"
+          (click)="toggleCategoryStatus(category)"
+        >
+          <ion-icon slot="icon-only" [name]="category.isActive ? 'pause-outline' : 'refresh-outline'"></ion-icon>
         </ion-button>
       </ion-buttons>
-
     </ion-item>
   </ion-list>
 
-  <p *ngIf="allCategories.length === 0" class="empty-message">
-    Aún no has añadido ninguna categoría.
-  </p>
-</ion-content>
+  <div *ngIf="allCategories.length === 0" class="empty-state">
+    <ion-icon name="folder-open-outline"></ion-icon>
+    <h2>Aún no tienes categorías</h2>
+    <p>Crea la primera para comenzar a organizar tu menú.</p>
+    <ion-button (click)="addCategory()">Crear primera categoría</ion-button>
+  </div>
 
-<ion-fab vertical="bottom" horizontal="end" slot="fixed">
-  <ion-fab-button (click)="addCategory()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+  <ion-fab class="cd-management-fab" vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="addCategory()" aria-label="Crear categoría">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

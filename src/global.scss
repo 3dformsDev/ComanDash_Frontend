@@ -1,3 +1,5 @@
+@use "./theme/management-ui";
+
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
@@ -390,64 +392,36 @@ ion-modal#example-modal h1 {
 /* ================================================= */
 
 ion-modal#table-modal {
-  /* Define la altura máxima y activa el efecto "diálogo" */
-  --height: 70vh;
-  --max-height: 600px;
-  --width: fit-content;
-  --min-width: 340px;
-  --border-radius: 24px;
-  --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  --width: min(760px, calc(100vw - 28px));
+  --height: min(780px, calc(100vh - 28px));
+  --border-radius: 20px;
+  --box-shadow: 0 22px 55px rgba(15, 23, 42, 0.25);
   --backdrop-opacity: 0.6;
 }
 
-/* --- NUEVA REGLA PARA EL LAYOUT DEL COMPONENTE --- */
-/* Esto asegura que el componente ocupe todo el espacio del modal
-     y que el footer se posicione correctamente en la parte inferior. */
 ion-modal#table-modal app-table-selection {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-/* Hacemos transparentes los fondos de header, footer y content
-     para que tomen el color blanco del modal */
 ion-modal#table-modal ion-header,
 ion-modal#table-modal ion-footer,
 ion-modal#table-modal ion-content {
   --background: transparent;
 }
 
-/* Estilos para el título fijo */
-ion-modal#table-modal .modal-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  padding-top: 16px !important;
-  text-align: center;
+ion-modal#table-modal ion-content.table-modal-content {
+  --background: #f7f8fa;
 }
 
-/* Espaciado para las columnas */
-ion-modal#table-modal ion-col {
-  padding: 6px;
-}
-
-/* Estilo de los botones de mesa */
-ion-modal#table-modal .table-button {
-  --background: #f3f4f6;
-  --color: #1f2937;
-  --border-radius: 12px;
-  height: 60px;
-  width: 100%;
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-/* Estilo del botón de cancelar fijo */
-ion-modal#table-modal .cancel-button {
-  --color: #6b7280;
-  font-weight: 500;
-  text-transform: none;
+@media (max-width: 560px) {
+  ion-modal#table-modal {
+    --width: 100%;
+    --height: 94%;
+    --border-radius: 20px 20px 0 0;
+    align-items: flex-end;
+  }
 }
 
 /* ================================================= */
@@ -669,7 +643,8 @@ ion-modal.payment-modal-class {
 .confirmation-action-alert,
 .cancel-order-alert,
 .logout-confirmation-alert,
-.session-timeout-alert {
+.session-timeout-alert,
+.management-form-alert {
   .alert-wrapper {
     width: min(92vw, 400px) !important;
     max-width: 400px !important;
@@ -814,6 +789,16 @@ ion-modal.payment-modal-class {
   }
 }
 
+.management-form-alert {
+  .alert-input[type='textarea'] {
+    height: 92px !important;
+    min-height: 92px !important;
+    padding: 14px 16px !important;
+    line-height: 1.4 !important;
+    resize: none !important;
+  }
+}
+
 ion-popover.business-day-hour-popover {
   --width: min(320px, calc(100vw - 32px));
   --max-height: min(420px, calc(100vh - 48px));
@@ -849,5 +834,35 @@ ion-popover.business-day-hour-popover {
     padding: 14px 16px !important;
     line-height: 1.4 !important;
     resize: none !important;
+  }
+}
+
+ion-modal.product-personalization-modal {
+  --width: min(520px, calc(100vw - 24px));
+  --height: min(720px, calc(100vh - 32px));
+  --border-radius: 18px;
+}
+
+.compact-modifier-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 6px;
+  margin-top: 4px;
+  color: #a52a2e;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.compact-modifier-list > span:not(:last-child)::after {
+  content: ' ·';
+}
+
+@media (max-width: 520px) {
+  ion-modal.product-personalization-modal {
+    --width: 100%;
+    --height: 88%;
+    --border-radius: 18px 18px 0 0;
+    align-items: flex-end;
   }
 }

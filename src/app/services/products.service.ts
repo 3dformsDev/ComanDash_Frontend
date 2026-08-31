@@ -26,6 +26,8 @@ export interface ProductI {
   updatedAt: string;
   imageUrl?: string;
   protectedImageUrl?: string;
+  description?: string | null;
+  hasPersonalizations?: boolean;
 }
 
 /**
@@ -94,7 +96,7 @@ export class ProductsService {
 
     // Hacemos la petición POST y extraemos el producto creado de la propiedad 'data'
     return this._http.post<ApiResponse<ProductI>>(this.productsEndpoint, formData)
-      .pipe(map(response => response.data));
+      .pipe(map((response: any) => response?.data ?? response));
   }
 
   /**
@@ -128,7 +130,7 @@ export class ProductsService {
     formData.append('_method', 'POST');
 
     return this._http.post<ApiResponse<ProductI>>(`${this.productsEndpoint}/${productId}`, formData)
-      .pipe(map(response => response.data));
+      .pipe(map((response: any) => response?.data ?? response));
   }
 
   /**

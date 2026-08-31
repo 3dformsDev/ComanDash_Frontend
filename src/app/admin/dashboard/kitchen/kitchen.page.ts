@@ -116,8 +116,15 @@ export class KitchenPage implements OnInit, OnDestroy {
     this.pendingOrders.forEach(order => {
       for (const item of order.orderItems) {
         if (!item.isReady) {
-          if (productMap.has(item.productId)) {
-            const existing = productMap.get(item.productId);
+          const modifierSignature = (item.modifierSelections || [])
+            .map((selection: any) =>
+              `${selection.modifierGroupId}:${selection.modifierOptionId}:${selection.quantity}`,
+            )
+            .sort()
+            .join('|');
+          const aggregationKey = `${item.productId}::${modifierSignature || 'standard'}`;
+          if (productMap.has(aggregationKey)) {
+            const existing = productMap.get(aggregationKey);
             // Suma la cantidad del producto
             existing.total += item.quantity;
 
@@ -131,12 +138,13 @@ export class KitchenPage implements OnInit, OnDestroy {
             }
           } else {
             // Si es un producto nuevo, lo añade al mapa
-            productMap.set(item.productId, {
+            productMap.set(aggregationKey, {
               id: item.productId,
               name: item.product.name,
               total: item.quantity,
               orders: [order.orderNumber],
               category: item.product.category,
+              modifierSelections: item.modifierSelections || [],
               // --> LÍNEA NUEVA: Inicializa el contador de notas.
               notesCount: order.kitchenNotes ? 1 : 0
             });

@@ -1,0 +1,210 @@
+<ion-header class="ion-no-border cd-management-header">
+  <ion-toolbar>
+    <div class="cd-toolbar-layout">
+      <ion-buttons>
+        <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+      </ion-buttons>
+      <div class="cd-title-group">
+        <h1>Personalizaciones</h1>
+        <p>Organiza las opciones disponibles al tomar un pedido</p>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding cd-management-content">
+  <div *ngIf="loading" class="loading-state">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando personalizaciones...</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="intro-card">
+      <ion-icon name="options-outline"></ion-icon>
+      <div>
+        <strong>Grupos de opciones</strong>
+        <p>Agrupa opciones como tipos de carne, salsas, tamaños, acompañamientos o sabores.</p>
+      </div>
+    </div>
+
+    <article
+      *ngFor="let group of groups; let groupIndex = index; trackBy: trackById"
+      class="group-card"
+      [class.inactive]="!group.isActive"
+    >
+      <div class="group-header">
+        <button type="button" class="group-main" (click)="toggleExpanded(group.id)">
+          <span class="group-icon"><ion-icon name="layers-outline"></ion-icon></span>
+          <span class="group-copy">
+            <strong>{{ group.name }}</strong>
+            <small>{{ group.options.length }} {{ group.options.length === 1 ? 'opción' : 'opciones' }}</small>
+          </span>
+        </button>
+
+        <span class="cd-status-pill" [class.is-active]="group.isActive">
+          {{ group.isActive ? 'Activo' : 'Inactivo' }}
+        </span>
+
+        <ion-button
+          class="expand-button cd-icon-action"
+          fill="clear"
+          color="medium"
+          [attr.aria-label]="expandedGroups.has(group.id) ? 'Contraer grupo' : 'Desplegar grupo'"
+          (click)="toggleExpanded(group.id)"
+        >
+          <ion-icon
+            slot="icon-only"
+            [name]="expandedGroups.has(group.id) ? 'chevron-up-outline' : 'chevron-down-outline'"
+          ></ion-icon>
+        </ion-button>
+      </div>
+
+      <div *ngIf="expandedGroups.has(group.id)" class="group-expanded">
+        <p *ngIf="group.description" class="group-description">{{ group.description }}</p>
+
+        <div class="group-actions" aria-label="Acciones del grupo">
+          <ion-button
+            class="cd-icon-action"
+            fill="clear"
+            color="medium"
+            [disabled]="groupIndex === 0 || saving"
+            [attr.aria-label]="'Subir ' + group.name"
+            (click)="moveGroup(group, -1)"
+          >
+            <ion-icon slot="icon-only" name="arrow-up-outline"></ion-icon>
+          </ion-button>
+          <ion-button
+            class="cd-icon-action"
+            fill="clear"
+            color="medium"
+            [disabled]="groupIndex === groups.length - 1 || saving"
+            [attr.aria-label]="'Bajar ' + group.name"
+            (click)="moveGroup(group, 1)"
+          >
+            <ion-icon slot="icon-only" name="arrow-down-outline"></ion-icon>
+          </ion-button>
+          <ion-button
+            class="text-action"
+            fill="clear"
+            color="medium"
+            [disabled]="saving"
+            (click)="editGroup(group)"
+          >
+            <ion-icon slot="start" name="pencil-outline"></ion-icon>
+            Editar grupo
+          </ion-button>
+          <ion-button
+            class="text-action"
+            fill="clear"
+            [color]="group.isActive ? 'danger' : 'warning'"
+            [disabled]="saving"
+            (click)="confirmGroupStatus(group)"
+          >
+            <ion-icon slot="start" [name]="group.isActive ? 'pause-outline' : 'refresh-outline'"></ion-icon>
+            {{ group.isActive ? 'Desactivar' : 'Reactivar' }}
+          </ion-button>
+        </div>
+
+        <div class="options-heading">
+          <div>
+            <strong>Opciones del grupo</strong>
+            <small>Ordénalas o modifica su disponibilidad.</small>
+          </div>
+        </div>
+
+        <div class="option-list" *ngIf="group.options.length > 0">
+          <div
+            *ngFor="let option of sortedOptions(group); let optionIndex = index; trackBy: trackById"
+            class="option-row"
+            [class.option-inactive]="!option.isActive"
+          >
+            <span class="option-index">{{ optionIndex + 1 }}</span>
+            <span class="option-copy">{{ option.name }}</span>
+            <span class="cd-status-pill" [class.is-active]="option.isActive">
+              {{ option.isActive ? 'Activa' : 'Inactiva' }}
+            </span>
+            <div class="option-actions">
+              <ion-button
+                class="cd-icon-action"
+                fill="clear"
+                color="medium"
+                [disabled]="optionIndex === 0 || saving"
+                [attr.aria-label]="'Subir ' + option.name"
+                (click)="moveOption(group, option, -1)"
+              >
+                <ion-icon slot="icon-only" name="arrow-up-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                class="cd-icon-action"
+                fill="clear"
+                color="medium"
+                [disabled]="optionIndex === sortedOptions(group).length - 1 || saving"
+                [attr.aria-label]="'Bajar ' + option.name"
+                (click)="moveOption(group, option, 1)"
+              >
+                <ion-icon slot="icon-only" name="arrow-down-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                class="cd-icon-action"
+                fill="clear"
+                color="medium"
+                [disabled]="saving"
+                [attr.aria-label]="'Editar ' + option.name"
+                (click)="editOption(option)"
+              >
+                <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                class="cd-icon-action"
+                fill="clear"
+                [color]="option.isActive ? 'danger' : 'warning'"
+                [disabled]="saving"
+                [attr.aria-label]="(option.isActive ? 'Desactivar ' : 'Reactivar ') + option.name"
+                (click)="confirmOptionStatus(option)"
+              >
+                <ion-icon
+                  slot="icon-only"
+                  [name]="option.isActive ? 'pause-outline' : 'refresh-outline'"
+                ></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+        <p *ngIf="group.options.length === 0" class="inline-empty">
+          Este grupo todavía no tiene opciones.
+        </p>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          class="add-option-button"
+          [disabled]="!group.isActive || saving"
+          (click)="addOption(group.id)"
+        >
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Agregar opción
+        </ion-button>
+      </div>
+    </article>
+
+    <div *ngIf="groups.length === 0" class="empty-state">
+      <ion-icon name="options-outline"></ion-icon>
+      <h2>Aún no tienes grupos de opciones</h2>
+      <p>Crea el primero para comenzar a personalizar productos.</p>
+      <ion-button (click)="addGroup()">Crear primer grupo</ion-button>
+    </div>
+  </ng-container>
+
+  <ion-fab
+    *ngIf="!loading && groups.length > 0"
+    class="cd-management-fab"
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed"
+  >
+    <ion-fab-button (click)="addGroup()" [disabled]="saving" aria-label="Crear grupo de opciones">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

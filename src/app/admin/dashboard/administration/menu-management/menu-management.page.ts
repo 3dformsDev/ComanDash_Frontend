@@ -6,6 +6,10 @@ import { ProductI, ProductsService, UpdateProductDto } from '@services/products.
 import { firstValueFrom } from 'rxjs';
 import { ProductFormComponent } from 'src/app/components/product-form/product-form.component';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import {
+  PersonalizationsService,
+  ProductPersonalizationAssignmentDto,
+} from '@services/personalizations.service';
 
 @Component({
   selector: 'app-menu-management',
@@ -32,6 +36,7 @@ export class MenuManagementPage implements OnInit {
     private modalCtrl: ModalController,
     private _productService: ProductsService,
     private _categoryService: CategoriesService,
+    private personalizationsService: PersonalizationsService,
   ) { }
 
   ngOnInit() {
@@ -111,6 +116,7 @@ export class MenuManagementPage implements OnInit {
   async editItem(product: ProductI) {
     const modal = await this.modalCtrl.create({
       component: ProductFormComponent, // El componente del modal que creamos
+      cssClass: 'cd-product-form-modal',
       componentProps: {
         // Aquí le pasamos los datos que necesita el modal
         'categories': this.allCategories,
@@ -138,7 +144,8 @@ export class MenuManagementPage implements OnInit {
         data.product.description,
         data.product.categoryId,
         data.product.isActive,
-        data.file ?? null
+        data.file ?? null,
+        data.personalizations ?? [],
       );
     }
   }
@@ -151,15 +158,18 @@ export class MenuManagementPage implements OnInit {
     const pastParticiple = newStatus ? 'reactivado' : 'desactivado';
 
     const alert = await this.alertCtrl.create({
-      header: `Confirmar Acción`,
+      header: newStatus ? 'Reactivar producto' : 'Desactivar producto',
       message: `¿Estás seguro de que deseas ${actionText} el producto '${product.name}'?`,
+      cssClass: ['confirmation-action-alert'],
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: actionText.charAt(0).toUpperCase() + actionText.slice(1),
+          cssClass: 'alert-primary-action',
           handler: async () => {
             // Prepara los datos para la actualización
             const updatedData: UpdateProductDto = { isActive: newStatus };
@@ -189,6 +199,7 @@ export class MenuManagementPage implements OnInit {
   async addNewItem() {
     const modal = await this.modalCtrl.create({
       component: ProductFormComponent, // El componente del modal que creamos
+      cssClass: 'cd-product-form-modal',
       componentProps: {
         // Aquí le pasamos los datos que necesita el modal
         'categories': this.allCategories,
@@ -211,7 +222,8 @@ export class MenuManagementPage implements OnInit {
         data.product.cost,
         data.product.description,
         data.product.categoryId,
-        data.file = data.file ?? null
+        data.file ?? null,
+        data.personalizations ?? [],
       );
     }
   }
@@ -251,7 +263,17 @@ export class MenuManagementPage implements OnInit {
   }
 
   // Actualiza el producto usando el servicio
-  private async updateProduct(id: number, name: string, price: number, cost: number, description: string | undefined, categoryId: number, isActive: boolean, file: File | null) {
+  private async updateProduct(
+    id: number,
+    name: string,
+    price: number,
+    cost: number,
+    description: string | undefined,
+    categoryId: number,
+    isActive: boolean,
+    file: File | null,
+    personalizations: ProductPersonalizationAssignmentDto[],
+  ) {
     try {
       const updateProductData = {
         name,
@@ -265,23 +287,48 @@ export class MenuManagementPage implements OnInit {
 
       console.log(file);
       
-      const createdProduct = await firstValueFrom(
+      const updatedProduct = await firstValueFrom(
         this._productService.updateProduct(id, updateProductData, file)
       );
 
-      this.presentToast('Producto actualizado exitosamente.');
+      try {
+        await firstValueFrom(
+          this.personalizationsService.syncProductPersonalizations(
+            updatedProduct.id ?? id,
+            personalizations,
+          ),
+        );
+      } catch (personalizationError) {
+        console.error('El producto se actualizó, pero falló su configuración:', personalizationError);
+        this.presentToast(
+          'El producto se actualizó, pero no fue posible guardar sus personalizaciones. Intenta editarlo nuevamente.',
+          'warning',
+        );
+        await this.loadData();
+        return;
+      }
+
+      this.presentToast('Producto y personalizaciones actualizados exitosamente.');
 
       // Recargar datos para asegurar consistencia
       await this.loadData();
 
     } catch (error) {
-      console.error('Error al crear el producto:', error);
-      this.presentToast('Hubo un error al guardar el producto.', 'danger');
+      console.error('Error al actualizar el producto:', error);
+      this.presentToast(this.getProductSaveErrorMessage(error), 'danger');
     }
   }
 
   // Crea el producto usando el servicio
-  private async createProduct(name: string, price: number, cost: number, description: string | undefined, categoryId: number, file: File | null) {
+  private async createProduct(
+    name: string,
+    price: number,
+    cost: number,
+    description: string | undefined,
+    categoryId: number,
+    file: File | null,
+    personalizations: ProductPersonalizationAssignmentDto[] = [],
+  ) {
     try {
       const newProductData = {
         name,
@@ -297,15 +344,65 @@ export class MenuManagementPage implements OnInit {
         this._productService.addProduct(newProductData, file)
       );
 
-      this.presentToast('Producto añadido exitosamente.');
+      try {
+        await firstValueFrom(
+          this.personalizationsService.syncProductPersonalizations(
+            createdProduct.id,
+            personalizations,
+          ),
+        );
+      } catch (personalizationError) {
+        console.error('El producto se creó, pero falló su configuración:', personalizationError);
+        this.presentToast(
+          'El producto se creó, pero no fue posible guardar sus personalizaciones. Puedes completarlas al editarlo.',
+          'warning',
+        );
+        await this.loadData();
+        return;
+      }
+
+      this.presentToast('Producto y personalizaciones guardados exitosamente.');
 
       // Recargar datos para asegurar consistencia
       await this.loadData();
 
     } catch (error) {
       console.error('Error al crear el producto:', error);
-      this.presentToast('Hubo un error al guardar el producto.', 'danger');
+      this.presentToast(this.getProductSaveErrorMessage(error), 'danger');
     }
+  }
+
+  private getProductSaveErrorMessage(error: any): string {
+    if (error?.status === 409) {
+      return 'Ya existe un producto con ese nombre.';
+    }
+
+    if (error?.status === 422) {
+      const validationErrors = Array.isArray(error?.error?.errors)
+        ? error.error.errors
+        : [];
+      const fields = validationErrors.map((item: any) => item?.field);
+
+      if (fields.includes('image')) {
+        return 'La imagen no es válida. Usa un archivo JPG, PNG o WEBP de máximo 5 MB.';
+      }
+
+      if (fields.includes('categoryId')) {
+        return 'La categoría seleccionada ya no está disponible. Actualiza la vista y selecciónala nuevamente.';
+      }
+
+      if (fields.includes('name')) {
+        return 'Revisa el nombre del producto. Debe tener entre 2 y 150 caracteres.';
+      }
+
+      if (fields.includes('price') || fields.includes('cost')) {
+        return 'Revisa el precio y el costo del producto. Usa valores numéricos válidos.';
+      }
+
+      return 'No fue posible guardar el producto. Revisa los datos ingresados e inténtalo nuevamente.';
+    }
+
+    return error?.error?.message || 'Hubo un error al guardar el producto.';
   }
 
   // Muestra una alerta de confirmación para eliminar un producto

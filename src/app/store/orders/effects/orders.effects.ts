@@ -56,6 +56,11 @@ export class OrdersEffects {
           .map((item) => ({
             productId: item.id!, // El '!' le dice a TS "confía en mí, esto no es nulo"
             quantity: item.quantity,
+            modifierSelections: (item.modifierSelections || []).map((selection) => ({
+              modifierGroupId: selection.modifierGroupId,
+              modifierOptionId: selection.modifierOptionId,
+              quantity: selection.quantity,
+            })),
           }));
 
         console.log(order.paymentDetails);
@@ -164,6 +169,12 @@ export class OrdersEffects {
         const orderItemsToSend = (order.orderItems as any[]).map((item) => ({
           productId: item.id, // Tomamos el 'id' del producto
           quantity: item.quantity, // Tomamos la 'quantity' que ya viene calculada
+          ...(item.orderItemId && { orderItemId: item.orderItemId }),
+          modifierSelections: (item.modifierSelections || []).map((selection: any) => ({
+            modifierGroupId: selection.modifierGroupId,
+            modifierOptionId: selection.modifierOptionId,
+            quantity: selection.quantity,
+          })),
         }));
 
         // 2. Construimos el objeto final para la API

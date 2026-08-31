@@ -1,30 +1,44 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border cd-management-header">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
-    </ion-buttons>
-    <ion-title>
-      <h1>Gestión de Menú</h1>
-      <p>Añade, edita o elimina productos</p>
-    </ion-title>
+    <div class="cd-toolbar-layout">
+      <ion-buttons>
+        <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+      </ion-buttons>
+      <div class="cd-title-group">
+        <h1>Gestión de Menú</h1>
+        <p>Administra los productos disponibles para tus pedidos</p>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <div *ngFor="let group of groupedMenu | keyvalue" class="category-section">
-    <ion-list-header>
-      <h2>{{ group.key }}</h2>
-    </ion-list-header>
+<ion-content class="ion-padding cd-management-content">
+  <section *ngFor="let group of groupedMenu | keyvalue" class="category-section">
+    <div class="category-heading">
+      <span class="category-heading-icon"><ion-icon name="grid-outline"></ion-icon></span>
+      <div>
+        <h2>{{ group.key }}</h2>
+        <p>{{ group.value.length }} {{ group.value.length === 1 ? 'producto' : 'productos' }}</p>
+      </div>
+    </div>
 
-    <ion-list lines="none">
-      <ion-item *ngFor="let item of group.value" [class.item-inactive]="!item.isActive"
-        [class.unavailable]="!item.isAvailable">
-
-        <ion-avatar slot="start">
-          <img class="product-avatar" *ngIf="protectedImages.get(item.id); else noImage" [src]="protectedImages.get(item.id)" />
+    <ion-list lines="none" class="cd-management-list">
+      <ion-item
+        *ngFor="let item of group.value"
+        class="cd-management-item product-item"
+        [class.is-inactive]="!item.isActive"
+        [class.unavailable]="!item.isAvailable"
+      >
+        <ion-avatar slot="start" class="product-image-shell">
+          <img
+            class="product-avatar"
+            *ngIf="protectedImages.get(item.id); else noImage"
+            [src]="protectedImages.get(item.id)"
+            [alt]="item.name"
+          />
 
           <ng-template #noImage>
-            <div class="product-avatar flex justify-center align-items-center">
+            <div class="product-avatar product-placeholder">
               <ion-icon name="fast-food-outline"></ion-icon>
             </div>
           </ng-template>
@@ -32,33 +46,48 @@
 
         <ion-label>
           <h3>{{ item.name }}</h3>
-          <p>{{ item.price | currency:'COP':'$' }}</p>
+          <p>{{ item.price | currency:'COP':'$':'1.0-0' }}</p>
         </ion-label>
 
-        <ion-badge class="badge-status" slot="end" [color]="item.isActive ? 'success' : 'medium'">
+        <span slot="end" class="cd-status-pill" [class.is-active]="item.isActive">
           {{ item.isActive ? 'Activo' : 'Inactivo' }}
-        </ion-badge>
+        </span>
 
-        <div class="item-actions" slot="end">
-          <!-- <ion-toggle [checked]="item.isAvailable" (ionChange)="toggleAvailability(item, $event)" mode="ios"
-            title="Disponibilidad (hoy)"></ion-toggle> -->
-
-          <ion-button fill="clear" color="medium" (click)="editItem(item)">
+        <ion-buttons slot="end" class="product-actions">
+          <ion-button
+            class="cd-icon-action"
+            fill="clear"
+            color="medium"
+            [attr.aria-label]="'Editar ' + item.name"
+            (click)="editItem(item)"
+          >
             <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
           </ion-button>
 
-          <ion-button fill="clear" [color]="item.isActive ? 'danger' : 'warning'" (click)="toggleProductStatus(item)">
-            <ion-icon slot="icon-only" [name]="item.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+          <ion-button
+            class="cd-icon-action"
+            fill="clear"
+            [color]="item.isActive ? 'danger' : 'warning'"
+            [attr.aria-label]="(item.isActive ? 'Desactivar ' : 'Reactivar ') + item.name"
+            (click)="toggleProductStatus(item)"
+          >
+            <ion-icon slot="icon-only" [name]="item.isActive ? 'pause-outline' : 'refresh-outline'"></ion-icon>
           </ion-button>
-        </div>
+        </ion-buttons>
       </ion-item>
     </ion-list>
+  </section>
+
+  <div *ngIf="groupedMenu.size === 0" class="empty-state">
+    <ion-icon name="restaurant-outline"></ion-icon>
+    <h2>Aún no tienes productos</h2>
+    <p>Crea el primero para comenzar a construir tu menú.</p>
+    <ion-button (click)="addNewItem()">Crear primer producto</ion-button>
   </div>
+
+  <ion-fab class="cd-management-fab" vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="addNewItem()" aria-label="Crear producto">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
-
-
-<ion-fab vertical="bottom" horizontal="end" slot="fixed">
-  <ion-fab-button (click)="addNewItem()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>

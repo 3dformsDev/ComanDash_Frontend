@@ -58,7 +58,8 @@ export class PaymentMethodsManagementPage implements OnInit {
       component: PaymentMethodFormComponent,
       componentProps: {
         mode: 'new',
-      }
+      },
+      cssClass: 'cd-payment-method-form-modal',
     });
 
 
@@ -87,7 +88,8 @@ export class PaymentMethodsManagementPage implements OnInit {
         mode: 'edit',
         // Creamos una copia del objeto para no modificar el original en tiempo real
         paymentMethod: { ...methodToEdit }
-      }
+      },
+      cssClass: 'cd-payment-method-form-modal',
     });
 
 
@@ -190,5 +192,21 @@ export class PaymentMethodsManagementPage implements OnInit {
     });
 
     await alert.present();
+  }
+
+  getMethodIcon(type: string): string {
+    const icons: Record<string, string> = {
+      cash: 'cash-outline',
+      card: 'card-outline',
+      digital: 'phone-portrait-outline',
+      transfer: 'swap-horizontal-outline',
+      other: 'wallet-outline',
+    };
+
+    return icons[type] || 'wallet-outline';
+  }
+
+  getMethodTypeLabel(type: string): string {
+    return this.paymentMethodTypes[type as keyof typeof this.paymentMethodTypes] || 'Otro';
   }
 }

@@ -7,6 +7,7 @@ import { switchMap, take } from 'rxjs/operators';
 import { AppState } from '@capacitor/app';
 import { Store } from '@ngrx/store';
 import { selectLocationCompany } from '@store/auth/selectors/auth.selectors';
+import { TableZoneI } from './table-zones.service';
 
 // Interfaz para la estructura de una mesa, coincidiendo con la API
 export interface TableI {
@@ -16,6 +17,8 @@ export interface TableI {
   tableNumber: string;
   capacity: number;
   zone: string | null;
+  zoneId: number | null;
+  tableZone?: TableZoneI | null;
   isBussy: boolean;
   isActive: boolean;
   createdAt: string;
@@ -33,6 +36,8 @@ export interface ApiResponse<T> {
 export interface CreateTableDto {
   tableNumber: string;
   capacity: number;
+  zone?: string | null;
+  zoneId?: number | null;
   locationId?: number;
   isActive?: boolean;
   // Agrega aquí otros campos que necesites enviar, como locationId

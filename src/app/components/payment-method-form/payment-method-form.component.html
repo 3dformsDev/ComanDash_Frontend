@@ -1,52 +1,57 @@
-<ion-header class="custom-header">
+<ion-header class="ion-no-border method-form-header">
   <ion-toolbar>
-    <ion-title class="header-title">
-      {{ mode === 'new' ? 'Nuevo Método de Pago' : 'Editar Método de Pago' }}
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" class="cancel-btn" (click)="dismiss()">
-        <ion-icon name="close-outline" slot="start"></ion-icon>
-        Cancelar
+    <div class="method-form-heading">
+      <div>
+        <h1>{{ mode === 'new' ? 'Nuevo método de pago' : 'Editar método de pago' }}</h1>
+        <p>Define cómo identificar esta forma de pago.</p>
+      </div>
+      <ion-button fill="clear" aria-label="Cerrar" (click)="dismiss()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
-    </ion-buttons>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="form-content">
-  <div class="form-container">
-    <div class="form-section">
-
-      <!-- Campo para el Nombre -->
-      <div class="input-group">
-        <ion-item class="custom-item" lines="none">
-          <ion-label position="stacked" class="custom-label">Nombre del método *</ion-label>
-          <ion-input type="text" [(ngModel)]="paymentMethod.name" class="custom-input"
-            placeholder="Ej: Efectivo, Tarjeta Visa">
-          </ion-input>
-        </ion-item>
-      </div>
-
-      <!-- CAMBIO: Este es el selector para el tipo de método de pago -->
-      <div class="input-group">
-        <ion-item class="custom-item" lines="none">
-          <ion-label position="stacked" class="custom-label">Tipo *</ion-label>
-          <ion-select placeholder="Selecciona un tipo" [(ngModel)]="paymentMethod.type" class="custom-select"
-            interface="popover">
-            <!-- Iteramos sobre el objeto de tipos definido en el TS -->
-            <ion-select-option *ngFor="let key of getObjectKeys(paymentMethodTypes)" [value]="key">
-              {{ getTypeLabel(key) }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-      </div>
-
+<ion-content class="method-form-content">
+  <div class="method-form-fields">
+    <div class="form-field">
+      <label for="method-name">Nombre del método</label>
+      <ion-input
+        id="method-name"
+        fill="outline"
+        type="text"
+        maxlength="80"
+        [(ngModel)]="paymentMethod.name"
+        placeholder="Ej. Efectivo o Tarjeta Visa"
+      ></ion-input>
     </div>
 
-    <div class="button-section">
-      <ion-button expand="block" class="save-btn" (click)="save()" [disabled]="!isFormValid()">
-        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-        Guardar Método
-      </ion-button>
+    <div class="form-field">
+      <label for="method-type">Tipo</label>
+      <ion-select
+        id="method-type"
+        fill="outline"
+        interface="popover"
+        placeholder="Selecciona un tipo"
+        [(ngModel)]="paymentMethod.type"
+      >
+        <ion-select-option *ngFor="let key of getObjectKeys(paymentMethodTypes)" [value]="key">
+          {{ getTypeLabel(key) }}
+        </ion-select-option>
+      </ion-select>
+      <p>El tipo ayuda a COMANDASH a presentar correctamente cada forma de pago.</p>
     </div>
   </div>
 </ion-content>
+
+<ion-footer class="ion-no-border method-form-footer">
+  <ion-toolbar>
+    <div class="method-form-actions">
+      <ion-button fill="clear" class="cancel-action" (click)="dismiss()">Cancelar</ion-button>
+      <ion-button class="save-action" [disabled]="!isFormValid()" (click)="save()">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        {{ mode === 'new' ? 'Crear método' : 'Guardar cambios' }}
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

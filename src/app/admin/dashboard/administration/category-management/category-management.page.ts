@@ -37,7 +37,8 @@ export class CategoryManagementPage implements OnInit {
   async addCategory() {
     const alert = await this.alertCtrl.create({
       header: 'Nueva Categoría',
-      message: 'Escribe el nombre de la nueva categoría.',
+      message: 'Crea una sección para organizar tus productos, por ejemplo Bebidas, Cócteles, Hamburguesas o Postres.',
+      cssClass: ['management-form-alert'],
       inputs: [
         {
           name: 'categoryName',
@@ -46,9 +47,10 @@ export class CategoryManagementPage implements OnInit {
         }
       ],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Cancelar', role: 'cancel', cssClass: 'alert-secondary-action' },
         {
           text: 'Guardar',
+          cssClass: 'alert-primary-action',
           handler: (data) => {
             const categoryName = data.categoryName.trim();
             if (categoryName) {
@@ -89,6 +91,7 @@ export class CategoryManagementPage implements OnInit {
   async editCategory(categoryToEdit: CategoryI) {
     const alert = await this.alertCtrl.create({
       header: 'Editar Categoría',
+      cssClass: ['management-form-alert'],
       inputs: [
         {
           name: 'categoryName',
@@ -97,9 +100,10 @@ export class CategoryManagementPage implements OnInit {
         },
       ],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Cancelar', role: 'cancel', cssClass: 'alert-secondary-action' },
         {
           text: 'Actualizar',
+          cssClass: 'alert-primary-action',
           handler: (data) => {
             const newName = data.categoryName.trim();
             const newStatus = data.isActive; // Obtenemos el valor del checkbox
@@ -161,11 +165,12 @@ export class CategoryManagementPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Confirmar Eliminación',
       message: `¿Seguro que quieres eliminar la categoría: ${categoryToDelete.name}? Esta acción no se puede deshacer.`, // Usamos <strong> para semántica
+      cssClass: ['confirmation-action-alert'],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Cancelar', role: 'cancel', cssClass: 'alert-secondary-action' },
         {
           text: 'Eliminar',
-          cssClass: 'alert-button-danger', // Clase para dar color rojo al texto
+          cssClass: 'alert-primary-action',
           handler: () => {
             // ✅ Llama al servicio para eliminar
             this._categoryService.deleteCategory(categoryToDelete.id).subscribe({
@@ -215,15 +220,18 @@ export class CategoryManagementPage implements OnInit {
     const pastParticiple = newStatus ? 'reactivada' : 'desactivada';
 
     const alert = await this.alertCtrl.create({
-      header: `Confirmar Acción`,
+      header: newStatus ? 'Reactivar categoría' : 'Desactivar categoría',
       message: `¿Estás seguro de que deseas ${actionText} la categoría '${category.name}'?`,
+      cssClass: ['confirmation-action-alert'],
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel',
+          cssClass: 'alert-secondary-action',
         },
         {
           text: actionText.charAt(0).toUpperCase() + actionText.slice(1), // Pone la primera letra en mayúscula
+          cssClass: 'alert-primary-action',
           handler: () => {
             const updatedData: UpdateCategoryDto = { isActive: newStatus };
 

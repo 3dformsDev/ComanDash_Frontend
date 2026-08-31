@@ -1,16 +1,18 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border cd-management-header">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button text="" defaultHref="/admin"></ion-back-button>
-    </ion-buttons>
-    <ion-title>
-      <h1>Gestión de Cajas</h1>
-      <p>Configura y opera tus cajas registradoras</p>
-    </ion-title>
+    <div class="cd-toolbar-layout">
+      <ion-buttons>
+        <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+      </ion-buttons>
+      <div class="cd-title-group">
+        <h1>Gestión de Cajas</h1>
+        <p>Configura y opera tus cajas registradoras</p>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding cd-management-content">
   <section
     *ngIf="operatingState?.status === 'open_previous'"
     class="previous-cash-card"
@@ -99,8 +101,12 @@
     </p>
   </section>
 
-  <ion-list lines="none">
-    <ion-item *ngFor="let box of allCashRegisters" [ngClass]="{'item-inactive': !box.isActive}">
+  <ion-list lines="none" class="cd-management-list cash-register-list">
+    <ion-item *ngFor="let box of allCashRegisters" class="cd-management-item cash-register-item" [class.is-inactive]="!box.isActive">
+
+      <span slot="start" class="cash-register-icon" [class.is-open]="box.cashRegisterSession.isOpen">
+        <ion-icon name="storefront-outline"></ion-icon>
+      </span>
 
       <ion-label>
         <h2 class="dark">{{ box.name }}</h2>
@@ -109,9 +115,9 @@
         </p>
       </ion-label>
 
-      <ion-badge class="badge-status" slot="end" [color]="(box.cashRegisterSession.isOpen) ? 'success' : 'medium'">
+      <span class="cd-status-pill cash-status-pill" slot="end" [class.is-active]="box.cashRegisterSession.isOpen">
         {{ (box.cashRegisterSession.isOpen) ? 'Abierta' : 'Cerrada' }}
-      </ion-badge>
+      </span>
 
       <ion-buttons slot="end" class="cash-actions">
         <ion-button class="session-action open-action" *ngIf="(!box.cashRegisterSession.isOpen) && box.isActive" fill="outline" color="success"
@@ -125,11 +131,11 @@
           Cerrar caja
         </ion-button>
 
-        <ion-button fill="clear" color="medium" (click)="editCashRegister(box)">
+        <ion-button class="cd-icon-action" fill="clear" color="medium" [attr.aria-label]="'Editar ' + box.name" (click)="editCashRegister(box)">
           <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
         </ion-button>
 
-        <ion-button fill="clear" [color]="box.isActive ? 'danger' : 'warning'" (click)="toggleRegisterStatus(box)">
+        <ion-button class="cd-icon-action" fill="clear" [color]="box.isActive ? 'danger' : 'warning'" [attr.aria-label]="(box.isActive ? 'Desactivar ' : 'Reactivar ') + box.name" (click)="toggleRegisterStatus(box)">
           <ion-icon slot="icon-only" [name]="box.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -143,14 +149,17 @@
     </p>
   </ion-note>
 
-  <p *ngIf="allCashRegisters.length === 0" class="empty-message">
-    No has configurado ninguna caja registradora.
-  </p>
+  <div *ngIf="allCashRegisters.length === 0" class="empty-state">
+    <ion-icon name="storefront-outline"></ion-icon>
+    <h2>Aún no tienes cajas registradoras</h2>
+    <p>Crea la primera para comenzar a registrar la operación.</p>
+    <ion-button (click)="addCashRegister()">Crear caja registradora</ion-button>
+  </div>
 
 </ion-content>
 
-<ion-fab *ngIf="allCashRegisters.length === 0" vertical="bottom" horizontal="end" slot="fixed">
+<ion-fab *ngIf="allCashRegisters.length === 0" class="cd-management-fab" vertical="bottom" horizontal="end" slot="fixed">
   <ion-fab-button (click)="addCashRegister()">
-    <ion-icon name="add"></ion-icon>
+    <ion-icon name="add-outline"></ion-icon>
   </ion-fab-button>
 </ion-fab>

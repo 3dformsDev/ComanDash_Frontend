@@ -6,6 +6,12 @@ import { CategoryI } from '@services/categories.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { ProductsService } from '@services/products.service';
+import {
+  ModifierGroupI,
+  PersonalizationsService,
+  ProductPersonalizationAssignmentDto,
+} from '@services/personalizations.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-product-form',
@@ -15,6 +21,9 @@ import { ProductsService } from '@services/products.service';
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class ProductFormComponent implements OnInit {
+  private readonly supportedImageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+  private readonly supportedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
 
   @Input() categories: CategoryI[] = [];
   @Input() mode: 'new' | 'edit' = 'new';
@@ -33,6 +42,10 @@ export class ProductFormComponent implements OnInit {
   selectedImageFile: File | null = null;
   isNative: boolean = false;
   public protectedImages = new Map<number, string>();
+  public modifierGroups: ModifierGroupI[] = [];
+  public productPersonalizations: ProductPersonalizationAssignmentDto[] = [];
+  public selectedModifierGroupId: number | null = null;
+  public personalizationsLoading = false;
 
   constructor(
     private modalCtrl: ModalController,
@@ -40,6 +53,7 @@ export class ProductFormComponent implements OnInit {
     private sanitizer: DomSanitizer,
     private platform: Platform,
     private _productService: ProductsService,
+    private personalizationsService: PersonalizationsService,
   ) { }
 
   ngOnInit() {
@@ -55,6 +69,8 @@ export class ProductFormComponent implements OnInit {
         }
       this.selectedImagePreview = this.product.imageUrl;
     }
+
+    void this.loadPersonalizations();
   }
 
   dismiss() {
@@ -77,8 +93,111 @@ export class ProductFormComponent implements OnInit {
 
     this.modalCtrl.dismiss({
       product: productData,
-      file: this.selectedImageFile
+      file: this.selectedImageFile,
+      personalizations: this.productPersonalizations.map((assignment, index) => ({
+        ...assignment,
+        displayOrder: index,
+      })),
     }, 'save');
+  }
+
+  get availableModifierGroups(): ModifierGroupI[] {
+    const assignedIds = new Set(
+      this.productPersonalizations.map((assignment) => assignment.modifierGroupId),
+    );
+    return this.modifierGroups.filter((group) => group.isActive && !assignedIds.has(group.id));
+  }
+
+  getModifierGroup(groupId: number): ModifierGroupI | undefined {
+    return this.modifierGroups.find((group) => group.id === groupId);
+  }
+
+  getActiveOptionsCount(groupId: number): number {
+    return this.getModifierGroup(groupId)?.options.filter((option) => option.isActive).length || 0;
+  }
+
+  addModifierGroup() {
+    if (!this.selectedModifierGroupId) return;
+    const group = this.getModifierGroup(this.selectedModifierGroupId);
+    if (!group || this.productPersonalizations.some((item) => item.modifierGroupId === group.id)) {
+      return;
+    }
+
+    this.productPersonalizations = [
+      ...this.productPersonalizations,
+      {
+        modifierGroupId: group.id,
+        isRequired: true,
+        selectionLimit: 1,
+        allowOptionQuantities: false,
+        displayOrder: this.productPersonalizations.length,
+      },
+    ];
+    this.selectedModifierGroupId = null;
+  }
+
+  removeModifierGroup(groupId: number) {
+    this.productPersonalizations = this.productPersonalizations
+      .filter((item) => item.modifierGroupId !== groupId)
+      .map((item, index) => ({ ...item, displayOrder: index }));
+  }
+
+  moveModifierGroup(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= this.productPersonalizations.length) return;
+
+    const reordered = [...this.productPersonalizations];
+    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+    this.productPersonalizations = reordered.map((item, displayOrder) => ({
+      ...item,
+      displayOrder,
+    }));
+  }
+
+  normalizeSelectionLimit(assignment: ProductPersonalizationAssignmentDto) {
+    const parsed = Number(assignment.selectionLimit);
+    assignment.selectionLimit = Number.isFinite(parsed) ? Math.max(1, Math.min(50, parsed)) : 1;
+
+    if (assignment.selectionLimit <= 1) {
+      assignment.allowOptionQuantities = false;
+    }
+
+    const activeOptions = this.getModifierGroup(assignment.modifierGroupId)?.options.filter(
+      (option) => option.isActive,
+    ).length;
+    if (!assignment.allowOptionQuantities && activeOptions && assignment.selectionLimit > activeOptions) {
+      assignment.selectionLimit = activeOptions;
+      void this.presentToast(
+        `Este grupo tiene ${activeOptions} opciones activas. Activa “Permitir repetir” para elegir más veces.`,
+      );
+    }
+  }
+
+  private async loadPersonalizations() {
+    this.personalizationsLoading = true;
+    try {
+      this.modifierGroups = await firstValueFrom(this.personalizationsService.getGroups(false));
+
+      if (this.mode === 'edit' && this.product?.id) {
+        const configuration = await firstValueFrom(
+          this.personalizationsService.getProductPersonalizations(this.product.id, true),
+        );
+        this.productPersonalizations = configuration.groups
+          .filter((group) => group.isActive)
+          .map((group) => ({
+            modifierGroupId: group.modifierGroupId,
+            isRequired: group.isRequired,
+            selectionLimit: group.selectionLimit,
+            allowOptionQuantities: group.allowOptionQuantities,
+            displayOrder: group.displayOrder,
+          }));
+      }
+    } catch (error) {
+      console.error('Error al cargar personalizaciones del producto:', error);
+      await this.presentToast('No fue posible cargar las personalizaciones del producto.');
+    } finally {
+      this.personalizationsLoading = false;
+    }
   }
 
   /**
@@ -124,7 +243,16 @@ export class ProductFormComponent implements OnInit {
 
       if (image && image.webPath) {
         this.selectedImagePreview = this.sanitizer.bypassSecurityTrustResourceUrl(image.webPath);
-        this.selectedImageFile = await this.uriToFile(image);
+        const selectedFile = await this.uriToFile(image);
+
+        if (!this.isSupportedImage(selectedFile)) {
+          this.selectedImagePreview = null;
+          this.selectedImageFile = null;
+          this.presentToast('Formato no compatible. Usa una imagen JPG, PNG o WEBP.');
+          return;
+        }
+
+        this.selectedImageFile = selectedFile;
       }
     } catch (error) {
       console.error('Error al seleccionar imagen (nativo):', error);
@@ -163,10 +291,13 @@ export class ProductFormComponent implements OnInit {
   handleWebFileSelection(event: any) {
     const file = event.target?.files?.[0];
 
-    if (file && file.type.startsWith('image/')) {
+    if (file && this.isSupportedImage(file)) {
       // Validar tamaño (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
         this.presentToast('La imagen es muy grande. Selecciona una imagen menor a 5MB.');
+        if (event.target) {
+          event.target.value = '';
+        }
         return;
       }
 
@@ -180,8 +311,19 @@ export class ProductFormComponent implements OnInit {
       // Guardar archivo
       this.selectedImageFile = file;
     } else {
-      this.presentToast('Por favor, selecciona un archivo de imagen válido.');
+      this.presentToast('Formato no compatible. Usa una imagen JPG, PNG o WEBP.');
+      if (event.target) {
+        event.target.value = '';
+      }
     }
+  }
+
+  private isSupportedImage(file: File): boolean {
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    const hasSupportedExtension = this.supportedImageExtensions.includes(extension);
+    const hasSupportedType = !file.type || this.supportedImageTypes.includes(file.type.toLowerCase());
+
+    return hasSupportedExtension && hasSupportedType;
   }
 
   /**
@@ -235,7 +377,23 @@ export class ProductFormComponent implements OnInit {
     const isPriceValid = price !== null && price > 0;
     const isCostValid = cost !== null;
     const isCategoryValid = categoryId !== null;
-    return isNameValid && isPriceValid && isCostValid && isCategoryValid;
+    const arePersonalizationsValid = this.productPersonalizations.every((assignment) => {
+      const group = this.getModifierGroup(assignment.modifierGroupId);
+      const activeOptions = group?.options.filter((option) => option.isActive).length || 0;
+      return (
+        assignment.selectionLimit >= 1 &&
+        activeOptions > 0 &&
+        (assignment.allowOptionQuantities || assignment.selectionLimit <= activeOptions)
+      );
+    });
+    return (
+      isNameValid &&
+      isPriceValid &&
+      isCostValid &&
+      isCategoryValid &&
+      !this.personalizationsLoading &&
+      arePersonalizationsValid
+    );
   }
 
   async presentToast(message: string) {

@@ -12,11 +12,18 @@
 
         <div class="items-summary-list">
           <div *ngFor="let item of orderItems" class="summary-item">
-            <span>
-              {{ item.quantity }}x {{ item.category.name }} - {{ item.name }}
-            </span>
+            <div class="summary-item-main">
+              <span class="summary-item-name">
+                {{ item.quantity }}x {{ item.category.name }} - {{ item.name }}
+              </span>
+              <div class="compact-modifier-list" *ngIf="item.modifierSelections?.length">
+                <span *ngFor="let selection of item.modifierSelections">
+                  {{ selection.quantity > 1 ? selection.quantity + 'x ' : '' }}{{ selection.optionName || selection.optionNameSnapshot }}
+                </span>
+              </div>
+            </div>
 
-            <span> ${{ item.price * item.quantity | number: "1.0-0" }} </span>
+            <span class="summary-item-price">${{ item.price * item.quantity | number: "1.0-0" }}</span>
           </div>
         </div>
       </div>

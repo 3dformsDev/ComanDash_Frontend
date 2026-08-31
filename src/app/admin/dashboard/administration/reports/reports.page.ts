@@ -268,10 +268,7 @@ export class ReportsPage implements OnInit {
         Descuentos: this.getAdjustmentTotal(order, 'discount'),
         Devoluciones: this.getRefundTotal(order),
         Items: (order.orderItems || [])
-          .map(
-            (item) =>
-              `${item.quantity}x ${item.product?.name || item.name || 'Producto'}`,
-          )
+          .map((item) => this.formatOrderItemForExport(item))
           .join(' + '),
       };
     });
@@ -302,6 +299,20 @@ export class ReportsPage implements OnInit {
       workbook,
       `comandas_${this.dailyReportData.businessDate}.xlsx`,
     );
+  }
+
+  private formatOrderItemForExport(item: any): string {
+    const product = `${item.quantity}x ${item.product?.name || item.name || 'Producto'}`;
+    const selections = (item.modifierSelections || [])
+      .map((selection: any) => {
+        const prefix = Number(selection.quantity || 1) > 1
+          ? `${selection.quantity}x `
+          : '';
+        return `${prefix}${selection.optionNameSnapshot || selection.optionName || ''}`;
+      })
+      .filter(Boolean)
+      .join(', ');
+    return selections ? `${product} (${selections})` : product;
   }
 
   /**

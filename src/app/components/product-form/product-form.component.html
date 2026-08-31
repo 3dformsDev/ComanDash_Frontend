@@ -1,14 +1,14 @@
-<ion-header class="custom-header">
+<ion-header class="ion-no-border product-form-header">
   <ion-toolbar>
-    <ion-title class="header-title">
-      {{ mode === 'new' ? 'Nuevo Producto' : 'Editar Producto' }}
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" class="cancel-btn" (click)="dismiss()">
-        <ion-icon name="close-outline" slot="start"></ion-icon>
-        Cancelar
+    <div class="product-form-toolbar">
+      <div>
+        <h1>{{ mode === 'new' ? 'Nuevo producto' : 'Editar producto' }}</h1>
+        <p>Configura la información y las opciones del producto</p>
+      </div>
+      <ion-button fill="clear" class="close-form-button" (click)="dismiss()" aria-label="Cerrar formulario">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
-    </ion-buttons>
+    </div>
   </ion-toolbar>
 </ion-header>
 
@@ -56,11 +56,135 @@
         </ion-item>
       </div>
 
+      <section class="personalizations-section">
+        <div class="personalizations-heading">
+          <div>
+            <h2>Personalizaciones del producto</h2>
+            <p>Agrega las opciones que se solicitarán al tomar el pedido.</p>
+          </div>
+          <ion-spinner *ngIf="personalizationsLoading" name="crescent"></ion-spinner>
+        </div>
+
+        <div *ngIf="!personalizationsLoading" class="add-group-row">
+          <ion-item class="custom-item group-select-item" lines="none">
+            <ion-label position="stacked" class="custom-label">Grupo de opciones</ion-label>
+            <ion-select
+              [(ngModel)]="selectedModifierGroupId"
+              interface="popover"
+              placeholder="Selecciona un grupo"
+            >
+              <ion-select-option
+                *ngFor="let group of availableModifierGroups"
+                [value]="group.id"
+              >
+                {{ group.name }} · {{ group.options.length }} opciones
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-button
+            fill="outline"
+            class="add-group-btn"
+            [disabled]="!selectedModifierGroupId"
+            (click)="addModifierGroup()"
+          >
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Agregar grupo
+          </ion-button>
+        </div>
+
+        <p
+          *ngIf="!personalizationsLoading && modifierGroups.length === 0"
+          class="personalizations-empty"
+        >
+          Aún no existen grupos. Créelos primero desde Administración → Personalizaciones.
+        </p>
+
+        <p
+          *ngIf="!personalizationsLoading && modifierGroups.length > 0 && productPersonalizations.length === 0"
+          class="personalizations-empty"
+        >
+          Este producto no solicitará opciones adicionales.
+        </p>
+
+        <article
+          *ngFor="let assignment of productPersonalizations; let index = index"
+          class="assigned-group-card"
+        >
+          <div class="assigned-group-title">
+            <div>
+              <strong>{{ getModifierGroup(assignment.modifierGroupId)?.name }}</strong>
+              <small>
+                {{ getActiveOptionsCount(assignment.modifierGroupId) }} opciones disponibles
+              </small>
+            </div>
+            <ion-buttons>
+              <ion-button
+                fill="clear"
+                color="medium"
+                [disabled]="index === 0"
+                (click)="moveModifierGroup(index, -1)"
+              >
+                <ion-icon slot="icon-only" name="arrow-up-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                fill="clear"
+                color="medium"
+                [disabled]="index === productPersonalizations.length - 1"
+                (click)="moveModifierGroup(index, 1)"
+              >
+                <ion-icon slot="icon-only" name="arrow-down-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" (click)="removeModifierGroup(assignment.modifierGroupId)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </div>
+
+          <ion-item lines="none" class="rule-toggle-item">
+            <ion-label>
+              <strong>Esta elección es obligatoria</strong>
+              <p>{{ assignment.isRequired ? 'Esta selección es obligatoria' : 'Puede continuar sin elegir' }}</p>
+            </ion-label>
+            <ion-toggle [(ngModel)]="assignment.isRequired"></ion-toggle>
+          </ion-item>
+
+          <ion-item lines="none" class="rule-input-item">
+            <ion-label position="stacked">
+              {{ assignment.isRequired ? 'Cantidad de elecciones' : 'Puede elegir hasta' }}
+            </ion-label>
+            <ion-input
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="50"
+              [(ngModel)]="assignment.selectionLimit"
+              (ionBlur)="normalizeSelectionLimit(assignment)"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="rule-toggle-item">
+            <ion-label>
+              <strong>Permitir repetir opciones</strong>
+              <p>
+                {{ assignment.selectionLimit <= 1
+                  ? 'Disponible cuando se pueden elegir 2 o más opciones'
+                  : 'Ejemplo: elegir tres veces “Al pastor”' }}
+              </p>
+            </ion-label>
+            <ion-toggle
+              [(ngModel)]="assignment.allowOptionQuantities"
+              [disabled]="assignment.selectionLimit <= 1"
+              (ionChange)="normalizeSelectionLimit(assignment)"
+            ></ion-toggle>
+          </ion-item>
+        </article>
+      </section>
+
       <div class="input-group image-section">
-        <ion-label position="stacked" class="custom-label">Imagen del Producto</ion-label>
+        <ion-label position="stacked" class="custom-label">Imagen del producto</ion-label>
 
         <!-- Input file oculto para web -->
-        <input #fileInput type="file" accept="image/*" style="display: none"
+        <input #fileInput type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display: none"
           (change)="handleWebFileSelection($event)" />
 
         <div *ngIf="selectedImagePreview" class="image-preview-container">
@@ -94,7 +218,7 @@
     <div class="button-section">
       <ion-button expand="block" class="save-btn" (click)="save()" [disabled]="!isFormValid()">
         <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-        Guardar Producto
+        Guardar producto
       </ion-button>
     </div>
   </div>

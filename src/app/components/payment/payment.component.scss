@@ -83,6 +83,28 @@ ion-content.payment-modal-content {
   font-weight: 600;
 }
 
+.summary-item-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.summary-item-name {
+  display: block;
+  color: #1f2937;
+  line-height: 1.35;
+}
+
+.summary-item-price {
+  flex: 0 0 auto;
+  color: #111827;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.summary-item .compact-modifier-list {
+  margin-top: 5px;
+}
+
 /* ===================================================== */
 /* BOTTOM SECTION */
 /* ===================================================== */

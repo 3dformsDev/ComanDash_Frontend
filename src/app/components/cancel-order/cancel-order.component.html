@@ -46,6 +46,11 @@
           <div class="item-quantity">{{ item.quantity }}x</div>
           <div class="item-details">
             <span class="item-name">{{ item.product?.name }}</span>
+            <div class="compact-modifier-list" *ngIf="item.modifierSelections?.length">
+              <span *ngFor="let selection of item.modifierSelections">
+                {{ selection.quantity > 1 ? selection.quantity + 'x ' : '' }}{{ selection.optionNameSnapshot }}
+              </span>
+            </div>
           </div>
         </div>
         <div class="item-price">

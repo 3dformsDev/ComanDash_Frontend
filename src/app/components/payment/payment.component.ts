@@ -147,7 +147,10 @@ export class PaymentComponent implements OnInit {
   calculateDifference() {
     const originalQuantities = new Map<number, number>();
     this.originalOrderItems.forEach((item) => {
-      originalQuantities.set(item.productId, item.quantity);
+      originalQuantities.set(
+        item.productId,
+        (originalQuantities.get(item.productId) || 0) + Number(item.quantity || 0),
+      );
     });
 
     const newQuantities = new Map<
@@ -155,8 +158,9 @@ export class PaymentComponent implements OnInit {
       { quantity: number; price: number }
     >();
     this.orderItems.forEach((item) => {
+      const current = newQuantities.get(item.id);
       newQuantities.set(item.id, {
-        quantity: item.quantity,
+        quantity: (current?.quantity || 0) + Number(item.quantity || 0),
         price: parseFloat(item.price),
       });
     });

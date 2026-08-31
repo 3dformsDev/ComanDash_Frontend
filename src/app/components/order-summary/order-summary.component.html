@@ -31,6 +31,11 @@
           <p class="item-price">
             {{ item.price | currency: "COP" : "$" : "1.0-0" }}
           </p>
+          <div class="item-options" *ngIf="item.modifierSelections?.length">
+            <span *ngFor="let selection of item.modifierSelections">
+              {{ selection.quantity > 1 ? selection.quantity + 'x ' : '' }}{{ selection.optionName || selection.optionNameSnapshot }}
+            </span>
+          </div>
         </div>
         <div class="quantity-controls">
           <button

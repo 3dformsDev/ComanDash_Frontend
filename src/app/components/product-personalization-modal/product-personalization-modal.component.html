@@ -1,0 +1,54 @@
+<div class="personalization-sheet">
+  <header class="sheet-header">
+    <div>
+      <p class="eyebrow">Personaliza tu elección</p>
+      <h2>{{ product.name }}</h2>
+    </div>
+    <button type="button" class="close-button" (click)="dismiss()" aria-label="Cerrar">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </header>
+
+  <ion-content class="sheet-content">
+    <section class="option-group" *ngFor="let group of configuration.groups">
+      <div class="group-heading">
+        <div>
+          <h3>{{ group.name }}</h3>
+          <p>{{ groupInstruction(group) }}</p>
+        </div>
+        <span class="selection-counter" [class.complete]="groupIsValid(group)">
+          {{ selectedCount(group) }}/{{ group.selectionLimit }}
+        </span>
+      </div>
+
+      <div class="option-row" *ngFor="let option of group.options">
+        <span>{{ option.name }}</span>
+        <div class="quantity-control">
+          <button
+            type="button"
+            (click)="remove(option.id)"
+            [disabled]="quantityFor(option.id) === 0"
+            [attr.aria-label]="'Quitar ' + option.name"
+          >
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <strong>{{ quantityFor(option.id) }}</strong>
+          <button
+            type="button"
+            (click)="add(group, option.id)"
+            [disabled]="!canAdd(group, option.id)"
+            [attr.aria-label]="'Agregar ' + option.name"
+          >
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </section>
+  </ion-content>
+
+  <footer class="sheet-footer">
+    <button type="button" class="confirm-button" (click)="confirm()" [disabled]="!formIsValid">
+      AGREGAR AL PEDIDO
+    </button>
+  </footer>
+</div>

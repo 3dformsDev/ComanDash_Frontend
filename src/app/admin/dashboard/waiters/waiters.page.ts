@@ -574,6 +574,7 @@ export class WaitersPage implements OnInit, OnDestroy {
       quantity: item.quantity,
       price: parseFloat(item.unitPrice),
       category: item.product.category,
+      modifierSelections: item.modifierSelections || [],
     }));
 
     const subtotalAmount = this.getOrderSubtotalAmount(order, itemsForPayment);

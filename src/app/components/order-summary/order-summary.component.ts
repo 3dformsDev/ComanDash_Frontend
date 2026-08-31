@@ -29,6 +29,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   @Input() originalOrderItems: any[] = [];
   @Input() originalKitchenNotes: string = '';
   @Input() protectedItemQuantities: Record<number, number> = {};
+  @Input() protectedLineQuantities: Record<string, number> = {};
   @Input() onDraftKitchenNotesChange?: (notes: string) => void;
   @ViewChild('confirmButton', { static: false }) confirmButton!: ElementRef;
 
@@ -91,10 +92,11 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   groupItems() {
     const grouped = new Map();
     this.orderItems.forEach((item) => {
-      if (grouped.has(item.id)) {
-        grouped.get(item.id).quantity++;
+      const lineKey = item.lineKey || `${item.id}::standard`;
+      if (grouped.has(lineKey)) {
+        grouped.get(lineKey).quantity++;
       } else {
-        grouped.set(item.id, { ...item, quantity: 1 });
+        grouped.set(lineKey, { ...item, lineKey, quantity: 1 });
       }
     });
     this.groupedOrderItems = Array.from(grouped.values());
@@ -116,7 +118,10 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const index = this.orderItems.findIndex((i) => i.id === item.id);
+    const index = this.orderItems.findIndex(
+      (candidate) =>
+        (candidate.lineKey || `${candidate.id}::standard`) === item.lineKey,
+    );
     if (index > -1) {
       // ✅ Crea un nuevo array excluyendo el elemento
       this.orderItems = this.orderItems.filter((_, i) => i !== index);
@@ -133,7 +138,10 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
       return true;
     }
 
-    return Number(item.quantity || 0) > this.getProtectedQuantity(item.id);
+    return (
+      Number(item.quantity || 0) >
+      Number(this.protectedLineQuantities[item.lineKey] || 0)
+    );
   }
 
   onKitchenNotesChange(notes: string): void {
@@ -174,7 +182,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
         componentProps: {
           orderToPay: {
             items: this.groupedOrderItems.reduce((obj, item) => {
-              obj[item.id] = item;
+              obj[item.lineKey || item.id] = item;
               return obj;
             }, {}),
           },
@@ -321,14 +329,21 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
 
     const originalMap = new Map<number, number>();
     this.originalOrderItems.forEach((item) => {
-      originalMap.set(item.productId, item.quantity);
+      originalMap.set(
+        item.productId,
+        (originalMap.get(item.productId) || 0) + Number(item.quantity || 0),
+      );
     });
 
-    for (const newItem of this.groupedOrderItems) {
-      const originalQty = originalMap.get(newItem.id);
-      if (!originalQty || originalQty !== newItem.quantity) {
-        return true; // Si una cantidad no coincide, cambiaron
-      }
+    const currentMap = new Map<number, number>();
+    this.groupedOrderItems.forEach((item) => {
+      currentMap.set(
+        item.id,
+        (currentMap.get(item.id) || 0) + Number(item.quantity || 0),
+      );
+    });
+    for (const productId of new Set([...originalMap.keys(), ...currentMap.keys()])) {
+      if ((originalMap.get(productId) || 0) !== (currentMap.get(productId) || 0)) return true;
     }
     return false; // Si todo coincide, no cambiaron
   }
@@ -341,7 +356,10 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
 
     const originalQuantities = new Map<number, number>();
     this.originalOrderItems.forEach((item) => {
-      originalQuantities.set(item.productId, item.quantity);
+      originalQuantities.set(
+        item.productId,
+        (originalQuantities.get(item.productId) || 0) + Number(item.quantity || 0),
+      );
     });
 
     const newQuantities = new Map<
@@ -349,8 +367,9 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
       { quantity: number; price: number }
     >();
     this.groupedOrderItems.forEach((item) => {
+      const current = newQuantities.get(item.id);
       newQuantities.set(item.id, {
-        quantity: item.quantity,
+        quantity: (current?.quantity || 0) + Number(item.quantity || 0),
         price: parseFloat(item.price),
       });
     });

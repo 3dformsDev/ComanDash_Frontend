@@ -26,10 +26,19 @@ import { ToastService } from '@services/toast.service';
 import { Order, OrderItem, OrdersState } from '@store/orders/orders.state';
 import { selectOrdersFeature } from '@store/orders/selectors/orders.selector';
 import { OrderService } from '@services/order.service';
+import {
+  OrderLineModifierSelectionI,
+  PersonalizationsService,
+  ProductPersonalizationsI,
+} from '@services/personalizations.service';
+import { ProductPersonalizationModalComponent } from 'src/app/components/product-personalization-modal/product-personalization-modal.component';
 
 interface GroupedProduct extends ProductI {
   id: number;
   quantity: number;
+  lineKey: string;
+  orderItemId?: number;
+  modifierSelections: OrderLineModifierSelectionI[];
 }
 
 @Component({
@@ -60,6 +69,8 @@ export class OrdersPage implements OnInit, OnDestroy {
   // el modal "Resumen del Pedido" antes de confirmar la comanda.
   private draftKitchenNotes: string | null = null;
   public protectedItemQuantities: Record<number, number> = {};
+  public protectedLineQuantities: Record<string, number> = {};
+  private personalizationCache = new Map<number, ProductPersonalizationsI>();
 
   public protectedImages = new Map<number, string>();
 
@@ -115,6 +126,7 @@ export class OrdersPage implements OnInit, OnDestroy {
     private loadingCtrl: LoadingController,
     private _ordersService: OrderService,
     private alertController: AlertController,
+    private personalizationsService: PersonalizationsService,
   ) {}
 
   ngOnInit() {
@@ -129,6 +141,7 @@ export class OrdersPage implements OnInit, OnDestroy {
 
   async ionViewWillEnter() {
     try {
+      this.personalizationCache.clear();
       this.allCategories = await firstValueFrom(
         this._categoryService.getCategory(true),
       );
@@ -167,6 +180,7 @@ export class OrdersPage implements OnInit, OnDestroy {
     this.currentOrder = [];
     this.draftKitchenNotes = null;
     this.protectedItemQuantities = {};
+    this.protectedLineQuantities = {};
     this.currentFilter = 1; // O el ID de tu categoría por defecto
     this.searchTerm = '';
     // this.protectedImages.clear(); // Opcional: si quieres limpiar las imágenes cacheadas
@@ -208,9 +222,22 @@ export class OrdersPage implements OnInit, OnDestroy {
    */
   // orders.page.ts
 
-  public addItem(item: ProductI): void {
+  public async addItem(item: ProductI): Promise<void> {
+    if (item.hasPersonalizations) {
+      await this.addPersonalizedItem(item);
+      return;
+    }
+
+    this.addConfiguredLine(item, []);
+  }
+
+  private addConfiguredLine(
+    item: ProductI,
+    modifierSelections: OrderLineModifierSelectionI[],
+  ): void {
+    const lineKey = this.buildLineKey(item.id, modifierSelections);
     const existingItemIndex = this.currentOrder.findIndex(
-      (p) => p.id === item.id,
+      (p) => p.lineKey === lineKey && !p.orderItemId,
     );
 
     if (existingItemIndex > -1) {
@@ -234,9 +261,65 @@ export class OrdersPage implements OnInit, OnDestroy {
       });
     } else {
       // Si es un producto nuevo, lo añadimos con cantidad 1 (esto ya estaba bien)
-      this.currentOrder = [...this.currentOrder, { ...item, quantity: 1 }];
+      this.currentOrder = [
+        ...this.currentOrder,
+        { ...item, quantity: 1, lineKey, modifierSelections },
+      ];
     }
     console.log('Orden final (agrupada):', this.currentOrder);
+  }
+
+  private async addPersonalizedItem(item: ProductI): Promise<void> {
+    try {
+      let configuration = this.personalizationCache.get(item.id);
+      if (!configuration) {
+        configuration = await firstValueFrom(
+          this.personalizationsService.getProductPersonalizations(item.id),
+        );
+        this.personalizationCache.set(item.id, configuration);
+      }
+
+      if (!configuration.hasPersonalizations || configuration.groups.length === 0) {
+        this.addConfiguredLine(item, []);
+        return;
+      }
+
+      const modal = await this.modalCtrl.create({
+        component: ProductPersonalizationModalComponent,
+        componentProps: { product: item, configuration },
+        cssClass: 'product-personalization-modal',
+        backdropDismiss: false,
+        showBackdrop: true,
+      });
+      await modal.present();
+      const { data, role } = await modal.onWillDismiss();
+      if (role === 'confirmed' && data?.selections) {
+        this.addConfiguredLine(item, data.selections);
+      }
+    } catch (error) {
+      console.error('Error al cargar las opciones del producto:', error);
+      this.toastService.presentToast(
+        'No fue posible cargar las opciones de este producto.',
+        'danger',
+      );
+    }
+  }
+
+  private buildLineKey(
+    productId: number,
+    selections: OrderLineModifierSelectionI[] = [],
+  ): string {
+    const signature = [...selections]
+      .sort((a, b) =>
+        a.modifierGroupId - b.modifierGroupId ||
+        a.modifierOptionId - b.modifierOptionId,
+      )
+      .map(
+        (selection) =>
+          `${selection.modifierGroupId}:${selection.modifierOptionId}:${selection.quantity}`,
+      )
+      .join('|');
+    return `${productId}::${signature || 'standard'}`;
   }
 
   /**
@@ -247,22 +330,22 @@ export class OrdersPage implements OnInit, OnDestroy {
    * Quita una unidad de un producto, manejando la cantidad.
    */
   public removeItem(item: GroupedProduct): void {
-    const existingItem = this.currentOrder.find((p) => p.id === item.id);
+    const existingItem = this.currentOrder.find((p) => p.lineKey === item.lineKey);
 
     if (!existingItem) return; // No hacer nada si no existe
 
-    if (!this.canDecreaseItem(item.id)) {
+    if (!this.canDecreaseLine(item)) {
       return;
     }
 
     if (existingItem.quantity > 1) {
       // Si hay más de uno, solo reducimos la cantidad
       this.currentOrder = this.currentOrder.map((p) =>
-        p.id === item.id ? { ...p, quantity: p.quantity - 1 } : p,
+        p.lineKey === item.lineKey ? { ...p, quantity: p.quantity - 1 } : p,
       );
     } else {
       // Si solo queda uno, lo eliminamos del array
-      this.currentOrder = this.currentOrder.filter((p) => p.id !== item.id);
+      this.currentOrder = this.currentOrder.filter((p) => p.lineKey !== item.lineKey);
     }
     console.log('Orden actual (agrupada):', this.currentOrder);
   }
@@ -271,7 +354,9 @@ export class OrdersPage implements OnInit, OnDestroy {
    * Quita una unidad de un producto por ID (para uso en templates)
    */
   public removeItemById(itemId: number): void {
-    const existingItem = this.currentOrder.find((p) => p.id === itemId);
+    const existingItem = [...this.currentOrder]
+      .reverse()
+      .find((p) => p.id === itemId && this.canDecreaseLine(p));
     if (existingItem) {
       this.removeItem(existingItem);
     }
@@ -296,8 +381,14 @@ export class OrdersPage implements OnInit, OnDestroy {
    * @returns La cantidad de ese producto en la orden.
    */
   public getItemQuantity(item: ProductI): number {
-    const orderItem = this.currentOrder.find((p) => p.id === item.id);
-    return orderItem ? orderItem.quantity : 0;
+    return this.currentOrder
+      .filter((p) => p.id === item.id)
+      .reduce((total, orderItem) => total + orderItem.quantity, 0);
+  }
+
+  private canDecreaseLine(item: GroupedProduct): boolean {
+    if (!this.isAddOnlyEditMode) return true;
+    return item.quantity > Number(this.protectedLineQuantities[item.lineKey] || 0);
   }
 
   /**
@@ -329,7 +420,7 @@ export class OrdersPage implements OnInit, OnDestroy {
         acc.push(productData);
       }
       return acc;
-    }, [] as ProductI[]);
+    }, [] as any[]);
 
     const modal = await this.modalCtrl.create({
       component: OrderSummaryComponent,
@@ -342,6 +433,7 @@ export class OrdersPage implements OnInit, OnDestroy {
         originalOrderItems: originalItems,
         originalKitchenNotes: originalKitchenNotes,
         protectedItemQuantities: this.protectedItemQuantities,
+        protectedLineQuantities: this.protectedLineQuantities,
 
         // Mantiene viva la nota aunque el modal se cierre y se vuelva a abrir.
         onDraftKitchenNotesChange: (notes: string) => {
@@ -614,19 +706,6 @@ export class OrdersPage implements OnInit, OnDestroy {
           this.currentOrderId = orderToEdit.id;
         }
 
-        // Mapeamos directamente a la estructura agrupada
-        const groupedItems = orderToEdit.orderItems
-          .map((item) => {
-            const product = this.allProducts.find(
-              (p) => p.id === item.productId,
-            );
-            // Creamos el objeto con su cantidad correcta
-            return { ...product!, quantity: item.quantity };
-          })
-          .filter((item) => item.id); // Filtramos por si algún producto no fue encontrado
-
-        this.currentOrder = groupedItems;
-
         const isAdvancePaymentOrder = Boolean(
           orderToEdit.isAdvancePayment || orderToEdit.isPrepaid,
         );
@@ -646,6 +725,7 @@ export class OrdersPage implements OnInit, OnDestroy {
         );
 
         this.protectedItemQuantities = {};
+        this.protectedLineQuantities = {};
 
         if (this.isAddOnlyEditMode) {
           orderToEdit.orderItems.forEach((item) => {
@@ -655,7 +735,7 @@ export class OrdersPage implements OnInit, OnDestroy {
           });
         }
 
-        const normalizedItems = new Map<number, GroupedProduct>();
+        const normalizedItems = new Map<string, GroupedProduct>();
 
         orderToEdit.orderItems.forEach((item) => {
           const product = this.allProducts.find((p) => p.id === item.productId);
@@ -664,20 +744,42 @@ export class OrdersPage implements OnInit, OnDestroy {
             return;
           }
 
-          const current = normalizedItems.get(product.id);
+          const modifierSelections: OrderLineModifierSelectionI[] =
+            (item.modifierSelections || []).map((selection) => ({
+              modifierGroupId: Number(selection.modifierGroupId),
+              modifierOptionId: Number(selection.modifierOptionId),
+              groupName: selection.groupNameSnapshot ?? selection.groupName ?? '',
+              optionName: selection.optionNameSnapshot ?? selection.optionName ?? '',
+              quantity: Number(selection.quantity || 1),
+              priceAdjustment: 0,
+            }));
+          const baseLineKey = this.buildLineKey(product.id, modifierSelections);
+          const lineKey = item.id ? `${baseLineKey}::item-${item.id}` : baseLineKey;
+          const current = normalizedItems.get(lineKey);
 
           if (current) {
-            normalizedItems.set(product.id, {
+            normalizedItems.set(lineKey, {
               ...current,
               quantity: current.quantity + Number(item.quantity || 0),
             });
             return;
           }
 
-          normalizedItems.set(product.id, {
+          const normalizedItem: GroupedProduct = {
             ...product,
             quantity: Number(item.quantity || 0),
-          });
+            lineKey,
+            orderItemId: item.id,
+            modifierSelections,
+          };
+          normalizedItems.set(lineKey, normalizedItem);
+
+          if (
+            this.isAddOnlyEditMode &&
+            ['ready', 'served'].includes(item.kitchenStatus || '')
+          ) {
+            this.protectedLineQuantities[lineKey] = Number(item.quantity || 0);
+          }
         });
 
         this.currentOrder = Array.from(normalizedItems.values());

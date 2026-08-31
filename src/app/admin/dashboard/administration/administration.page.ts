@@ -29,6 +29,12 @@ export class AdministrationPage implements OnInit {
       roleVerify: ['super_admin', 'admin']
     },
     {
+      title: 'Personalizaciones',
+      icon: 'options-outline',
+      url: '/dashboard/administration/personalizations',
+      roleVerify: ['super_admin', 'admin']
+    },
+    {
       title: 'Gestión de Mesas',
       icon: 'restaurant-outline',
       url: '/dashboard/administration/table-management', // Ruta a la página de mesas

@@ -1,44 +1,58 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border cd-management-header">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Métodos de Pago</ion-title>
+    <div class="cd-toolbar-layout">
+      <ion-buttons>
+        <ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button>
+      </ion-buttons>
+      <div class="cd-title-group">
+        <h1>Métodos de Pago</h1>
+        <p>Configura las formas de pago disponibles</p>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding cd-management-content">
+  <ion-list lines="none" class="cd-management-list">
+    <ion-item
+      *ngFor="let method of allPaymentMethods"
+      class="cd-management-item payment-method-item"
+      [class.is-inactive]="!method.isActive"
+    >
+      <span slot="start" class="payment-method-icon">
+        <ion-icon [name]="getMethodIcon(method.type)"></ion-icon>
+      </span>
 
-  <ion-list lines="none">
-    <ion-item *ngFor="let method of allPaymentMethods" [ngClass]="{'item-inactive': !method.isActive}">
+      <ion-label>
+        <h2>{{ method.name }}</h2>
+        <p>{{ getMethodTypeLabel(method.type) }}</p>
+      </ion-label>
 
-      <ion-icon name="card-outline" slot="start" color="medium"></ion-icon>
-      <ion-label>{{ method.name }}</ion-label>
-
-      <ion-badge class="badge-status" slot="end" [color]="method.isActive ? 'success' : 'medium'">
+      <span slot="end" class="cd-status-pill" [class.is-active]="method.isActive">
         {{ method.isActive ? 'Activo' : 'Inactivo' }}
-      </ion-badge>
+      </span>
 
-      <ion-buttons slot="end">
-        <ion-button fill="clear" color="medium" (click)="editMethod(method)">
+      <ion-buttons slot="end" class="payment-method-actions">
+        <ion-button class="cd-icon-action" fill="clear" color="medium" [attr.aria-label]="'Editar ' + method.name" (click)="editMethod(method)">
           <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
         </ion-button>
-        <ion-button fill="clear" [color]="method.isActive ? 'danger' : 'warning'" (click)="toggleMethodStatus(method)">
-          <ion-icon slot="icon-only" [name]="method.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+        <ion-button class="cd-icon-action" fill="clear" [color]="method.isActive ? 'danger' : 'warning'" [attr.aria-label]="(method.isActive ? 'Desactivar ' : 'Reactivar ') + method.name" (click)="toggleMethodStatus(method)">
+          <ion-icon slot="icon-only" [name]="method.isActive ? 'pause-outline' : 'refresh-outline'"></ion-icon>
         </ion-button>
       </ion-buttons>
-
     </ion-item>
   </ion-list>
 
-  <p *ngIf="allPaymentMethods.length === 0" class="empty-message">
-    No has añadido ningún método de pago.
-  </p>
+  <div *ngIf="!isLoading && allPaymentMethods.length === 0" class="empty-state">
+    <ion-icon name="wallet-outline"></ion-icon>
+    <h2>Aún no tienes métodos de pago</h2>
+    <p>Crea el primero para comenzar a registrar tus ventas.</p>
+    <ion-button (click)="addMethod()">Crear método de pago</ion-button>
+  </div>
 
+  <ion-fab class="cd-management-fab" vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="addMethod()" aria-label="Crear método de pago">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
-
-<ion-fab vertical="bottom" horizontal="end" slot="fixed">
-  <ion-fab-button (click)="addMethod()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
