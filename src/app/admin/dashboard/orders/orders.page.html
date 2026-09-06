@@ -18,8 +18,15 @@
     </div>
 
     <ion-buttons slot="end">
-      <ion-button (click)="refreshData()">
-        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      <ion-button
+        class="refresh-menu-button"
+        (click)="refreshData()"
+        [disabled]="isRefreshingCatalog"
+        aria-label="Actualizar productos y categorías"
+        title="Actualizar menú"
+      >
+        <ion-spinner *ngIf="isRefreshingCatalog" name="crescent"></ion-spinner>
+        <ion-icon *ngIf="!isRefreshingCatalog" slot="icon-only" name="refresh-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

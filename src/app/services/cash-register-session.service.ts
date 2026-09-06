@@ -66,8 +66,16 @@ export interface DailySummaryI {
   ordersFinished: number,
   ordersCancelled: number,
   topProducts: {
+    id: number,
     name: string,
     count: number,
+    total: number,
+    optionBreakdown: {
+      groupName: string;
+      optionName: string;
+      quantity: number;
+      total: number;
+    }[],
     category?: {
       name: string;
     }

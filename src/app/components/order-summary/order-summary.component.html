@@ -28,14 +28,22 @@
           <p class="item-name font-bold">
             {{ item.category.name }} - {{ item.name }}
           </p>
-          <p class="item-price">
-            {{ item.price | currency: "COP" : "$" : "1.0-0" }}
+          <p class="item-base-price">
+            <span>Precio base</span>
+            <strong>{{ baseLineTotal(item) | currency: "COP" : "$" : "1.0-0" }}</strong>
           </p>
           <div class="item-options" *ngIf="item.modifierSelections?.length">
             <span *ngFor="let selection of item.modifierSelections">
               {{ selection.quantity > 1 ? selection.quantity + 'x ' : '' }}{{ selection.optionName || selection.optionNameSnapshot }}
+              <strong *ngIf="selectionLineTotal(selection, item) > 0">
+                + {{ selectionLineTotal(selection, item) | currency:'COP':'symbol-narrow':'1.0-0' }}
+              </strong>
             </span>
           </div>
+          <p class="item-line-total" *ngIf="hasPaidSelections(item)">
+            <span>Subtotal</span>
+            <strong>{{ configuredLineTotal(item) | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+          </p>
         </div>
         <div class="quantity-controls">
           <button

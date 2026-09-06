@@ -13,7 +13,22 @@
 </ion-header>
 
 <ion-content class="ion-padding cd-management-content">
-  <section *ngFor="let group of groupedMenu | keyvalue" class="category-section">
+  <div class="product-search-container">
+    <ion-searchbar
+      class="product-searchbar"
+      placeholder="Buscar producto..."
+      inputmode="search"
+      debounce="150"
+      [ngModel]="searchTerm"
+      (ngModelChange)="onSearchTermChange($event)"
+      show-clear-button="focus"
+    ></ion-searchbar>
+    <p *ngIf="searchTerm" class="search-result-count">
+      {{ filteredProductsCount }} {{ filteredProductsCount === 1 ? 'coincidencia' : 'coincidencias' }}
+    </p>
+  </div>
+
+  <section *ngFor="let group of filteredGroupedMenu | keyvalue" class="category-section">
     <div class="category-heading">
       <span class="category-heading-icon"><ion-icon name="grid-outline"></ion-icon></span>
       <div>
@@ -78,11 +93,11 @@
     </ion-list>
   </section>
 
-  <div *ngIf="groupedMenu.size === 0" class="empty-state">
-    <ion-icon name="restaurant-outline"></ion-icon>
-    <h2>Aún no tienes productos</h2>
-    <p>Crea el primero para comenzar a construir tu menú.</p>
-    <ion-button (click)="addNewItem()">Crear primer producto</ion-button>
+  <div *ngIf="filteredGroupedMenu.size === 0" class="empty-state">
+    <ion-icon [name]="searchTerm ? 'search-outline' : 'restaurant-outline'"></ion-icon>
+    <h2>{{ searchTerm ? 'Sin resultados' : 'Aún no tienes productos' }}</h2>
+    <p>{{ searchTerm ? 'Prueba con otro nombre de producto.' : 'Crea el primero para comenzar a construir tu menú.' }}</p>
+    <ion-button *ngIf="!searchTerm" (click)="addNewItem()">Crear primer producto</ion-button>
   </div>
 
   <ion-fab class="cd-management-fab" vertical="bottom" horizontal="end" slot="fixed">

@@ -27,6 +27,23 @@
     color: var(--ion-color-medium-shade);
     margin: 0;
   }
+
+  .home-button {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    --background: #fff0f0;
+    --background-hover: #ffe1e1;
+    --border-radius: 12px;
+    --color: var(--ion-color-primary);
+    --padding-start: 0;
+    --padding-end: 0;
+
+    ion-icon {
+      color: var(--ion-color-primary);
+      font-size: 20px;
+    }
+  }
 }
 
 .view-selector {

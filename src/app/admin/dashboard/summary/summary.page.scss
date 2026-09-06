@@ -80,6 +80,23 @@ ion-header {
         border-bottom: 1px solid var(--ion-color-step-150, #e0e0e0);
     }
 
+    .home-button {
+        width: 40px;
+        height: 40px;
+        margin: 0;
+        --background: #fff0f0;
+        --background-hover: #ffe1e1;
+        --border-radius: 12px;
+        --color: var(--ion-color-primary);
+        --padding-start: 0;
+        --padding-end: 0;
+
+        ion-icon {
+            color: var(--ion-color-primary);
+            font-size: 20px;
+        }
+    }
+
     h1 {
         font-size: 1.5rem;
         font-weight: 700;
@@ -282,7 +299,17 @@ ion-grid {
             color: var(--ion-color-dark-shade);
         }
 
+        ion-label p {
+            margin: 3px 0 0;
+            color: #168443;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
         .product-count {
+            display: flex;
+            align-items: center;
+            gap: 5px;
             font-size: 0.9rem;
             font-weight: 500;
             color: var(--ion-color-medium-shade);
@@ -291,6 +318,66 @@ ion-grid {
             border-radius: 16px;
         }
     }
+}
+
+.product-option-breakdown {
+    display: grid;
+    gap: 10px;
+    padding: 9px 14px 12px 58px;
+    background: #fafafb;
+    border-bottom: 1px solid #edf0f3;
+}
+
+.option-breakdown-caption {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+.option-breakdown-group {
+    padding: 9px 10px;
+    border: 1px solid #eceef1;
+    border-radius: 9px;
+    background: #ffffff;
+
+    h4 {
+        margin: 0 0 7px;
+        color: #b4232d;
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+}
+
+.option-breakdown-row,
+.option-breakdown-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #656d7a;
+    font-size: 0.78rem;
+
+    small {
+        flex: 0 0 auto;
+        color: #7b8290;
+        font-size: 0.72rem;
+    }
+}
+
+.option-breakdown-row + .option-breakdown-row {
+    margin-top: 5px;
+}
+
+.option-breakdown-total {
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top: 1px dashed #e3e5e9;
+    color: #374151;
+    font-weight: 700;
+
+    strong { color: #168443; }
 }
 
 .cuts-section,

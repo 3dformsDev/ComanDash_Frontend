@@ -39,10 +39,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   public protectedImages = new Map<number, string>();
 
   get subtotal() {
-    return this.orderItems.reduce(
-      (acc, item) => acc + parseFloat(item.price),
-      0,
-    );
+    return this.orderItems.reduce((acc, item) => acc + this.configuredUnitPrice(item), 0);
   }
   get serviceFee() {
     // return this.subtotal * 0.10;
@@ -127,6 +124,36 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
       this.orderItems = this.orderItems.filter((_, i) => i !== index);
       this.groupItems();
     }
+  }
+
+  selectionUnitTotal(selection: any): number {
+    return Number(selection.priceAdjustment ?? selection.unitPriceAdjustment ?? 0) *
+      Number(selection.quantity || 1);
+  }
+
+  baseLineTotal(item: any): number {
+    return Number(item.price ?? item.unitPrice ?? 0) * Number(item.quantity || 0);
+  }
+
+  selectionLineTotal(selection: any, item: any): number {
+    return this.selectionUnitTotal(selection) * Number(item.quantity || 0);
+  }
+
+  hasPaidSelections(item: any): boolean {
+    return (item.modifierSelections || []).some(
+      (selection: any) => this.selectionUnitTotal(selection) > 0,
+    );
+  }
+
+  configuredLineTotal(item: any): number {
+    return this.configuredUnitPrice(item) * Number(item.quantity || 0);
+  }
+
+  configuredUnitPrice(item: any): number {
+    return Number(item.price ?? item.unitPrice ?? 0) + (item.modifierSelections || []).reduce(
+      (total: number, selection: any) => total + this.selectionUnitTotal(selection),
+      0,
+    );
   }
 
   getProtectedQuantity(productId: number): number {
@@ -354,47 +381,20 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
       return this.total; // Para una orden nueva, la "diferencia" es el total
     }
 
-    const originalQuantities = new Map<number, number>();
-    this.originalOrderItems.forEach((item) => {
-      originalQuantities.set(
-        item.productId,
-        (originalQuantities.get(item.productId) || 0) + Number(item.quantity || 0),
-      );
-    });
+    const originalTotal = this.originalOrderItems.reduce(
+      (total, item) => total + Number(
+        item.totalPrice ?? this.configuredUnitPrice({
+          ...item,
+          price: item.unitPrice,
+        }) * Number(item.quantity || 0),
+      ),
+      0,
+    );
+    const currentTotal = this.groupedOrderItems.reduce(
+      (total, item) => total + this.configuredUnitPrice(item) * Number(item.quantity || 0),
+      0,
+    );
 
-    const newQuantities = new Map<
-      number,
-      { quantity: number; price: number }
-    >();
-    this.groupedOrderItems.forEach((item) => {
-      const current = newQuantities.get(item.id);
-      newQuantities.set(item.id, {
-        quantity: (current?.quantity || 0) + Number(item.quantity || 0),
-        price: parseFloat(item.price),
-      });
-    });
-
-    let difference = 0;
-    const allProductIds = new Set([
-      ...originalQuantities.keys(),
-      ...newQuantities.keys(),
-    ]);
-
-    allProductIds.forEach((id) => {
-      const originalQty = originalQuantities.get(id) || 0;
-      const newQtyData = newQuantities.get(id);
-      const newQty = newQtyData ? newQtyData.quantity : 0;
-      // Busca el precio en los items nuevos primero, si no, en los originales.
-      const price = newQtyData
-        ? newQtyData.price
-        : parseFloat(
-            this.originalOrderItems.find((i) => i.productId === id)?.unitPrice,
-          ) || 0;
-
-      const quantityChange = newQty - originalQty;
-      difference += quantityChange * price;
-    });
-
-    return difference;
+    return currentTotal - originalTotal;
   }
 }

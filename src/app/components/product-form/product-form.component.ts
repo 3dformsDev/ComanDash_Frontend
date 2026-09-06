@@ -8,8 +8,10 @@ import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera
 import { ProductsService } from '@services/products.service';
 import {
   ModifierGroupI,
+  ModifierOptionI,
   PersonalizationsService,
   ProductPersonalizationAssignmentDto,
+  ProductModifierOptionPriceDto,
 } from '@services/personalizations.service';
 import { firstValueFrom } from 'rxjs';
 
@@ -46,6 +48,12 @@ export class ProductFormComponent implements OnInit {
   public productPersonalizations: ProductPersonalizationAssignmentDto[] = [];
   public selectedModifierGroupId: number | null = null;
   public personalizationsLoading = false;
+  public readonly modifierGroupSelectOptions = {
+    cssClass: 'product-group-select-alert',
+    header: 'Selecciona un grupo de opciones',
+  };
+  private readonly pricedOptionIds = new Set<number>();
+  private activeOptionsByGroupId = new Map<number, ModifierOptionI[]>();
 
   constructor(
     private modalCtrl: ModalController,
@@ -131,9 +139,75 @@ export class ProductFormComponent implements OnInit {
         selectionLimit: 1,
         allowOptionQuantities: false,
         displayOrder: this.productPersonalizations.length,
+        options: group.options
+          .filter((option) => option.isActive)
+          .map((option) => ({ modifierOptionId: option.id, priceAdjustment: 0 })),
       },
     ];
     this.selectedModifierGroupId = null;
+  }
+
+  getAssignmentOptions(assignment: ProductPersonalizationAssignmentDto): ModifierOptionI[] {
+    return this.activeOptionsByGroupId.get(assignment.modifierGroupId) || [];
+  }
+
+  trackModifierOptionById(_index: number, option: ModifierOptionI): number {
+    return option.id;
+  }
+
+  optionHasPrice(assignment: ProductPersonalizationAssignmentDto, optionId: number): boolean {
+    return this.pricedOptionIds.has(optionId) || this.getOptionPrice(assignment, optionId) > 0;
+  }
+
+  getOptionPrice(assignment: ProductPersonalizationAssignmentDto, optionId: number): number {
+    return Number(
+      assignment.options?.find((option) => option.modifierOptionId === optionId)?.priceAdjustment || 0,
+    );
+  }
+
+  setOptionHasPrice(
+    assignment: ProductPersonalizationAssignmentDto,
+    optionId: number,
+    enabled: boolean,
+  ): void {
+    if (enabled) {
+      this.pricedOptionIds.add(optionId);
+      return;
+    }
+
+    this.pricedOptionIds.delete(optionId);
+    this.setOptionPrice(assignment, optionId, 0);
+  }
+
+  updateOptionPrice(
+    assignment: ProductPersonalizationAssignmentDto,
+    optionId: number,
+    event: CustomEvent,
+  ): void {
+    const rawValue = String(event.detail?.value ?? '').replace(/[^0-9]/g, '');
+    this.pricedOptionIds.add(optionId);
+    this.setOptionPrice(assignment, optionId, rawValue ? Number(rawValue) : 0);
+  }
+
+  private setOptionPrice(
+    assignment: ProductPersonalizationAssignmentDto,
+    optionId: number,
+    priceAdjustment: number,
+  ): void {
+    const normalizedPrice = Math.max(0, Math.min(99_999_999.99, Number(priceAdjustment) || 0));
+    const options = [...(assignment.options || [])];
+    const existingIndex = options.findIndex((option) => option.modifierOptionId === optionId);
+    const configuredOption: ProductModifierOptionPriceDto = {
+      modifierOptionId: optionId,
+      priceAdjustment: normalizedPrice,
+    };
+
+    if (existingIndex >= 0) {
+      options[existingIndex] = configuredOption;
+    } else {
+      options.push(configuredOption);
+    }
+    assignment.options = options;
   }
 
   removeModifierGroup(groupId: number) {
@@ -177,6 +251,12 @@ export class ProductFormComponent implements OnInit {
     this.personalizationsLoading = true;
     try {
       this.modifierGroups = await firstValueFrom(this.personalizationsService.getGroups(false));
+      this.activeOptionsByGroupId = new Map(
+        this.modifierGroups.map((group) => [
+          group.id,
+          group.options.filter((option) => option.isActive),
+        ]),
+      );
 
       if (this.mode === 'edit' && this.product?.id) {
         const configuration = await firstValueFrom(
@@ -190,7 +270,20 @@ export class ProductFormComponent implements OnInit {
             selectionLimit: group.selectionLimit,
             allowOptionQuantities: group.allowOptionQuantities,
             displayOrder: group.displayOrder,
+            options: group.options
+              .filter((option) => option.isActive)
+              .map((option) => ({
+                modifierOptionId: option.id,
+                priceAdjustment: Number(option.priceAdjustment || 0),
+              })),
           }));
+        this.productPersonalizations.forEach((assignment) => {
+          (assignment.options || []).forEach((option) => {
+            if (Number(option.priceAdjustment) > 0) {
+              this.pricedOptionIds.add(option.modifierOptionId);
+            }
+          });
+        });
       }
     } catch (error) {
       console.error('Error al cargar personalizaciones del producto:', error);
@@ -383,6 +476,12 @@ export class ProductFormComponent implements OnInit {
       return (
         assignment.selectionLimit >= 1 &&
         activeOptions > 0 &&
+        (assignment.options || []).every((option) => Number(option.priceAdjustment) >= 0) &&
+        this.getAssignmentOptions(assignment).every(
+          (option) =>
+            !this.optionHasPrice(assignment, option.id) ||
+            this.getOptionPrice(assignment, option.id) > 0,
+        ) &&
         (assignment.allowOptionQuantities || assignment.selectionLimit <= activeOptions)
       );
     });

@@ -31,6 +31,7 @@ export class PaymentComponent implements OnInit {
   public selectedPaymentMethod: number | null = null;
   public paymentAmount: number | null = null;
   public paymentError: string | null = null;
+  public itemsExpanded = true;
 
   // Calculadora visual de vueltas. No se guarda ni se envía al backend.
   public cashReceivedAmount: number | null = null;
@@ -99,10 +100,40 @@ export class PaymentComponent implements OnInit {
       }));
   }
 
+  selectionUnitTotal(selection: any): number {
+    return Number(selection.priceAdjustment ?? selection.unitPriceAdjustment ?? 0) *
+      Number(selection.quantity || 1);
+  }
+
+  baseLineTotal(item: any): number {
+    return Number(item.price ?? item.unitPrice ?? 0) * Number(item.quantity || 0);
+  }
+
+  itemLineTotal(item: any): number {
+    if (item.lineTotal !== undefined && item.lineTotal !== null) {
+      return Number(item.lineTotal || 0);
+    }
+
+    const unitTotal = Number(item.price ?? item.unitPrice ?? 0) +
+      (item.modifierSelections || []).reduce(
+        (total: number, selection: any) => total + this.selectionUnitTotal(selection),
+        0,
+      );
+    return unitTotal * Number(item.quantity || 0);
+  }
+
+  selectionLineTotal(selection: any, item: any): number {
+    return this.selectionUnitTotal(selection) * Number(item.quantity || 1);
+  }
+
+  toggleItemsSummary(): void {
+    this.itemsExpanded = !this.itemsExpanded;
+  }
+
   // ✅ Renombrado para mayor claridad y ahora maneja la propina
   calculateTotalForNewOrder() {
     const calculatedSubtotal = this.orderItems.reduce(
-      (acc, item) => acc + Number(item.price || 0) * Number(item.quantity || 0),
+      (acc, item) => acc + this.itemLineTotal(item),
       0,
     );
 
@@ -145,44 +176,17 @@ export class PaymentComponent implements OnInit {
 
   // ✅ Este método se queda como estaba
   calculateDifference() {
-    const originalQuantities = new Map<number, number>();
-    this.originalOrderItems.forEach((item) => {
-      originalQuantities.set(
-        item.productId,
-        (originalQuantities.get(item.productId) || 0) + Number(item.quantity || 0),
-      );
-    });
-
-    const newQuantities = new Map<
-      number,
-      { quantity: number; price: number }
-    >();
-    this.orderItems.forEach((item) => {
-      const current = newQuantities.get(item.id);
-      newQuantities.set(item.id, {
-        quantity: (current?.quantity || 0) + Number(item.quantity || 0),
-        price: parseFloat(item.price),
-      });
-    });
-
-    let difference = 0;
-    const allProductIds = new Set([
-      ...originalQuantities.keys(),
-      ...newQuantities.keys(),
-    ]);
-
-    allProductIds.forEach((id) => {
-      const originalQty = originalQuantities.get(id) || 0;
-      const newQtyData = newQuantities.get(id);
-      const newQty = newQtyData ? newQtyData.quantity : 0;
-      const price = newQtyData
-        ? newQtyData.price
-        : this.originalOrderItems.find((i) => i.productId === id)?.unitPrice ||
-          0;
-
-      const quantityChange = newQty - originalQty;
-      difference += quantityChange * price;
-    });
+    const originalTotal = this.originalOrderItems.reduce(
+      (total, item) => total + Number(
+        item.totalPrice ?? this.itemLineTotal({ ...item, price: item.unitPrice }),
+      ),
+      0,
+    );
+    const updatedTotal = this.orderItems.reduce(
+      (total, item) => total + this.itemLineTotal(item),
+      0,
+    );
+    const difference = updatedTotal - originalTotal;
 
     this.paymentDifference = difference;
     this.isRefund = difference < 0;

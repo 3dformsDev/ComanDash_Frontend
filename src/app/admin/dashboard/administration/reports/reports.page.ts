@@ -6,6 +6,8 @@ import { CashRegisterSessionService } from '@services/cash-register-session.serv
 import {
   DailyOrdersReportResponse,
   PeakTimesResponse,
+  ProductOptionSalesBreakdown,
+  ProductOptionSalesGroup,
   ReportsService,
   SalesReportResponse,
 } from '@services/reports.service';
@@ -44,10 +46,63 @@ export class ReportsPage implements OnInit {
   reportPeaks: PeakTimesResponse | null = null;
   grandTotalSales: number = 0;
   productsExpanded = false;
+  expandedProductIds = new Set<number>();
+  productOptionGroups = new Map<number, ProductOptionSalesGroup[]>();
+  private readonly emptyOptionGroups: ProductOptionSalesGroup[] = [];
   paymentReconciliationExpanded = false;
   dailyReportData: DailyOrdersReportResponse | null = null;
   dailyPaidExpanded = true;
   dailyCancelledExpanded = false;
+
+  toggleProductDetail(productId: number): void {
+    const expanded = new Set(this.expandedProductIds);
+    expanded.has(productId) ? expanded.delete(productId) : expanded.add(productId);
+    this.expandedProductIds = expanded;
+  }
+
+  productDetailIsExpanded(productId: number): boolean {
+    return this.expandedProductIds.has(productId);
+  }
+
+  getProductOptionGroups(productId: number): ProductOptionSalesGroup[] {
+    return this.productOptionGroups.get(productId) || this.emptyOptionGroups;
+  }
+
+  private buildProductOptionGroups(rows: SalesReportResponse['tableRows']): void {
+    const groupedByProduct = new Map<number, ProductOptionSalesGroup[]>();
+
+    rows.forEach((row) => {
+      const optionsByGroup = new Map<string, ProductOptionSalesBreakdown[]>();
+      row.optionBreakdown.forEach((option) => {
+        const groupName = option.groupName || 'Otras opciones';
+        const groupOptions = optionsByGroup.get(groupName) || [];
+        groupOptions.push(option);
+        optionsByGroup.set(groupName, groupOptions);
+      });
+
+      groupedByProduct.set(
+        row.productId,
+        Array.from(optionsByGroup.entries()).map(([groupName, options]) => ({
+          groupName,
+          options,
+          total: options.reduce((sum, option) => sum + Number(option.total || 0), 0),
+        })),
+      );
+    });
+
+    this.productOptionGroups = groupedByProduct;
+  }
+
+  private formatProductOptions(row: any): string {
+    return (row.optionBreakdown || [])
+      .map((option: any) => {
+        const price = Number(option.total || 0) > 0
+          ? ` (+$${Number(option.total).toLocaleString('es-CO')})`
+          : '';
+        return `${option.quantity}x ${option.optionName}${price}`;
+      })
+      .join(', ');
+  }
 
   // 4. INSTANCIAS PARA AMBOS GRÁFICOS
   private categoryChartInstance: any = null;
@@ -103,6 +158,7 @@ export class ReportsPage implements OnInit {
     this.isLoading = true;
     this.reportData = null;
     this.reportPeaks = null;
+    this.productOptionGroups = new Map<number, ProductOptionSalesGroup[]>();
     this.productsExpanded = false;
     this.paymentReconciliationExpanded = false;
 
@@ -141,6 +197,7 @@ export class ReportsPage implements OnInit {
 
       this.reportData = data; // Asigna los datos REALES
       this.reportPeaks = dataPeaks;
+      this.buildProductOptionGroups(data.tableRows);
 
       this.grandTotalSales = Number(this.reportData.summary.totalSales || 0);
 
@@ -471,11 +528,12 @@ export class ReportsPage implements OnInit {
 
     doc.addPage();
     doc.text('Detalle de Productos Vendidos', 14, 22);
-    const head = [['Producto', 'Categoría', 'Cantidad', 'Total']];
+    const head = [['Producto', 'Categoría', 'Cantidad', 'Opciones', 'Total']];
     const body = this.reportData.tableRows.map((row: any) => [
       row.productName,
       row.category,
       row.quantity,
+      this.formatProductOptions(row) || 'Sin opciones',
       `$${row.total.toLocaleString('es-CO')}`
     ]);
 
@@ -505,11 +563,12 @@ export class ReportsPage implements OnInit {
       'Producto': row.productName,
       'Categoría': row.category,
       'Cantidad': row.quantity,
+      'Opciones elegidas': this.formatProductOptions(row),
       'Total': row.total
     }));
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
     ws['!cols'] = [
-      { wch: 30 }, { wch: 20 }, { wch: 10 }, { wch: 15 }
+      { wch: 30 }, { wch: 20 }, { wch: 10 }, { wch: 45 }, { wch: 15 }
     ];
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Ventas');

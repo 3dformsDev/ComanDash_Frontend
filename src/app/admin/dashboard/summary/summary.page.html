@@ -5,8 +5,8 @@
       <p>{{ summaryDate }}</p>
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button routerLink="/dashboard">
-        <ion-icon name="home-outline"></ion-icon>
+      <ion-button class="home-button" routerLink="/dashboard" aria-label="Ir al inicio">
+        <ion-icon slot="icon-only" name="home-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -203,7 +203,7 @@
       [attr.aria-expanded]="topProductsExpanded"
       (click)="toggleTopProducts()"
     >
-      <span>Productos Mas Vendidos</span>
+      <span>Productos más vendidos</span>
       <span class="top-products-actions">
         <span class="product-total">{{ summaryData.topProducts.length }}</span>
         <ion-icon [name]="topProductsExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
@@ -215,17 +215,46 @@
         No hay productos vendidos.
       </p>
 
-      <ion-item *ngFor="let product of summaryData.topProducts; let i = index" lines="none">
-        <div class="product-rank" slot="start">
-          <span>{{ i + 1 }}</span>
+      <ng-container *ngFor="let product of summaryData.topProducts; let i = index">
+        <ion-item
+          lines="none"
+          [button]="product.optionBreakdown.length > 0"
+          [detail]="false"
+          (click)="product.optionBreakdown.length > 0 && toggleTopProduct(product.id)"
+        >
+          <div class="product-rank" slot="start">
+            <span>{{ i + 1 }}</span>
+          </div>
+          <ion-label>
+            <h3>{{ product.category?.name }} - {{ product.name }}</h3>
+            <p>{{ product.total | currency:'COP':'symbol-narrow':'1.0-0' }} vendidos</p>
+          </ion-label>
+          <div slot="end" class="product-count">
+            {{ product.count }} unidades
+            <ion-icon
+              *ngIf="product.optionBreakdown.length > 0"
+              [name]="topProductIsExpanded(product.id) ? 'chevron-up-outline' : 'chevron-down-outline'"
+            ></ion-icon>
+          </div>
+        </ion-item>
+        <div
+          *ngIf="topProductIsExpanded(product.id)"
+          class="product-option-breakdown"
+        >
+          <p class="option-breakdown-caption">Resumen acumulado del día</p>
+          <section *ngFor="let group of getTopProductOptionGroups(product.id)" class="option-breakdown-group">
+            <h4>{{ group.groupName }}</h4>
+            <div *ngFor="let option of group.options" class="option-breakdown-row">
+              <span>{{ option.optionName }}</span>
+              <small>{{ option.quantity }} {{ option.quantity === 1 ? 'elección' : 'elecciones' }}</small>
+            </div>
+            <div *ngIf="group.total > 0" class="option-breakdown-total">
+              <span>Total adicional</span>
+              <strong>+ {{ group.total | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+            </div>
+          </section>
         </div>
-        <ion-label>
-          <h3>{{ product.category?.name }} - {{ product.name }}</h3>
-        </ion-label>
-        <div slot="end" class="product-count">
-          {{ product.count }} vendidos
-        </div>
-      </ion-item>
+      </ng-container>
     </ion-list>
   </section>
 </ion-content>

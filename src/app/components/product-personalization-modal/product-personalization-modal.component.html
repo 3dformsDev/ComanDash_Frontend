@@ -22,7 +22,12 @@
       </div>
 
       <div class="option-row" *ngFor="let option of group.options">
-        <span>{{ option.name }}</span>
+        <span class="option-description">
+          <strong>{{ option.name }}</strong>
+          <small *ngIf="option.priceAdjustment > 0">
+            + {{ option.priceAdjustment | currency:'COP':'symbol-narrow':'1.0-0' }}
+          </small>
+        </span>
         <div class="quantity-control">
           <button
             type="button"
@@ -47,6 +52,9 @@
   </ion-content>
 
   <footer class="sheet-footer">
+    <p *ngIf="additionalTotal > 0" class="additional-total">
+      Valor adicional: <strong>+ {{ additionalTotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+    </p>
     <button type="button" class="confirm-button" (click)="confirm()" [disabled]="!formIsValid">
       AGREGAR AL PEDIDO
     </button>

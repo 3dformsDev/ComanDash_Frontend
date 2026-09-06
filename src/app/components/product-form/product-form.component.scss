@@ -154,7 +154,40 @@
 }
 
 .image-section {
+    display: block;
     margin-top: 16px;
+    padding: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dfe2e7;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+}
+
+.image-field-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    > ion-icon {
+        flex: 0 0 auto;
+        padding: 9px;
+        border-radius: 10px;
+        background: #fff0f0;
+        color: var(--ion-color-primary);
+        font-size: 22px;
+    }
+
+    strong {
+        color: #252b38;
+        font-size: 0.9rem;
+    }
+
+    p {
+        margin: 3px 0 0;
+        color: #747b88;
+        font-size: 0.76rem;
+    }
 }
 
 .image-preview-container {
@@ -186,6 +219,9 @@
 
 .select-image-btn {
     margin-top: 10px;
+    --border-radius: 10px;
+    font-weight: 700;
+    text-transform: none;
 }
 
 .personalizations-section {
@@ -229,6 +265,25 @@
 
 .group-select-item {
     min-width: 0;
+
+    ion-select {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    ion-select::part(container) {
+        min-width: 0;
+        align-items: flex-start;
+    }
+
+    ion-select::part(text),
+    ion-select::part(placeholder) {
+        overflow: visible;
+        white-space: normal;
+        text-overflow: clip;
+        line-height: 1.25;
+    }
 }
 
 .add-group-btn {
@@ -251,11 +306,13 @@
 }
 
 .assigned-group-card {
-    padding: 12px;
+    padding: 14px;
     margin-top: 14px;
-    background: #f8f8fa;
-    border: 1px solid #e6e6e9;
-    border-radius: 11px;
+    background: #ffffff;
+    border: 1px solid #ffd1d1;
+    border-left: 4px solid var(--ion-color-primary);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
 .assigned-group-title {
@@ -272,15 +329,18 @@
     }
 
     strong {
-        overflow: hidden;
-        color: var(--ion-text-color);
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        color: var(--ion-color-primary);
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+        white-space: normal;
     }
 
     small {
         margin-top: 2px;
         color: var(--ion-color-medium);
+        line-height: 1.3;
     }
 
     ion-button {
@@ -323,6 +383,73 @@
     border-radius: 9px;
 }
 
+.option-prices-section {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid #e8e8eb;
+}
+
+.option-prices-heading {
+    margin-bottom: 8px;
+
+    strong {
+        color: #252b38;
+        font-size: 0.9rem;
+    }
+
+    p {
+        margin: 3px 0 0;
+        color: #777e8b;
+        font-size: 0.77rem;
+        line-height: 1.35;
+    }
+}
+
+.option-price-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 155px);
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid #eceef1;
+}
+
+.option-price-toggle,
+.option-price-input {
+    --background: transparent;
+    --padding-start: 0;
+    --inner-padding-end: 0;
+}
+
+.option-price-toggle {
+    ion-label {
+        white-space: normal;
+
+        strong { font-size: 0.86rem; }
+        p {
+            margin-top: 2px;
+            color: #777e8b;
+            font-size: 0.75rem;
+        }
+    }
+}
+
+.option-price-input {
+    ion-label {
+        color: #666e7b;
+        font-size: 0.72rem;
+    }
+
+    ion-input {
+        margin-top: 3px;
+        --padding-start: 10px;
+        --padding-end: 10px;
+        background: #fff;
+        border: 1px solid #dfe2e7;
+        border-radius: 9px;
+    }
+}
+
 @media (max-width: 560px) {
     .product-form-header ion-toolbar {
         --padding-start: 16px;
@@ -346,10 +473,21 @@
 
     .assigned-group-title {
         align-items: flex-start;
+        flex-direction: column;
 
         ion-buttons {
             display: flex;
+            align-self: flex-end;
             flex-shrink: 0;
         }
+    }
+
+    .option-price-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    .option-price-input {
+        width: 100%;
     }
 }

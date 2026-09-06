@@ -84,6 +84,16 @@ export class ProductPersonalizationModalComponent implements OnInit {
     return this.configuration.groups.every((group) => this.groupIsValid(group));
   }
 
+  get additionalTotal(): number {
+    return this.configuration.groups.reduce(
+      (groupTotal, group) => groupTotal + group.options.reduce(
+        (optionTotal, option) => optionTotal + this.quantityFor(option.id) * Number(option.priceAdjustment || 0),
+        0,
+      ),
+      0,
+    );
+  }
+
   confirm(): void {
     if (!this.formIsValid) return;
 
@@ -98,7 +108,7 @@ export class ProductPersonalizationModalComponent implements OnInit {
           groupName: group.name,
           optionName: option.name,
           quantity,
-          priceAdjustment: 0,
+          priceAdjustment: Number(option.priceAdjustment || 0),
         });
       });
     });

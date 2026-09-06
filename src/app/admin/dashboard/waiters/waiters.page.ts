@@ -497,7 +497,9 @@ export class WaitersPage implements OnInit, OnDestroy {
     }
 
     return itemsForPayment.reduce(
-      (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+      (sum, item) => sum + Number(
+        item.lineTotal ?? Number(item.price || 0) * Number(item.quantity || 0),
+      ),
       0,
     );
   }
@@ -573,6 +575,9 @@ export class WaitersPage implements OnInit, OnDestroy {
       name: item.product.name,
       quantity: item.quantity,
       price: parseFloat(item.unitPrice),
+      ...(item.totalPrice !== undefined && item.totalPrice !== null
+        ? { lineTotal: Number(item.totalPrice) }
+        : {}),
       category: item.product.category,
       modifierSelections: item.modifierSelections || [],
     }));

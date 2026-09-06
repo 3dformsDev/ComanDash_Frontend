@@ -29,6 +29,9 @@ export class MenuManagementPage implements OnInit {
 
   // Usamos un Map para agrupar los productos por categoría
   public groupedMenu = new Map<string, ProductI[]>();
+  public filteredGroupedMenu = new Map<string, ProductI[]>();
+  public filteredProductsCount = 0;
+  public searchTerm = '';
 
   constructor(
     private alertCtrl: AlertController,
@@ -88,6 +91,44 @@ export class MenuManagementPage implements OnInit {
       // ?.push() es seguro porque acabamos de crearlo si no existía
       this.groupedMenu.get(categoryName)?.push(product);
     });
+
+    this.applyMenuFilter();
+  }
+
+  onSearchTermChange(value: string | null | undefined): void {
+    this.searchTerm = value ?? '';
+    this.applyMenuFilter();
+  }
+
+  private applyMenuFilter(): void {
+    const term = this.normalizeSearchText(this.searchTerm);
+    const filtered = new Map<string, ProductI[]>();
+
+    this.groupedMenu.forEach((products, category) => {
+      const matches = term
+        ? products.filter((product) =>
+          this.normalizeSearchText(product.name).includes(term),
+        )
+        : products;
+
+      if (matches.length > 0) {
+        filtered.set(category, matches);
+      }
+    });
+
+    this.filteredGroupedMenu = filtered;
+    this.filteredProductsCount = Array.from(filtered.values()).reduce(
+      (total, products) => total + products.length,
+      0,
+    );
+  }
+
+  private normalizeSearchText(value: string): string {
+    return (value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
   }
 
   // Cambia el estado de disponibilidad de un producto

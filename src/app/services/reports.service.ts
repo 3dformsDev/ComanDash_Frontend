@@ -16,10 +16,32 @@ export interface SalesReportResponse {
   };
   summary: SalesReportSummary;
   chartData: { label: string, total: number }[];
-  tableRows: { productName: string, category: string, quantity: number, total: number }[];
+  tableRows: ProductSalesRow[];
   dailySales: { day: string, orderCount: number, total: number }[];
   paymentMethods: PaymentMethodReport[];
   cuts: CashRegisterCutReport[];
+}
+
+export interface ProductOptionSalesBreakdown {
+  groupName: string;
+  optionName: string;
+  quantity: number;
+  total: number;
+}
+
+export interface ProductOptionSalesGroup {
+  groupName: string;
+  options: ProductOptionSalesBreakdown[];
+  total: number;
+}
+
+export interface ProductSalesRow {
+  productId: number;
+  productName: string;
+  category: string;
+  quantity: number;
+  total: number;
+  optionBreakdown: ProductOptionSalesBreakdown[];
 }
 
 export interface SalesReportSummary {

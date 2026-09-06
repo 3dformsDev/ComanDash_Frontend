@@ -13,6 +13,8 @@
 
 // AJUSTADO: El contenido ahora no tiene padding general, sino por secciones
 .modal-content-scrollable {
+    flex: 1 1 auto;
+    min-height: 0;
     // El padding se aplica aquí para que no afecte el scroll
     --padding-start: 1.5rem;
     --padding-end: 1.5rem;
@@ -56,8 +58,6 @@
 }
 
 .order-items-list {
-    max-height: 15rem;
-    overflow-y: auto;
     margin-bottom: 1rem;
     padding-right: .5rem
 }
@@ -106,10 +106,32 @@
     overflow-wrap: anywhere;
 }
 
-.order-item .item-details .item-price {
-    font-size: .875rem;
+.order-item .item-details .item-base-price,
+.order-item .item-details .item-line-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 4px 0 0;
     color: #6b7280;
-    margin: 0
+    font-size: .78rem;
+}
+
+.order-item .item-details .item-base-price strong {
+    color: #374151;
+    white-space: nowrap;
+}
+
+.order-item .item-details .item-line-total {
+    padding-top: 5px;
+    border-top: 1px dashed #e5e7eb;
+    color: #374151;
+    font-weight: 700;
+
+    strong {
+        color: #111827;
+        white-space: nowrap;
+    }
 }
 
 .order-item .item-options {

@@ -110,6 +110,24 @@
   font-weight: 600;
 }
 
+.option-description {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+
+  strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  small {
+    color: #168443;
+    font-size: 12px;
+    font-weight: 800;
+  }
+}
+
 .quantity-control {
   display: grid;
   grid-template-columns: 34px 24px 34px;
@@ -138,6 +156,15 @@
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid #eceef2;
   background: #fff;
+}
+
+.additional-total {
+  margin: 0 0 8px;
+  color: #626a78;
+  font-size: 13px;
+  text-align: right;
+
+  strong { color: #168443; }
 }
 
 .confirm-button {

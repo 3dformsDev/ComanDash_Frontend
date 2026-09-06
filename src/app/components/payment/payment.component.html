@@ -4,26 +4,51 @@
     <!-- TOP SECTION -->
     <!-- ===================================================== -->
 
-    <div class="top-section">
+    <div class="top-section" [class.is-collapsed]="!itemsExpanded">
       <div class="payment-container">
-        <h3 class="modal-title">
-          {{ pageTitle }}
-        </h3>
+        <div class="payment-modal-header">
+          <h3 class="modal-title">{{ pageTitle }}</h3>
+          <ion-button
+            fill="clear"
+            class="close-payment-button"
+            aria-label="Cerrar detalle de la cuenta"
+            (click)="dismiss()"
+          >
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
 
-        <div class="items-summary-list">
+        <button
+          type="button"
+          class="items-summary-toggle"
+          [attr.aria-expanded]="itemsExpanded"
+          (click)="toggleItemsSummary()"
+        >
+          <span>
+            <strong>Productos de la cuenta</strong>
+            <small>{{ orderItems.length }} {{ orderItems.length === 1 ? 'producto' : 'productos' }}</small>
+          </span>
+          <ion-icon [name]="itemsExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </button>
+
+        <div class="items-summary-list" *ngIf="itemsExpanded">
           <div *ngFor="let item of orderItems" class="summary-item">
-            <div class="summary-item-main">
+            <div class="summary-item-product-row">
               <span class="summary-item-name">
                 {{ item.quantity }}x {{ item.category.name }} - {{ item.name }}
               </span>
-              <div class="compact-modifier-list" *ngIf="item.modifierSelections?.length">
-                <span *ngFor="let selection of item.modifierSelections">
-                  {{ selection.quantity > 1 ? selection.quantity + 'x ' : '' }}{{ selection.optionName || selection.optionNameSnapshot }}
-                </span>
-              </div>
+              <span class="summary-item-price">{{ baseLineTotal(item) | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
             </div>
 
-            <span class="summary-item-price">${{ item.price * item.quantity | number: "1.0-0" }}</span>
+            <div class="compact-modifier-list" *ngIf="item.modifierSelections?.length">
+              <span *ngFor="let selection of item.modifierSelections">
+                {{ selection.quantity > 1 ? selection.quantity + 'x ' : '' }}{{ selection.optionName || selection.optionNameSnapshot }}
+                <strong *ngIf="selectionLineTotal(selection, item) > 0">
+                  + {{ selectionLineTotal(selection, item) | currency:'COP':'symbol-narrow':'1.0-0' }}
+                </strong>
+              </span>
+            </div>
+
           </div>
         </div>
       </div>
@@ -205,6 +230,7 @@
                 [ngModel]="paymentAmount"
                 (ngModelChange)="onPaymentAmountChange($event)"
               >
+                <ion-icon slot="end" name="create-outline" aria-hidden="true"></ion-icon>
               </ion-input>
 
               <ion-button

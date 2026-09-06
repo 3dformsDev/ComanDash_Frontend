@@ -61,6 +61,7 @@ export class OrdersPage implements OnInit, OnDestroy {
 
   public currentFilter: number = 1; // Filtro activo por defecto
   public searchTerm = '';
+  public isRefreshingCatalog = false;
 
   // Array que almacena los productos que se van añadiendo a la orden
   public currentOrder: GroupedProduct[] = [];
@@ -106,11 +107,23 @@ export class OrdersPage implements OnInit, OnDestroy {
 
   // Calcula el costo total de la orden
   get orderTotal(): number {
-    return this.currentOrder.reduce(
-      (total, item) =>
-        total + parseFloat(item.price.toString()) * item.quantity,
+    return this.currentOrder.reduce((total, item) => total + this.lineTotal(item), 0);
+  }
+
+  private selectionUnitAdjustment(selection: OrderLineModifierSelectionI): number {
+    return Number(selection.priceAdjustment ?? selection.unitPriceAdjustment ?? 0) *
+      Number(selection.quantity || 1);
+  }
+
+  private configuredUnitPrice(item: GroupedProduct): number {
+    return Number(item.price || 0) + (item.modifierSelections || []).reduce(
+      (total, selection) => total + this.selectionUnitAdjustment(selection),
       0,
     );
+  }
+
+  private lineTotal(item: GroupedProduct): number {
+    return this.configuredUnitPrice(item) * Number(item.quantity || 0);
   }
 
   // --- CICLO DE VIDA Y MÉTODOS ---
@@ -502,7 +515,10 @@ export class OrdersPage implements OnInit, OnDestroy {
   }
 
   async refreshData() {
+    if (this.isRefreshingCatalog) return;
+    this.isRefreshingCatalog = true;
     try {
+      this.personalizationCache.clear();
       this.allCategories = await firstValueFrom(
         this._categoryService.getCategory(true),
       );
@@ -515,8 +531,14 @@ export class OrdersPage implements OnInit, OnDestroy {
           this.loadProtectedImage(product.id);
         }
       });
+      if (!this.allCategories.some((category) => category.id === this.currentFilter)) {
+        this.currentFilter = this.allCategories[0]?.id || 0;
+      }
     } catch (error) {
       console.error('Error al cargar las productos:', error);
+      this.toastService.presentToast('No fue posible actualizar el menú.', 'danger');
+    } finally {
+      this.isRefreshingCatalog = false;
     }
   }
 
@@ -751,7 +773,13 @@ export class OrdersPage implements OnInit, OnDestroy {
               groupName: selection.groupNameSnapshot ?? selection.groupName ?? '',
               optionName: selection.optionNameSnapshot ?? selection.optionName ?? '',
               quantity: Number(selection.quantity || 1),
-              priceAdjustment: 0,
+              priceAdjustment: Number(
+                selection.unitPriceAdjustment ?? selection.priceAdjustment ?? 0,
+              ),
+              unitPriceAdjustment: Number(
+                selection.unitPriceAdjustment ?? selection.priceAdjustment ?? 0,
+              ),
+              totalPriceAdjustment: Number(selection.totalPriceAdjustment || 0),
             }));
           const baseLineKey = this.buildLineKey(product.id, modifierSelections);
           const lineKey = item.id ? `${baseLineKey}::item-${item.id}` : baseLineKey;
@@ -767,6 +795,7 @@ export class OrdersPage implements OnInit, OnDestroy {
 
           const normalizedItem: GroupedProduct = {
             ...product,
+            price: Number(item.unitPrice ?? product.price),
             quantity: Number(item.quantity || 0),
             lineKey,
             orderItemId: item.id,

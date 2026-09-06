@@ -13,57 +13,38 @@ import * as AuthActions from '@store/auth/actions/auth.actions';
   standalone: false,
 })
 export class AdministrationPage implements OnInit {
+  private readonly expandedSectionStorageKey = 'comandash.admin.expanded-section';
+  public expandedSectionId = 'products';
 
-  // Array que define las opciones del menú de administración
-  public adminOptions = [
+  public adminSections = [
     {
-      title: 'Gestión de Menú',
-      icon: 'book-outline',
-      url: '/dashboard/administration/menu-management', // Ruta a la página de gestión de menú
-      roleVerify: ['super_admin', 'admin']
+      id: 'products', title: 'Productos y menú', description: 'Productos, categorías y opciones', icon: 'fast-food-outline', roleVerify: ['super_admin', 'admin'],
+      options: [
+        { title: 'Gestión de Menú', icon: 'book-outline', url: '/dashboard/administration/menu-management', roleVerify: ['super_admin', 'admin'] },
+        { title: 'Gestión de Categorías', icon: 'pricetags-outline', url: '/dashboard/administration/category-management', roleVerify: ['super_admin', 'admin'] },
+        { title: 'Personalizaciones', icon: 'options-outline', url: '/dashboard/administration/personalizations', roleVerify: ['super_admin', 'admin'] },
+      ],
     },
     {
-      title: 'Gestión de Categorías',
-      icon: 'pricetags-outline',
-      url: '/dashboard/administration/category-management', // Ruta a la página de categorías
-      roleVerify: ['super_admin', 'admin']
+      id: 'operation', title: 'Operación', description: 'Mesas, pagos y cajas', icon: 'storefront-outline', roleVerify: ['super_admin', 'admin', 'cashier'],
+      options: [
+        { title: 'Gestión de Mesas', icon: 'restaurant-outline', url: '/dashboard/administration/table-management', roleVerify: ['super_admin', 'admin'] },
+        { title: 'Métodos de Pago', icon: 'card-outline', url: '/dashboard/administration/payment-methods-management', roleVerify: ['super_admin', 'admin'] },
+        { title: 'Gestión de Cajas', icon: 'cash-outline', url: '/dashboard/administration/cash-box-management', roleVerify: ['super_admin', 'admin', 'cashier'] },
+      ],
     },
     {
-      title: 'Personalizaciones',
-      icon: 'options-outline',
-      url: '/dashboard/administration/personalizations',
-      roleVerify: ['super_admin', 'admin']
+      id: 'reports', title: 'Reportes', description: 'Consulta el desempeño del negocio', icon: 'stats-chart-outline', roleVerify: ['super_admin', 'admin', 'cashier'],
+      options: [
+        { title: 'Generar reportes', icon: 'bar-chart-outline', url: '/dashboard/administration/reports', roleVerify: ['super_admin', 'admin', 'cashier'] },
+      ],
     },
     {
-      title: 'Gestión de Mesas',
-      icon: 'restaurant-outline',
-      url: '/dashboard/administration/table-management', // Ruta a la página de mesas
-      roleVerify: ['super_admin', 'admin']
+      id: 'settings', title: 'Configuración', description: 'Ajustes generales del sistema', icon: 'settings-outline', roleVerify: ['super_admin', 'admin', 'manager'],
+      options: [
+        { title: 'Personalización del recibo', icon: 'receipt-outline', url: '/dashboard/administration/receipt-branding', roleVerify: ['super_admin', 'admin', 'manager'] },
+      ],
     },
-    {
-      title: 'Métodos de Pago',
-      icon: 'card-outline',
-      url: '/dashboard/administration/payment-methods-management', // Ruta a la página de métodos de pago
-      roleVerify: ['super_admin', 'admin']
-    },
-    {
-      title: 'Gestión de Cajas',
-      icon: 'cash-outline',
-      url: '/dashboard/administration/cash-box-management', // Ruta a la página de cajas
-      roleVerify: ['super_admin', 'admin', 'cashier']
-    },
-    {
-      title: 'Generar reportes',
-      icon: 'stats-chart-outline',
-      url: '/dashboard/administration/reports', // Ruta a la página de cajas
-      roleVerify: ['super_admin', 'admin', 'cashier']
-    },
-    {
-      title: 'Personalizacion del recibo',
-      icon: 'receipt-outline',
-      url: '/dashboard/administration/receipt-branding',
-      roleVerify: ['super_admin', 'admin', 'manager']
-    }
   ];
 
   constructor(
@@ -75,6 +56,23 @@ export class AdministrationPage implements OnInit {
   ) { }
 
   ngOnInit() {
+    const storedSection = localStorage.getItem(this.expandedSectionStorageKey);
+    if (storedSection && this.adminSections.some((section) => section.id === storedSection)) {
+      this.expandedSectionId = storedSection;
+    }
+  }
+
+  toggleSection(sectionId: string): void {
+    this.expandedSectionId = this.expandedSectionId === sectionId ? '' : sectionId;
+    if (this.expandedSectionId) {
+      localStorage.setItem(this.expandedSectionStorageKey, this.expandedSectionId);
+    } else {
+      localStorage.removeItem(this.expandedSectionStorageKey);
+    }
+  }
+
+  sectionIsExpanded(sectionId: string): boolean {
+    return this.expandedSectionId === sectionId;
   }
 
   // ✅ MÉTODO CREADO

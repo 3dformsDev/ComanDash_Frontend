@@ -2,6 +2,28 @@
   margin-bottom: 20px;
 }
 
+.product-search-container {
+  margin-bottom: 18px;
+
+  .product-searchbar {
+    --background: #ffffff;
+    --border-radius: 14px;
+    --box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    --color: #1f2937;
+    --placeholder-color: #6b7280;
+    --icon-color: var(--ion-color-primary);
+    --clear-button-color: var(--ion-color-primary);
+    padding: 0;
+  }
+}
+
+.search-result-count {
+  margin: 7px 5px 0;
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .category-heading {
   display: flex;
   align-items: center;

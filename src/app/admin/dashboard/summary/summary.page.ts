@@ -7,6 +7,10 @@ import {
   DailySummaryI,
 } from '@services/cash-register-session.service';
 import { OrderService } from '@services/order.service';
+import {
+  ProductOptionSalesBreakdown,
+  ProductOptionSalesGroup,
+} from '@services/reports.service';
 import { SocketService } from '@services/socket.service';
 import { ToastService } from '@services/toast.service';
 import {
@@ -30,6 +34,9 @@ export class SummaryPage implements OnInit, OnDestroy {
   public summaryDate = '';
   public isLoading = false;
   public topProductsExpanded = false;
+  public expandedTopProductIds = new Set<number>();
+  public topProductOptionGroups = new Map<number, ProductOptionSalesGroup[]>();
+  private readonly emptyOptionGroups: ProductOptionSalesGroup[] = [];
 
   summaryData: DailySummaryI = {
     totalOrders: 0,
@@ -87,6 +94,7 @@ export class SummaryPage implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.summaryData = data;
+          this.buildTopProductOptionGroups(data.topProducts);
           this.setFormattedDate(data.businessDate);
           this.isLoading = false;
           event?.target?.complete?.();
@@ -119,6 +127,45 @@ export class SummaryPage implements OnInit, OnDestroy {
 
   toggleTopProducts(): void {
     this.topProductsExpanded = !this.topProductsExpanded;
+  }
+
+  toggleTopProduct(productId: number): void {
+    const expanded = new Set(this.expandedTopProductIds);
+    expanded.has(productId) ? expanded.delete(productId) : expanded.add(productId);
+    this.expandedTopProductIds = expanded;
+  }
+
+  topProductIsExpanded(productId: number): boolean {
+    return this.expandedTopProductIds.has(productId);
+  }
+
+  getTopProductOptionGroups(productId: number): ProductOptionSalesGroup[] {
+    return this.topProductOptionGroups.get(productId) || this.emptyOptionGroups;
+  }
+
+  private buildTopProductOptionGroups(products: DailySummaryI['topProducts']): void {
+    const groupedByProduct = new Map<number, ProductOptionSalesGroup[]>();
+
+    products.forEach((product) => {
+      const optionsByGroup = new Map<string, ProductOptionSalesBreakdown[]>();
+      product.optionBreakdown.forEach((option) => {
+        const groupName = option.groupName || 'Otras opciones';
+        const groupOptions = optionsByGroup.get(groupName) || [];
+        groupOptions.push(option);
+        optionsByGroup.set(groupName, groupOptions);
+      });
+
+      groupedByProduct.set(
+        product.id,
+        Array.from(optionsByGroup.entries()).map(([groupName, options]) => ({
+          groupName,
+          options,
+          total: options.reduce((sum, option) => sum + Number(option.total || 0), 0),
+        })),
+      );
+    });
+
+    this.topProductOptionGroups = groupedByProduct;
   }
 
   goToCashManagement(): void {

@@ -59,8 +59,8 @@
       <section class="personalizations-section">
         <div class="personalizations-heading">
           <div>
-            <h2>Personalizaciones del producto</h2>
-            <p>Agrega las opciones que se solicitarán al tomar el pedido.</p>
+            <h2>Opciones del producto</h2>
+            <p>Elige los grupos que aparecerán al tomar este producto.</p>
           </div>
           <ion-spinner *ngIf="personalizationsLoading" name="crescent"></ion-spinner>
         </div>
@@ -70,7 +70,8 @@
             <ion-label position="stacked" class="custom-label">Grupo de opciones</ion-label>
             <ion-select
               [(ngModel)]="selectedModifierGroupId"
-              interface="popover"
+              interface="alert"
+              [interfaceOptions]="modifierGroupSelectOptions"
               placeholder="Selecciona un grupo"
             >
               <ion-select-option
@@ -88,7 +89,7 @@
             (click)="addModifierGroup()"
           >
             <ion-icon slot="start" name="add-outline"></ion-icon>
-            Agregar grupo
+            Agregar
           </ion-button>
         </div>
 
@@ -103,7 +104,7 @@
           *ngIf="!personalizationsLoading && modifierGroups.length > 0 && productPersonalizations.length === 0"
           class="personalizations-empty"
         >
-          Este producto no solicitará opciones adicionales.
+          Este producto se pedirá sin opciones adicionales.
         </p>
 
         <article
@@ -114,7 +115,7 @@
             <div>
               <strong>{{ getModifierGroup(assignment.modifierGroupId)?.name }}</strong>
               <small>
-                {{ getActiveOptionsCount(assignment.modifierGroupId) }} opciones disponibles
+                {{ getActiveOptionsCount(assignment.modifierGroupId) }} opciones para elegir
               </small>
             </div>
             <ion-buttons>
@@ -142,8 +143,8 @@
 
           <ion-item lines="none" class="rule-toggle-item">
             <ion-label>
-              <strong>Esta elección es obligatoria</strong>
-              <p>{{ assignment.isRequired ? 'Esta selección es obligatoria' : 'Puede continuar sin elegir' }}</p>
+              <strong>¿Es obligatorio elegir?</strong>
+              <p>{{ assignment.isRequired ? 'Debe completar esta elección' : 'Puede continuar sin elegir' }}</p>
             </ion-label>
             <ion-toggle [(ngModel)]="assignment.isRequired"></ion-toggle>
           </ion-item>
@@ -177,11 +178,60 @@
               (ionChange)="normalizeSelectionLimit(assignment)"
             ></ion-toggle>
           </ion-item>
+
+          <section class="option-prices-section">
+            <div class="option-prices-heading">
+              <strong>Valores adicionales</strong>
+              <p>Actívalo únicamente en las opciones que aumentan el precio de este producto.</p>
+            </div>
+
+            <div
+              *ngFor="let option of getAssignmentOptions(assignment); trackBy: trackModifierOptionById"
+              class="option-price-row"
+            >
+              <ion-item lines="none" class="option-price-toggle">
+                <ion-label>
+                  <strong>{{ option.name }}</strong>
+                  <p>{{ optionHasPrice(assignment, option.id) ? 'Aumenta el precio' : 'Sin valor adicional' }}</p>
+                </ion-label>
+                <ion-toggle
+                  [ngModel]="optionHasPrice(assignment, option.id)"
+                  (ngModelChange)="setOptionHasPrice(assignment, option.id, $event)"
+                  [ngModelOptions]="{standalone: true}"
+                  [attr.aria-label]="'Cobrar valor adicional por ' + option.name"
+                ></ion-toggle>
+              </ion-item>
+
+              <ion-item
+                *ngIf="optionHasPrice(assignment, option.id)"
+                lines="none"
+                class="option-price-input"
+              >
+                <ion-label position="stacked">Valor adicional</ion-label>
+                <ion-input
+                  type="tel"
+                  inputmode="numeric"
+                  min="1"
+                  placeholder="0"
+                  [value]="getOptionPrice(assignment, option.id) || ''"
+                  (ionInput)="updateOptionPrice(assignment, option.id, $event)"
+                >
+                  <span slot="start" class="currency-symbol">$</span>
+                </ion-input>
+              </ion-item>
+            </div>
+          </section>
         </article>
       </section>
 
-      <div class="input-group image-section">
-        <ion-label position="stacked" class="custom-label">Imagen del producto</ion-label>
+      <div class="input-group image-section custom-item">
+        <div class="image-field-heading">
+          <ion-icon name="image-outline"></ion-icon>
+          <div>
+            <strong>Imagen del producto</strong>
+            <p>JPG, PNG o WEBP de máximo 5 MB.</p>
+          </div>
+        </div>
 
         <!-- Input file oculto para web -->
         <input #fileInput type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display: none"

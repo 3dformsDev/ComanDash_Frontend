@@ -199,7 +199,7 @@
       >
         <span class="collapsible-title">
           <ion-icon name="fast-food-outline"></ion-icon>
-          Productos Vendidos
+          Productos más vendidos
         </span>
         <span class="collapsible-actions">
           <span class="section-count">{{ reportData.tableRows.length }}</span>
@@ -209,20 +209,45 @@
 
       <ion-list lines="full" *ngIf="productsExpanded">
 
-        <ion-item *ngFor="let row of reportData.tableRows">
+        <ng-container *ngFor="let row of reportData.tableRows">
+          <ion-item
+            [button]="row.optionBreakdown.length > 0"
+            [detail]="false"
+            (click)="row.optionBreakdown.length > 0 && toggleProductDetail(row.productId)"
+          >
+            <ion-label>
+              <h2 class="item-title">{{ row.productName }}</h2>
+              <p class="item-subtitle">{{ row.category }}</p>
+            </ion-label>
 
-          <ion-label>
-            <h2 class="item-title">{{ row.productName }}</h2>
-            <p class="item-subtitle">{{ row.category }}</p>
-          </ion-label>
-
-          <div slot="end" class="item-totals">
-            <ion-text color="primary">
-              <h3 class="item-total-price">{{ row.total | currency:'COP':'$' }}</h3>
-            </ion-text>
-            <ion-note class="item-quantity">{{ row.quantity }} Unidades</ion-note>
+            <div slot="end" class="item-totals">
+              <ion-text color="primary">
+                <h3 class="item-total-price">{{ row.total | currency:'COP':'$':'1.0-0' }}</h3>
+              </ion-text>
+              <ion-note class="item-quantity">
+                {{ row.quantity }} Unidades
+                <ion-icon
+                  *ngIf="row.optionBreakdown.length > 0"
+                  [name]="productDetailIsExpanded(row.productId) ? 'chevron-up-outline' : 'chevron-down-outline'"
+                ></ion-icon>
+              </ion-note>
+            </div>
+          </ion-item>
+          <div *ngIf="productDetailIsExpanded(row.productId)" class="product-options-detail">
+            <p class="option-breakdown-caption">Resumen acumulado del periodo</p>
+            <section *ngFor="let group of getProductOptionGroups(row.productId)" class="option-breakdown-group">
+              <h4>{{ group.groupName }}</h4>
+              <div *ngFor="let option of group.options" class="option-breakdown-row">
+                <span>{{ option.optionName }}</span>
+                <small>{{ option.quantity }} {{ option.quantity === 1 ? 'elección' : 'elecciones' }}</small>
+              </div>
+              <div *ngIf="group.total > 0" class="option-breakdown-total">
+                <span>Total adicional</span>
+                <strong>+ {{ group.total | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+              </div>
+            </section>
           </div>
-        </ion-item>
+        </ng-container>
 
         <p *ngIf="reportData.tableRows.length === 0" class="empty-message ion-padding">
           No se encontraron productos vendidos.

@@ -14,6 +14,7 @@ export interface OrderItem {
     };
   };
   unitPrice?: string;
+  totalPrice?: string | number;
   kitchenStatus?: 'pending' | 'in_preparation' | 'ready' | 'served';
   orderItemId?: number;
   lineKey?: string;
@@ -25,7 +26,9 @@ export interface OrderItem {
     groupNameSnapshot?: string;
     optionNameSnapshot?: string;
     quantity: number;
-    priceAdjustment?: 0;
+    priceAdjustment?: number;
+    unitPriceAdjustment?: number;
+    totalPriceAdjustment?: number;
   }[];
 }
 

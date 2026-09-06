@@ -9,6 +9,8 @@
         class="home-button"
         fill="clear"
         (click)="openDashboardPage()"
+        aria-label="Ir al inicio"
+        title="Ir al inicio"
       >
         <ion-icon slot="icon-only" name="home-outline"></ion-icon>
       </ion-button>
@@ -122,6 +124,9 @@
                 <div class="compact-modifier-list" *ngIf="item.modifierSelections?.length">
                   <span *ngFor="let selection of item.modifierSelections">
                     {{ selection.quantity > 1 ? selection.quantity + 'x ' : '' }}{{ selection.optionNameSnapshot }}
+                    <strong *ngIf="(selection.totalPriceAdjustment || 0) > 0">
+                      + {{ (selection.totalPriceAdjustment || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </strong>
                   </span>
                 </div>
               </li>

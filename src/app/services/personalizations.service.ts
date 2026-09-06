@@ -55,6 +55,12 @@ export interface ProductPersonalizationAssignmentDto {
   selectionLimit: number;
   allowOptionQuantities: boolean;
   displayOrder?: number;
+  options?: ProductModifierOptionPriceDto[];
+}
+
+export interface ProductModifierOptionPriceDto {
+  modifierOptionId: number;
+  priceAdjustment: number;
 }
 
 export interface OrderLineModifierSelectionI {
@@ -63,7 +69,9 @@ export interface OrderLineModifierSelectionI {
   groupName: string;
   optionName: string;
   quantity: number;
-  priceAdjustment: 0;
+  priceAdjustment: number;
+  unitPriceAdjustment?: number;
+  totalPriceAdjustment?: number;
 }
 
 export interface ModifierGroupDto {

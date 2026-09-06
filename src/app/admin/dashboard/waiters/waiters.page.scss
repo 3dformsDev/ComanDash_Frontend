@@ -36,8 +36,9 @@ ion-header.waiter-header {
     }
 
     .home-button {
-      --background: #f3f4f6;
-      --border-radius: 8px;
+      --background: #fff0f0;
+      --background-hover: #ffe1e1;
+      --border-radius: 12px;
       --padding-start: 12px;
       --padding-end: 12px;
       height: 40px;
@@ -45,7 +46,7 @@ ion-header.waiter-header {
 
       ion-icon {
         font-size: 20px;
-        color: #4b5563;
+        color: var(--ion-color-primary);
       }
     }
   }

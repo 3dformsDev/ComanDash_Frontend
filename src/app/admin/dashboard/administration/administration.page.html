@@ -1,32 +1,34 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border administration-header">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button text="" defaultHref="/dashboard"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Administración</ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button (click)="logout()">
-        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
+    <div class="administration-toolbar">
+      <ion-buttons><ion-back-button text="" defaultHref="/dashboard"></ion-back-button></ion-buttons>
+      <div><h1>Administración</h1><p>Configura y organiza tu negocio</p></div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-list class="admin-menu-list" lines="none">
-    <ng-container *ngFor="let option of adminOptions">
-      <ion-item *ifRole="option.roleVerify" [routerLink]="option.url" detail="true">
-        <ion-icon [name]="option.icon" slot="start" color="primary"></ion-icon>
-        <ion-label>{{ option.title }}</ion-label>
-      </ion-item>
+<ion-content class="ion-padding administration-content">
+  <div class="admin-sections">
+    <ng-container *ngFor="let section of adminSections">
+    <section *ifRole="section.roleVerify" class="admin-section">
+      <button type="button" class="admin-section-header" [attr.aria-expanded]="sectionIsExpanded(section.id)" (click)="toggleSection(section.id)">
+        <span class="section-icon"><ion-icon [name]="section.icon"></ion-icon></span>
+        <span class="section-copy"><strong>{{ section.title }}</strong><small>{{ section.description }}</small></span>
+        <ion-icon [name]="sectionIsExpanded(section.id) ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </button>
+      <ion-list *ngIf="sectionIsExpanded(section.id)" class="admin-menu-list" lines="none">
+        <ng-container *ngFor="let option of section.options">
+          <ion-item *ifRole="option.roleVerify" [routerLink]="option.url" detail="true">
+            <ion-icon [name]="option.icon" slot="start"></ion-icon>
+            <ion-label>{{ option.title }}</ion-label>
+          </ion-item>
+        </ng-container>
+      </ion-list>
+    </section>
     </ng-container>
-  </ion-list>
-  <ion-button id="go-to-admin-view" expand="block" fill="solid"
-    style="--background: var(--accent, #ff3131); --background-hover: var(--dark, #ff3131); --background-focused: var(--dark, #ff3131); --color: var(--light, #ffffff); --border-radius: 12px; --padding-top: 12px; --padding-bottom: 12px; text-transform: none; font-weight: 600; font-size: 14px;"
-    class="rounded" (click)="logout()">
-    <ion-icon slot="icon-only" name="log-out-outline" class="mr-2"></ion-icon>
+  </div>
+  <ion-button id="go-to-admin-view" expand="block" fill="outline" class="logout-button" (click)="logout()">
+    <ion-icon slot="start" name="log-out-outline"></ion-icon>
     Cerrar sesión
   </ion-button>
 </ion-content>

@@ -644,6 +644,7 @@ ion-modal.payment-modal-class {
 .cancel-order-alert,
 .logout-confirmation-alert,
 .session-timeout-alert,
+.product-group-select-alert,
 .management-form-alert {
   .alert-wrapper {
     width: min(92vw, 400px) !important;
@@ -786,6 +787,70 @@ ion-modal.payment-modal-class {
 .confirmation-action-alert {
   .alert-message {
     margin-bottom: 10px !important;
+  }
+}
+
+ion-alert.product-group-select-alert {
+  --width: min(440px, calc(100vw - 32px));
+
+  .alert-wrapper {
+    width: min(92vw, 440px) !important;
+    max-width: 440px !important;
+  }
+
+  .alert-radio-group {
+    max-height: min(42vh, 330px) !important;
+    margin-bottom: 8px !important;
+    padding: 0 !important;
+    overflow-y: auto !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+  }
+
+  .alert-radio-button {
+    min-height: 52px !important;
+    border-bottom: 1px solid #eef0f3 !important;
+    color: #1f2937 !important;
+  }
+
+  .alert-radio-button:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .alert-radio-button[aria-checked='true'] {
+    background: #fff3f3 !important;
+  }
+
+  .alert-radio-icon {
+    border-color: #c7cbd1 !important;
+  }
+
+  .alert-radio-button[aria-checked='true'] .alert-radio-icon {
+    border-color: #ff3131 !important;
+  }
+
+  .alert-radio-inner {
+    background: #ff3131 !important;
+  }
+
+  .alert-radio-label {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    line-height: 1.35;
+    color: #1f2937 !important;
+    font-size: 0.96rem !important;
+    font-weight: 650 !important;
+  }
+
+  .alert-button:first-child {
+    background: #e5e7eb !important;
+    color: #111827 !important;
+  }
+
+  .alert-button:last-child {
+    background: #ff3131 !important;
+    color: #ffffff !important;
   }
 }
 
