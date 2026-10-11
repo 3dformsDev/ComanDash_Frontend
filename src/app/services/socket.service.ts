@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { environment } from '@environments/environment'; // Asumo que usas environments
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SocketService {
+  private inventoryChanged = new Subject<void>();
+  readonly inventoryChanged$ = this.inventoryChanged.asObservable();
   // CAMBIO 1: El socket se declara pero no se inicializa aquí.
   private socket?: Socket;
   private socketUrl: string = environment.socketUrl; // ¡Perfecto que uses environments!
@@ -48,6 +50,7 @@ export class SocketService {
     });
 
     // ✅ Escuchar conexión exitosa
+    this.socket.on('inventory_changed', () => this.inventoryChanged.next());
     this.socket.on('connect', () => {
       console.log('✅ Socket conectado:', this.socket?.id);
       this.connectionStatus.next(true);

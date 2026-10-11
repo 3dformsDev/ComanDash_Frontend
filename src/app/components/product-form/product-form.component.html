@@ -5,50 +5,45 @@
         <h1>{{ mode === 'new' ? 'Nuevo producto' : 'Editar producto' }}</h1>
         <p>Configura la información y las opciones del producto</p>
       </div>
-      <ion-button fill="clear" class="close-form-button" (click)="dismiss()" aria-label="Cerrar formulario">
+      <ion-button fill="clear" class="close-form-button" (click)="dismiss()" [disabled]="isSaving" aria-label="Cerrar formulario">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="form-content">
+<ion-content class="form-content" [class.is-saving]="isSaving">
   <div class="form-container">
     <div class="form-section">
       <div class="input-group">
-        <ion-item class="custom-item" lines="none">
-          <ion-label position="stacked" class="custom-label">Nombre del producto *</ion-label>
-          <ion-input type="text" [(ngModel)]="product.name" class="custom-input"
-            placeholder="Ingresa el nombre del producto">
+        <ion-item class="core-field" lines="none">
+          <ion-input label="Nombre del producto *" labelPlacement="stacked" type="text" [(ngModel)]="product.name"
+            placeholder="Ingresa el nombre del producto"></ion-input>
+        </ion-item>
+      </div>
+
+      <div class="input-group">
+        <ion-item class="core-field" lines="none">
+          <ion-input label="Precio de venta *" labelPlacement="stacked" type="tel" inputmode="numeric" [ngModel]="product.price | number:'1.0-0':'es-CO'"
+            (ionInput)="formatValue($event, 'price')" placeholder="0">
+            <span slot="start" class="currency-symbol">$</span>
           </ion-input>
         </ion-item>
       </div>
 
       <div class="input-group">
-        <ion-item class="custom-item" lines="none">
-          <ion-label position="stacked" class="custom-label">Precio de venta *</ion-label>
-          <ion-input type="tel" [ngModel]="product.price | number:'1.0-0':'es-CO'"
-            (ionInput)="formatValue($event, 'price')" class="custom-input" placeholder="0">
-            <div slot="start" class="currency-symbol">$</div>
+        <ion-item class="core-field" lines="none">
+          <ion-input label="Costo de unidad *" labelPlacement="stacked" type="tel" inputmode="numeric" [ngModel]="product.cost | number:'1.0-0':'es-CO'"
+            (ionInput)="formatValue($event, 'cost')" placeholder="0">
+            <span slot="start" class="currency-symbol">$</span>
           </ion-input>
         </ion-item>
       </div>
 
       <div class="input-group">
-        <ion-item class="custom-item" lines="none">
-          <ion-label position="stacked" class="custom-label">Costo *</ion-label>
-          <ion-input type="tel" [ngModel]="product.cost | number:'1.0-0':'es-CO'"
-            (ionInput)="formatValue($event, 'cost')" class="custom-input" placeholder="0">
-            <div slot="start" class="currency-symbol">$</div>
-          </ion-input>
-        </ion-item>
-      </div>
-
-      <div class="input-group">
-        <ion-item class="custom-item" lines="none">
-          <ion-label position="stacked" class="custom-label">Categoría *</ion-label>
-          <ion-select placeholder="Selecciona una categoría" [(ngModel)]="product.categoryId" class="custom-select"
-            interface="popover">
+        <ion-item class="core-field" lines="none">
+          <ion-select label="Categoría *" labelPlacement="stacked" placeholder="Selecciona una categoría" [(ngModel)]="product.categoryId"
+            interface="alert" [interfaceOptions]="categorySelectOptions">
             <ion-select-option *ngFor="let cat of categories" [value]="cat.id">
               {{ cat.name }}
             </ion-select-option>
@@ -56,6 +51,12 @@
         </ion-item>
       </div>
 
+      <p *ngIf="inventoryError">{{inventoryError}}</p>
+      <div class="inventory-form-heading" *ngIf="inventoryDraft">
+        <div><strong>Inventario del producto</strong><p>Controla sus unidades directas. El contenido de las opciones se configura más abajo.</p></div>
+        <ion-button *ngIf="mode === 'edit' && inventoryDraft.enabled" class="view-inventory-button" fill="outline" size="small" (click)="openInventory()"><ion-icon name="archive-outline" slot="start"></ion-icon>Ver en inventario</ion-button>
+      </div>
+      <app-inventory-fields *ngIf="inventoryDraft" [draft]="inventoryDraft" [dependencyLabels]="inventoryDependencyLabels()" [readonlyUnitCost]="true"></app-inventory-fields>
       <section class="personalizations-section">
         <div class="personalizations-heading">
           <div>
@@ -112,12 +113,10 @@
           class="assigned-group-card"
         >
           <div class="assigned-group-title">
-            <div>
-              <strong>{{ getModifierGroup(assignment.modifierGroupId)?.name }}</strong>
-              <small>
-                {{ getActiveOptionsCount(assignment.modifierGroupId) }} opciones para elegir
-              </small>
-            </div>
+            <button type="button" class="assigned-group-toggle" [attr.aria-expanded]="expandedGroupIds.has(assignment.modifierGroupId)" (click)="toggleModifierGroup(assignment.modifierGroupId)">
+              <span><strong>{{ getModifierGroup(assignment.modifierGroupId)?.name }}</strong><small>{{ getActiveOptionsCount(assignment.modifierGroupId) }} opciones · {{ assignment.isRequired ? 'Elección obligatoria' : 'Elección opcional' }}</small></span>
+              <ion-icon [name]="expandedGroupIds.has(assignment.modifierGroupId) ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+            </button>
             <ion-buttons>
               <ion-button
                 fill="clear"
@@ -140,6 +139,8 @@
               </ion-button>
             </ion-buttons>
           </div>
+
+          <div class="assigned-group-body" *ngIf="expandedGroupIds.has(assignment.modifierGroupId)">
 
           <ion-item lines="none" class="rule-toggle-item">
             <ion-label>
@@ -181,18 +182,25 @@
 
           <section class="option-prices-section">
             <div class="option-prices-heading">
-              <strong>Valores adicionales</strong>
-              <p>Actívalo únicamente en las opciones que aumentan el precio de este producto.</p>
+              <strong>Configuración de cada opción</strong>
+              <p>Define por separado el precio adicional y las unidades que descuenta cada elección.</p>
             </div>
 
             <div
               *ngFor="let option of getAssignmentOptions(assignment); trackBy: trackModifierOptionById"
-              class="option-price-row"
+              class="option-config-card"
             >
+              <button type="button" class="option-config-toggle" [attr.aria-expanded]="expandedOptionKeys.has(optionKey(assignment.modifierGroupId, option.id))" (click)="toggleModifierOption(assignment.modifierGroupId, option.id)">
+                <span><strong>{{option.name}}</strong><small>{{optionHasPrice(assignment, option.id) ? 'Con precio adicional' : 'Sin valor adicional'}} · {{optionUsesInventory(assignment.modifierGroupId, option.id) ? 'Descuenta unidades' : 'Sin descuento de unidades'}}</small></span>
+                <ion-icon [name]="expandedOptionKeys.has(optionKey(assignment.modifierGroupId, option.id)) ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+              </button>
+              <div class="option-config-body" *ngIf="expandedOptionKeys.has(optionKey(assignment.modifierGroupId, option.id))">
+              <div class="option-config-section">
+                <span class="option-config-caption">Precio adicional</span>
               <ion-item lines="none" class="option-price-toggle">
                 <ion-label>
-                  <strong>{{ option.name }}</strong>
-                  <p>{{ optionHasPrice(assignment, option.id) ? 'Aumenta el precio' : 'Sin valor adicional' }}</p>
+                  <strong>Cobrar un valor adicional</strong>
+                  <p>{{ optionHasPrice(assignment, option.id) ? 'Se suma al precio de este producto' : 'Sin valor adicional' }}</p>
                 </ion-label>
                 <ion-toggle
                   [ngModel]="optionHasPrice(assignment, option.id)"
@@ -219,8 +227,28 @@
                   <span slot="start" class="currency-symbol">$</span>
                 </ion-input>
               </ion-item>
+              </div>
+              <section class="option-inventory-config">
+                <span class="option-config-caption">Descontar unidades</span>
+                <ion-item lines="none" class="option-inventory-toggle">
+                  <ion-label><strong>Esta opción descuenta inventario</strong><p>{{ optionUsesInventory(assignment.modifierGroupId, option.id) ? 'Se descuentan los productos indicados al elegirla' : 'No descuenta productos adicionales' }}</p></ion-label>
+                  <ion-toggle [ngModel]="optionUsesInventory(assignment.modifierGroupId, option.id)" (ngModelChange)="setOptionUsesInventory(assignment.modifierGroupId, option.id, $event)" [ngModelOptions]="{standalone:true}"></ion-toggle>
+                </ion-item>
+                <ng-container *ngIf="optionUsesInventory(assignment.modifierGroupId, option.id) && inventoryDraft">
+                  <ng-container *ngFor="let component of inventoryDraft.components; let componentIndex = index; trackBy: trackInventoryComponent">
+                    <div class="inventory-component-row" *ngIf="component.modifierGroupId === assignment.modifierGroupId && component.modifierOptionId === option.id">
+                      <button type="button" class="inventory-product-choice" [class.is-empty]="!component.componentProductId" (click)="openInventoryProductPicker(component)"><span><small>Producto</small><strong>{{inventoryProductName(component)}}</strong></span><ion-icon name="chevron-down-outline"></ion-icon></button>
+                      <ion-item lines="none" class="component-field units-field"><ion-input label="Unidades por elección" labelPlacement="stacked" type="number" min="1" inputmode="numeric" [(ngModel)]="component.units" [ngModelOptions]="{standalone:true}"></ion-input></ion-item>
+                      <ion-button fill="clear" color="danger" aria-label="Quitar producto" (click)="removeInventoryComponent(componentIndex)"><ion-icon slot="icon-only" name="trash-outline"></ion-icon></ion-button>
+                    </div>
+                  </ng-container>
+                  <ion-button class="add-inventory-component" fill="outline" size="small" (click)="addInventoryComponent(assignment.modifierGroupId, option.id)"><ion-icon slot="start" name="add-outline"></ion-icon>Agregar producto</ion-button>
+                </ng-container>
+              </section>
+              </div>
             </div>
           </section>
+          </div>
         </article>
       </section>
 
@@ -266,10 +294,22 @@
     </div>
 
     <div class="button-section">
-      <ion-button expand="block" class="save-btn" (click)="save()" [disabled]="!isFormValid()">
-        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-        Guardar producto
+      <ion-button expand="block" class="save-btn" (click)="save()" [disabled]="isSaving || !isFormValid()">
+        <ion-spinner *ngIf="isSaving" name="crescent" slot="start"></ion-spinner>
+        <ion-icon *ngIf="!isSaving" name="checkmark-outline" slot="start"></ion-icon>
+        {{ isSaving ? 'Guardando…' : 'Guardar producto' }}
       </ion-button>
     </div>
   </div>
 </ion-content>
+
+<ion-modal class="cd-inventory-product-picker" [isOpen]="inventoryPickerOpen" (didDismiss)="closeInventoryProductPicker()">
+  <ng-template>
+    <ion-header class="ion-no-border product-form-header"><ion-toolbar><div class="product-form-toolbar"><div><h1>Elegir producto</h1><p>Selecciona lo que se descontará al elegir esta opción.</p></div><ion-button fill="clear" class="close-form-button" (click)="closeInventoryProductPicker()" aria-label="Cerrar lista de productos"><ion-icon name="close-outline" slot="icon-only"></ion-icon></ion-button></div></ion-toolbar></ion-header>
+    <ion-content class="inventory-picker-content ion-padding">
+      <ion-searchbar placeholder="Buscar producto" [ngModel]="inventoryPickerSearch" (ngModelChange)="inventoryPickerSearch = $event; updateInventoryPickerProducts()" debounce="100" show-clear-button="focus"></ion-searchbar>
+      <button type="button" class="inventory-picker-option" *ngFor="let inventoryProduct of inventoryPickerProducts; trackBy: trackInventoryProductById" (click)="selectInventoryProduct(inventoryProduct)"><span><strong>{{inventoryProduct.name}}</strong><small>{{inventoryProduct.category}}{{inventoryProduct.enabled ? '' : ' · Sin control de unidades'}}</small></span><ion-icon name="chevron-forward-outline"></ion-icon></button>
+      <p class="inventory-picker-empty" *ngIf="!inventoryPickerProducts.length">No hay productos disponibles para esta búsqueda.</p>
+    </ion-content>
+  </ng-template>
+</ion-modal>

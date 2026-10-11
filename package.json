@@ -9,6 +9,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:release-fixes": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/services/inventory.service.spec.ts --include=src/app/services/order.service.inventory.spec.ts --include=src/app/admin/dashboard/administration/inventory/inventory.page.spec.ts --include=src/app/components/product-form/product-form.save.spec.ts --include=src/app/admin/dashboard/administration/menu-management/menu-management.save.spec.ts --include=src/app/services/kitchen-realtime.service.spec.ts --include=src/app/admin/dashboard/kitchen/kitchen.safety.spec.ts --include=src/app/admin/dashboard/orders/orders.personalization.spec.ts --ts-config=tsconfig.inventory-spec.json --progress=false",
+    "test:inventory": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/services/inventory.service.spec.ts --include=src/app/services/order.service.inventory.spec.ts --include=src/app/admin/dashboard/administration/inventory/inventory.page.spec.ts --ts-config=tsconfig.inventory-spec.json --progress=false",
     "lint": "ng lint"
   },
   "private": true,

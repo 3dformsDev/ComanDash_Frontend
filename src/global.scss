@@ -790,6 +790,14 @@ ion-modal.payment-modal-class {
   }
 }
 
+ion-alert.inventory-disable-alert .alert-button-inner {
+  display: flex !important;
+  width: 100% !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
 ion-alert.product-group-select-alert {
   --width: min(440px, calc(100vw - 32px));
 

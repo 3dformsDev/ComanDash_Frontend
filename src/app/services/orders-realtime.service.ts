@@ -177,6 +177,10 @@ export class OrdersRealtimeService {
     });
 
     this.socketListenersSubscription.add(
+      this._socketService.listen('tables_changed').subscribe(() => this.refreshOrders()),
+    );
+
+    this.socketListenersSubscription.add(
       this._socketService
         .listen('cash_register_closed')
         .subscribe(() => this.clearOrders()),

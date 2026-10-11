@@ -65,21 +65,34 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
   padding: 14px;
+  border: 0;
   background: #fafafb;
+  text-align: left;
+  cursor: pointer;
 
-  h3 {
-    margin: 0 0 3px;
+  .group-heading-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  strong {
     color: #222936;
     font-size: 16px;
     font-weight: 800;
   }
 
-  p {
-    margin: 0;
+  small {
     color: #707786;
     font-size: 12px;
   }
+
+  .group-heading-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  ion-icon { color: #707786; font-size: 20px; }
+  &:focus-visible { outline: 2px solid var(--ion-color-primary); outline-offset: -2px; }
 }
 
 .selection-counter {

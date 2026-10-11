@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { CategoriesService, CategoryI } from '@services/categories.service';
 import { ProductI, ProductsService, UpdateProductDto } from '@services/products.service';
 import { firstValueFrom } from 'rxjs';
-import { ProductFormComponent } from 'src/app/components/product-form/product-form.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { InventoryService } from '@services/inventory.service';
+import { InventoryDraft } from '../../../../components/inventory-fields/inventory-fields.component';
+import { ProductFormComponent, ProductFormSubmission } from 'src/app/components/product-form/product-form.component';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import {
   PersonalizationsService,
@@ -18,6 +21,7 @@ import {
   standalone: false
 })
 export class MenuManagementPage implements OnInit {
+  private inventory = inject(InventoryService);
 
   allCategories: CategoryI[] = [];
   allProducts: ProductI[] = [];
@@ -40,6 +44,8 @@ export class MenuManagementPage implements OnInit {
     private _productService: ProductsService,
     private _categoryService: CategoriesService,
     private personalizationsService: PersonalizationsService,
+    private route: ActivatedRoute,
+    private router: Router,
   ) { }
 
   ngOnInit() {
@@ -48,6 +54,12 @@ export class MenuManagementPage implements OnInit {
 
   async ionViewWillEnter() {
     await this.loadData();
+    const productId = Number(this.route.snapshot.queryParamMap.get('productId'));
+    if (Number.isInteger(productId) && productId > 0) {
+      const product = this.allProducts.find((item) => item.id === productId);
+      await this.router.navigate([], { relativeTo: this.route, queryParams: { productId: null }, queryParamsHandling: 'merge', replaceUrl: true });
+      if (product) await this.editItem(product);
+    }
   }
 
   async loadData() {
@@ -155,14 +167,24 @@ export class MenuManagementPage implements OnInit {
 
   // Abre el modal/página para editar un producto existente
   async editItem(product: ProductI) {
+    let saving = false;
     const modal = await this.modalCtrl.create({
       component: ProductFormComponent, // El componente del modal que creamos
       cssClass: 'cd-product-form-modal',
+      canDismiss: async () => !saving,
       componentProps: {
         // Aquí le pasamos los datos que necesita el modal
         'categories': this.allCategories,
         'mode': 'edit',
-        product
+        product,
+        onSave: async (data: ProductFormSubmission) => {
+          saving = true;
+          try {
+            return await this.updateProduct(product.id, data.product.name, data.product.price,
+              data.product.cost, data.product.description, data.product.categoryId,
+              data.product.isActive, data.file, data.personalizations, data.inventory);
+          } finally { saving = false; }
+        },
       }
     });
 
@@ -171,11 +193,16 @@ export class MenuManagementPage implements OnInit {
     // Esperamos a que el modal se cierre para recibir los datos
     const { data, role } = await modal.onDidDismiss();
 
+    if (role === 'inventory' && product.id) {
+      await this.router.navigate(['/dashboard/administration/inventory'], { queryParams: { productId: product.id } });
+      return;
+    }
+
     console.log(`los datos del modal son ${JSON.stringify(data)}`);
     console.log(data);
     
 
-    if (data) {
+    if (role === 'save' && data) {
       // El usuario guardó, y 'data' contiene el objeto del nuevo producto
       await this.updateProduct(
         data.product.id,
@@ -187,6 +214,7 @@ export class MenuManagementPage implements OnInit {
         data.product.isActive,
         data.file ?? null,
         data.personalizations ?? [],
+        data.inventory,
       );
     }
   }
@@ -238,13 +266,29 @@ export class MenuManagementPage implements OnInit {
   }
 
   async addNewItem() {
+    let persistedId: number | undefined;
+    let saving = false;
     const modal = await this.modalCtrl.create({
       component: ProductFormComponent, // El componente del modal que creamos
       cssClass: 'cd-product-form-modal',
+      canDismiss: async () => !saving,
       componentProps: {
         // Aquí le pasamos los datos que necesita el modal
         'categories': this.allCategories,
-        'mode': 'new'
+        'mode': 'new',
+        onSave: async (data: ProductFormSubmission) => {
+          saving = true;
+          try {
+            if (persistedId) {
+              return await this.updateProduct(persistedId, data.product.name, data.product.price,
+                data.product.cost, data.product.description, data.product.categoryId,
+                true, data.file, data.personalizations, data.inventory);
+            }
+            return await this.createProduct(data.product.name, data.product.price, data.product.cost,
+              data.product.description, data.product.categoryId, data.file,
+              data.personalizations, data.inventory, (id) => { persistedId = id; });
+          } finally { saving = false; }
+        },
       }
     });
 
@@ -265,6 +309,7 @@ export class MenuManagementPage implements OnInit {
         data.product.categoryId,
         data.file ?? null,
         data.personalizations ?? [],
+        data.inventory,
       );
     }
   }
@@ -314,6 +359,7 @@ export class MenuManagementPage implements OnInit {
     isActive: boolean,
     file: File | null,
     personalizations: ProductPersonalizationAssignmentDto[],
+    inventory?: InventoryDraft,
   ) {
     try {
       const updateProductData = {
@@ -342,21 +388,24 @@ export class MenuManagementPage implements OnInit {
       } catch (personalizationError) {
         console.error('El producto se actualizó, pero falló su configuración:', personalizationError);
         this.presentToast(
-          'El producto se actualizó, pero no fue posible guardar sus personalizaciones. Intenta editarlo nuevamente.',
+          'El producto se actualizó. Falta guardar sus opciones; tus datos siguen en el formulario para reintentarlo.',
           'warning',
         );
         await this.loadData();
-        return;
+        return false;
       }
 
+      await this.saveInventory(updatedProduct.id ?? id, inventory);
       this.presentToast('Producto y personalizaciones actualizados exitosamente.');
 
       // Recargar datos para asegurar consistencia
       await this.loadData();
+      return true;
 
     } catch (error) {
       console.error('Error al actualizar el producto:', error);
       this.presentToast(this.getProductSaveErrorMessage(error), 'danger');
+      return false;
     }
   }
 
@@ -369,6 +418,8 @@ export class MenuManagementPage implements OnInit {
     categoryId: number,
     file: File | null,
     personalizations: ProductPersonalizationAssignmentDto[] = [],
+    inventory?: InventoryDraft,
+    onCreated?: (id: number) => void,
   ) {
     try {
       const newProductData = {
@@ -384,6 +435,7 @@ export class MenuManagementPage implements OnInit {
       const createdProduct = await firstValueFrom(
         this._productService.addProduct(newProductData, file)
       );
+      onCreated?.(createdProduct.id);
 
       try {
         await firstValueFrom(
@@ -395,25 +447,29 @@ export class MenuManagementPage implements OnInit {
       } catch (personalizationError) {
         console.error('El producto se creó, pero falló su configuración:', personalizationError);
         this.presentToast(
-          'El producto se creó, pero no fue posible guardar sus personalizaciones. Puedes completarlas al editarlo.',
+          'El producto se creó. Falta guardar sus opciones; tus datos siguen en el formulario para reintentarlo.',
           'warning',
         );
         await this.loadData();
-        return;
+        return false;
       }
 
+      await this.saveInventory(createdProduct.id, inventory);
       this.presentToast('Producto y personalizaciones guardados exitosamente.');
 
       // Recargar datos para asegurar consistencia
       await this.loadData();
+      return true;
 
     } catch (error) {
       console.error('Error al crear el producto:', error);
       this.presentToast(this.getProductSaveErrorMessage(error), 'danger');
+      return false;
     }
   }
 
   private getProductSaveErrorMessage(error: any): string {
+    if (error?.inventorySetup) return error.message;
     if (error?.status === 409) {
       return 'Ya existe un producto con ese nombre.';
     }
@@ -447,6 +503,15 @@ export class MenuManagementPage implements OnInit {
   }
 
   // Muestra una alerta de confirmación para eliminar un producto
+  private async saveInventory(id: number, draft?: InventoryDraft) {
+    if (!draft) return;
+    try { await firstValueFrom(this.inventory.control(id, draft)); }
+    catch (error: any) {
+      await this.loadData();
+      throw { inventorySetup: true, message: `El producto se guardó. Falta completar su inventario: ${error.error?.message || 'revisa la configuración desde Inventario.'}` };
+    }
+  }
+
   async deleteItem(productToDelete: ProductI) {
     const alert = await this.alertCtrl.create({
       header: 'Confirmar Eliminación',

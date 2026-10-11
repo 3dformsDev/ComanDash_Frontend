@@ -141,8 +141,9 @@
 .cash-register-item {
     --min-height: 76px;
 
-    ion-label {
+    .cash-register-copy {
         min-width: 0;
+        flex: 1;
 
         h2 {
             margin: 0;
@@ -160,11 +161,30 @@
         }
     }
 
-    &.is-inactive ion-label h2 {
+    &.is-inactive .cash-register-copy h2 {
         color: #8b929d;
         text-decoration: line-through;
     }
 }
+
+.cash-register-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+    padding: 14px 0;
+}
+
+.cash-register-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.cash-status-pill { flex: none; margin: 0; }
 
 .cash-register-icon {
     width: 42px;
@@ -172,7 +192,7 @@
     display: grid;
     flex: 0 0 42px;
     place-items: center;
-    margin-right: 10px;
+    margin: 0;
     border-radius: 11px;
     background: #eef0f3;
     color: #697281;
@@ -188,16 +208,25 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    margin: 0;
 }
 
-.session-action {
-    min-height: 42px;
+.cash-actions .session-action {
+    height: 44px;
+    min-height: 44px;
     margin: 0;
-    --border-radius: 10px;
+    --border-radius: 12px;
+    --padding-start: 14px;
+    --padding-end: 14px;
+    --border-width: 1px;
     font-size: 0.78rem;
     font-weight: 800;
     white-space: nowrap;
+    text-transform: none;
+    letter-spacing: normal;
 }
+
+.cash-actions .session-action::part(native) { border-radius: 12px; }
 
 .empty-state {
     min-height: 55vh;
@@ -226,18 +255,16 @@
 
     .cash-register-item {
         --inner-padding-end: 10px;
-        align-items: flex-start;
     }
+
+    .cash-register-layout { grid-template-columns: 1fr; gap: 12px; }
 
     .cash-actions {
-        max-width: 164px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        width: 100%;
     }
 
-    .session-action {
-        width: 100%;
-        margin-inline: 0;
+    .cash-actions .session-action {
+        flex: 1;
     }
 }
 
@@ -252,15 +279,7 @@
         --padding-start: 12px;
     }
 
-    .cash-status-pill {
-        display: none;
-    }
-
-    .cash-actions {
-        max-width: 142px;
-    }
-
-    .session-action {
+    .cash-actions .session-action {
         font-size: 0.76rem;
     }
 }

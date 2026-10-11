@@ -104,41 +104,45 @@
   <ion-list lines="none" class="cd-management-list cash-register-list">
     <ion-item *ngFor="let box of allCashRegisters" class="cd-management-item cash-register-item" [class.is-inactive]="!box.isActive">
 
-      <span slot="start" class="cash-register-icon" [class.is-open]="box.cashRegisterSession.isOpen">
-        <ion-icon name="storefront-outline"></ion-icon>
-      </span>
+      <div class="cash-register-layout">
+        <div class="cash-register-info">
+          <span class="cash-register-icon" [class.is-open]="box.cashRegisterSession.isOpen">
+            <ion-icon name="storefront-outline"></ion-icon>
+          </span>
 
-      <ion-label>
-        <h2 class="dark">{{ box.name }}</h2>
-        <p *ngIf="box.cashRegisterSession.isOpen">
-          Base: {{ box.cashRegisterSession.cashRegisterInfo?.openingBalance | currency:'COP':'$' }}
-        </p>
-      </ion-label>
+          <div class="cash-register-copy">
+            <h2 class="dark">{{ box.name }}</h2>
+            <p *ngIf="box.cashRegisterSession.isOpen">
+              Base: {{ box.cashRegisterSession.cashRegisterInfo?.openingBalance | currency:'COP':'$' }}
+            </p>
+          </div>
 
-      <span class="cd-status-pill cash-status-pill" slot="end" [class.is-active]="box.cashRegisterSession.isOpen">
-        {{ (box.cashRegisterSession.isOpen) ? 'Abierta' : 'Cerrada' }}
-      </span>
+          <span class="cd-status-pill cash-status-pill" [class.is-active]="box.cashRegisterSession.isOpen">
+            {{ (box.cashRegisterSession.isOpen) ? 'Abierta' : 'Cerrada' }}
+          </span>
+        </div>
 
-      <ion-buttons slot="end" class="cash-actions">
-        <ion-button class="session-action open-action" *ngIf="(!box.cashRegisterSession.isOpen) && box.isActive" fill="outline" color="success"
-          [disabled]="isSessionOpenInLocation" (click)="openSession(box)">
-          <ion-icon slot="start" name="play-outline"></ion-icon>
-          Abrir caja
-        </ion-button>
+        <ion-buttons class="cash-actions">
+          <ion-button class="session-action open-action" *ngIf="(!box.cashRegisterSession.isOpen) && box.isActive" fill="outline" color="primary"
+            [disabled]="isSessionOpenInLocation" (click)="openSession(box)">
+            <ion-icon slot="start" name="play-outline"></ion-icon>
+            Abrir caja
+          </ion-button>
 
-        <ion-button class="session-action close-action" *ngIf="box.cashRegisterSession.isOpen" fill="solid" color="primary" (click)="closeSession(box)">
-          <ion-icon slot="start" name="stop-circle-outline"></ion-icon>
-          Cerrar caja
-        </ion-button>
+          <ion-button class="session-action close-action" *ngIf="box.cashRegisterSession.isOpen" fill="solid" color="primary" (click)="closeSession(box)">
+            <ion-icon slot="start" name="stop-circle-outline"></ion-icon>
+            Cerrar caja
+          </ion-button>
 
-        <ion-button class="cd-icon-action" fill="clear" color="medium" [attr.aria-label]="'Editar ' + box.name" (click)="editCashRegister(box)">
-          <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
-        </ion-button>
+          <ion-button class="cd-icon-action" fill="clear" color="medium" [attr.aria-label]="'Editar ' + box.name" (click)="editCashRegister(box)">
+            <ion-icon slot="icon-only" name="pencil-outline"></ion-icon>
+          </ion-button>
 
-        <ion-button class="cd-icon-action" fill="clear" [color]="box.isActive ? 'danger' : 'warning'" [attr.aria-label]="(box.isActive ? 'Desactivar ' : 'Reactivar ') + box.name" (click)="toggleRegisterStatus(box)">
-          <ion-icon slot="icon-only" [name]="box.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
-        </ion-button>
-      </ion-buttons>
+          <ion-button class="cd-icon-action" fill="clear" [color]="box.isActive ? 'danger' : 'warning'" [attr.aria-label]="(box.isActive ? 'Desactivar ' : 'Reactivar ') + box.name" (click)="toggleRegisterStatus(box)">
+            <ion-icon slot="icon-only" [name]="box.isActive ? 'trash-outline' : 'refresh-outline'"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </div>
 
     </ion-item>
   </ion-list>

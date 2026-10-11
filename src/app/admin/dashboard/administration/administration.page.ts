@@ -18,8 +18,9 @@ export class AdministrationPage implements OnInit {
 
   public adminSections = [
     {
-      id: 'products', title: 'Productos y menú', description: 'Productos, categorías y opciones', icon: 'fast-food-outline', roleVerify: ['super_admin', 'admin'],
+      id: 'products', title: 'Menú e inventario', description: 'Productos, opciones y unidades disponibles', icon: 'fast-food-outline', roleVerify: ['super_admin', 'admin', 'manager', 'cashier', 'waiter', 'cook', 'kitchen'],
       options: [
+        { title: 'Inventario', icon: 'cube-outline', url: '/dashboard/administration/inventory', roleVerify: ['super_admin', 'admin', 'manager', 'cashier', 'waiter', 'cook', 'kitchen'] },
         { title: 'Gestión de Menú', icon: 'book-outline', url: '/dashboard/administration/menu-management', roleVerify: ['super_admin', 'admin'] },
         { title: 'Gestión de Categorías', icon: 'pricetags-outline', url: '/dashboard/administration/category-management', roleVerify: ['super_admin', 'admin'] },
         { title: 'Personalizaciones', icon: 'options-outline', url: '/dashboard/administration/personalizations', roleVerify: ['super_admin', 'admin'] },
@@ -34,8 +35,9 @@ export class AdministrationPage implements OnInit {
       ],
     },
     {
-      id: 'reports', title: 'Reportes', description: 'Consulta el desempeño del negocio', icon: 'stats-chart-outline', roleVerify: ['super_admin', 'admin', 'cashier'],
+      id: 'reports', title: 'Reportes', description: 'Consulta el desempeño del negocio', icon: 'stats-chart-outline', roleVerify: ['super_admin', 'admin', 'cashier', 'manager'],
       options: [
+        { title: 'Movimientos de inventario', icon: 'swap-horizontal-outline', url: '/dashboard/administration/inventory/movements', roleVerify: ['super_admin', 'admin', 'manager'] },
         { title: 'Generar reportes', icon: 'bar-chart-outline', url: '/dashboard/administration/reports', roleVerify: ['super_admin', 'admin', 'cashier'] },
       ],
     },

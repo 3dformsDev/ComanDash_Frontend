@@ -1,126 +1,55 @@
-/*
- * Estilos para el Modal de Formulario de Producto
- * -------------------------------------------------------------------
- */
-
-// --- HEADER ---
 .custom-header ion-toolbar {
-    --background: var(--ion-background-color);
-    --border-width: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --background: #fff;
+  --padding-start: 18px;
+  --padding-end: 14px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --border-width: 0;
+  border-bottom: 1px solid #e5e7eb;
 }
-
-.header-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--ion-text-color);
-    padding: 0 1rem;
-}
-
+.cash-close-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.cash-close-heading > div { min-width: 0; }
+.cash-close-heading h1 { margin: 0; color: #252b38; font-size: 1.1rem; font-weight: 800; line-height: 1.3; }
+.cash-close-heading p { margin: 3px 0 0; color: #6b7280; font-size: .82rem; line-height: 1.35; overflow-wrap: anywhere; }
 .cancel-btn {
-    --color: var(--ion-color-medium);
-    font-weight: 500;
-    text-transform: none;
-    font-size: 1rem;
+  flex: none; width: 42px; height: 42px; margin: 0;
+  --background: #f2f3f6; --border-radius: 50%; --color: #374151;
+  --padding-start: 0; --padding-end: 0;
 }
-
-
-// --- CONTENIDO DEL FORMULARIO ---
-.form-content {
-    // Un fondo ligeramente distinto para que el formulario resalte
-    --background: #f7f8fa;
+.form-content { --background: #f7f8fa; }
+.form-container { display: flex; flex-direction: column; gap: 16px; padding: 18px 16px; max-width: 680px; margin: 0 auto; }
+.balance-help { margin: 0; color: #6b7280; font-size: .82rem; line-height: 1.5; }
+.summary-section {
+  padding: 0 0 6px; margin: 0; background: #fff;
+  border: 1px solid #e7e9ee; border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .05); overflow: hidden;
 }
-
-.form-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    padding: 16px;
+.summary-heading { margin: 0; padding: 16px 16px 10px; color: #252b38; font-size: .92rem; font-weight: 800; line-height: 1.4; }
+.summary-section ion-item {
+  --background: #fff; --border-color: #eceef2;
+  --padding-start: 16px; --inner-padding-end: 16px; --min-height: 48px;
+  color: #343b49; font-size: .85rem;
 }
-
-.section-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--ion-color-medium);
-    margin-bottom: 16px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-
-// --- GRUPOS DE INPUTS ---
-// Se eliminaron las reglas de .input-row y .half-width.
-// Ahora cada .input-group se comportará como un bloque, ocupando el 100% del ancho.
-.input-group {
-    margin-bottom: 20px;
-    width: 100%;
-}
-
-
-// --- ESTILO DE LOS ITEMS Y LABELS ---
+.summary-section ion-label { white-space: normal; }
+.summary-section ion-label p { color: #777e8b; margin-top: 4px; font-size: .74rem; }
+.summary-section ion-text { margin-left: 12px; font-weight: 700; white-space: nowrap; font-size: .85rem; }
+.summary-section .summary-total-item { --background: #fff4f4; }
+.form-section { padding: 16px; border: 1px solid #e7e9ee; border-radius: 14px; background: #fff; box-shadow: 0 4px 12px rgba(15, 23, 42, .04); }
+.input-group { width: 100%; margin-bottom: 14px; }
+.input-group:last-child { margin-bottom: 0; }
 .custom-item {
-    --background: #ffffff;
-    --padding-start: 12px;
-    --inner-padding-end: 12px;
-    --border-radius: 12px;
-    --border-color: #e0e0e0;
-    --border-width: 1px;
-    --border-style: solid;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    overflow: visible; // Permite que el label "flote" correctamente
-    width: 100%;
-
-    // Estilo al estar enfocado
-    &.item-has-focus {
-        --border-color: var(--ion-color-primary);
-        box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.2);
-    }
+  display: block; width: 100%; min-width: 0; box-sizing: border-box;
+  --background: #fff; --padding-start: 11px; --inner-padding-end: 11px; --border-radius: 11px;
+  min-height: 72px; border: 1px solid #dfe2e7; border-radius: 11px;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, .04);
+  &.item-has-focus { border-color: var(--ion-color-primary); }
+  ion-input, ion-textarea { width: 100%; min-width: 0; --color: #252b38; font-size: .92rem; }
+  ion-input::part(label), ion-textarea::part(label) { color: #666e7b; font-size: .73rem; }
 }
-
-.custom-label {
-    color: var(--ion-color-medium);
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-
-// --- ESTILO DE LOS INPUTS, SELECTS Y TEXTAREAS ---
-.custom-input,
-.custom-select,
-.custom-textarea {
-    --color: var(--ion-text-color);
-    font-size: 1rem;
-    margin-top: 8px; // Espacio para el label
-}
-
-.custom-select::part(icon) {
-    color: var(--ion-color-medium);
-}
-
-.currency-symbol {
-    color: var(--ion-color-medium);
-    font-weight: 500;
-    margin-right: 8px;
-}
-
-
-// --- BOTÓN DE GUARDAR ---
-.button-section {
-    padding-top: 10px;
-}
-
-.save-btn {
-    --background: var(--ion-color-primary);
-    --background-activated: var(--ion-color-primary-shade);
-    --background-hover: var(--ion-color-primary-tint);
-    --border-radius: 12px;
-    --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
-    --color: var(--ion-color-primary-contrast);
-
-    height: 48px;
-    font-size: 1rem;
-    font-weight: 600;
-    text-transform: none;
+.currency-symbol { color: #777e8b; margin-right: 8px; }
+.button-section { padding-top: 2px; }
+.save-btn { height: 48px; margin: 0; font-weight: 800; text-transform: none; --border-radius: 12px; }
+@media (max-width: 380px) {
+  .summary-section ion-item, .summary-section ion-text { font-size: .8rem; }
+  .summary-section ion-text { margin-left: 8px; }
 }

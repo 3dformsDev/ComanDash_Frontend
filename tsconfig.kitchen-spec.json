@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": ["src/app/services/kitchen-realtime.service.spec.ts", "src/app/admin/dashboard/kitchen/kitchen.safety.spec.ts", "src/app/admin/dashboard/orders/orders.personalization.spec.ts", "src/**/*.d.ts"]
+}

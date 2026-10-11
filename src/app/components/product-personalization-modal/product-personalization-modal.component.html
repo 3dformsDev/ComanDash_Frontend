@@ -11,19 +11,21 @@
 
   <ion-content class="sheet-content">
     <section class="option-group" *ngFor="let group of configuration.groups">
-      <div class="group-heading">
-        <div>
-          <h3>{{ group.name }}</h3>
-          <p>{{ groupInstruction(group) }}</p>
-        </div>
-        <span class="selection-counter" [class.complete]="groupIsValid(group)">
-          {{ selectedCount(group) }}/{{ group.selectionLimit }}
+      <button type="button" class="group-heading" [attr.aria-expanded]="expandedGroupIds.has(group.modifierGroupId)" (click)="toggleGroup(group.modifierGroupId)">
+        <span class="group-heading-copy">
+          <strong>{{ group.name }}</strong>
+          <small>{{ groupInstruction(group) }}</small>
         </span>
-      </div>
+        <span class="group-heading-actions">
+          <span class="selection-counter" [class.complete]="groupIsValid(group)">{{ selectedCount(group) }}/{{ group.selectionLimit }}</span>
+          <ion-icon [name]="expandedGroupIds.has(group.modifierGroupId) ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </span>
+      </button>
 
-      <div class="option-row" *ngFor="let option of group.options">
+      <div class="option-row" *ngFor="let option of expandedGroupIds.has(group.modifierGroupId) ? group.options : []">
         <span class="option-description">
           <strong>{{ option.name }}</strong>
+          <small *ngIf="inventoryLabel(option.id)">{{inventoryLabel(option.id)}}</small>
           <small *ngIf="option.priceAdjustment > 0">
             + {{ option.priceAdjustment | currency:'COP':'symbol-narrow':'1.0-0' }}
           </small>

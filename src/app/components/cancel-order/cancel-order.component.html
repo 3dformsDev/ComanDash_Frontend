@@ -3,7 +3,7 @@
   <ion-toolbar>
     <ion-title class="header-title ml-3">
       <!-- <ion-icon name="card-outline" class="header-icon"></ion-icon> -->
-      Cancelar y Reembolsar
+      {{withRefund ? 'Cancelar y reembolsar' : 'Cancelar comanda'}}
     </ion-title>
     <ion-buttons slot="end">
       <ion-button
@@ -20,7 +20,7 @@
 
 <ion-content class="main-content">
   <!-- Alert informativo mejorado -->
-  <div class="info-card">
+  <div class="info-card" *ngIf="withRefund">
     <ion-icon name="information-circle" class="info-icon"></ion-icon>
     <div class="info-content">
       <h3>Orden Pagada</h3>
@@ -84,7 +84,10 @@
   </div>
 
   <!-- Total destacado -->
-  <div class="total-card">
+  <ion-spinner *ngIf="inventoryLoading"></ion-spinner>
+  <ion-text color="danger" *ngIf="inventoryError"><p>{{inventoryError}}</p></ion-text>
+  <app-inventory-return [items]="inventoryReturns"></app-inventory-return>
+  <div class="total-card" *ngIf="withRefund">
     <div class="total-content">
       <span class="total-label">Total a Devolver</span>
       <span class="total-amount">{{
@@ -116,7 +119,7 @@
   </div>
 
   <!-- Métodos de pago con mejor diseño -->
-  <div class="section-card payment-section">
+  <div class="section-card payment-section" *ngIf="withRefund">
     <div class="section-header">
       <ion-icon name="wallet-outline" class="section-icon"></ion-icon>
       <h4>Método de Reembolso</h4>
@@ -152,11 +155,11 @@
       shape="round"
       size="large"
       class="confirm-button"
-      [disabled]="!reason || !selectedPaymentMethodId"
+      [disabled]="!canConfirm"
       (click)="confirm()"
     >
       <ion-icon name="checkmark-circle" slot="start"></ion-icon>
-      Confirmar Cancelación y Reembolso
+      {{withRefund ? 'Confirmar cancelación y reembolso' : 'Confirmar cancelación'}}
     </ion-button>
   </div>
 </ion-footer>

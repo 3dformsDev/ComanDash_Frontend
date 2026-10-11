@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { InventoryAlertsComponent } from '../inventory-alerts/inventory-alerts.component';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 
 export interface OpenSessionPayload {
@@ -15,7 +16,7 @@ export interface OpenSessionPayload {
   templateUrl: './open-cash-register-session-form.component.html',
   styleUrls: ['./open-cash-register-session-form.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, InventoryAlertsComponent]
 })
 export class OpenCashRegisterSessionFormComponent implements OnInit {
 

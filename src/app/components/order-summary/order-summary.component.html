@@ -54,7 +54,7 @@
             <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
           </button>
           <span class="quantity-number">{{ item.quantity }}</span>
-          <button class="quantity-btn" (click)="addItem(item)">
+          <button class="quantity-btn" (click)="addItem(item)" [disabled]="!canAddItem(item)" aria-label="Agregar una unidad">
             <ion-icon name="add-outline" slot="icon-only"></ion-icon>
           </button>
         </div>

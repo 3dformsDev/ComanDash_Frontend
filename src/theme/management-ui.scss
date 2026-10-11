@@ -108,6 +108,56 @@ ion-modal.cd-product-form-modal {
   --border-radius: 20px;
 }
 
+ion-modal.cd-inventory-product-picker {
+  --width: min(480px, calc(100vw - 32px));
+  --height: min(620px, calc(100vh - 32px));
+  --border-radius: 20px;
+  .inventory-picker-content { --background: #f7f8fa; }
+  .inventory-picker-content ion-searchbar {
+    --background: #ffffff; --border-radius: 14px;
+    --box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
+    --color: #1f2937; --placeholder-color: #6b7280;
+    --icon-color: #ff3131; --clear-button-color: #ff3131;
+    padding: 0; margin-bottom: 14px;
+  }
+  .inventory-picker-option { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 60px; padding: 11px; margin-bottom: 7px; border: 1px solid #e4e7ec; border-radius: 11px; background: #fff; color: #252b38; text-align: left; cursor: pointer; }
+  .inventory-picker-option span { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+  .inventory-picker-option strong { overflow-wrap: anywhere; font-size: .84rem; }
+  .inventory-picker-option small { color: #777e8b; font-size: .72rem; }
+  .inventory-picker-option ion-icon { color: var(--ion-color-primary); flex: none; }
+  .inventory-picker-empty { padding: 24px 10px; color: #777e8b; font-size: .84rem; text-align: center; }
+}
+
+app-product-form {
+  .core-field {
+    --background: #fff; --padding-start: 11px; --inner-padding-end: 11px; --border-radius: 11px;
+    display: block; width: 100%; min-width: 0; box-sizing: border-box;
+    min-height: 72px; margin-bottom: 10px; border: 1px solid #dfe2e7; border-radius: 11px;
+    box-shadow: 0 2px 7px rgba(15,23,42,.04);
+    &.item-has-focus { border-color: var(--ion-color-primary); }
+    ion-input, ion-select { width: 100%; min-width: 0; --color: #252b38; font-size: .92rem; }
+    ion-input::part(label), ion-select::part(label) { color: #666e7b; font-size: .73rem; }
+  }
+  ion-item.group-select-item, ion-item.textarea-item {
+    --background: #fff; --border-width: 0; --border-radius: 11px;
+    border: 1px solid #dfe2e7; border-radius: 11px; box-shadow: 0 2px 7px rgba(15,23,42,.04);
+    ion-label { color: #666e7b; font-size: .73rem; }
+    &.item-has-focus { border-color: var(--ion-color-primary); }
+  }
+  .assigned-group-body { margin-top: 10px; }
+  .assigned-group-toggle, .option-config-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer;
+    span { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+    ion-icon { flex: none; color: #68707d; font-size: 20px; }
+  }
+  .assigned-group-toggle { flex: 1; min-height: 40px; }
+  .option-config-toggle { min-height: 42px; }
+  .option-config-toggle strong { color: #252b38; font-size: .88rem; overflow-wrap: anywhere; }
+  .option-config-toggle small { color: #777e8b; font-size: .72rem; line-height: 1.35; }
+  .option-config-body { margin-top: 9px; }
+}
+
 ion-modal.cd-table-form-modal {
   --width: min(520px, calc(100vw - 32px));
   --height: min(690px, calc(100vh - 32px));
@@ -126,7 +176,22 @@ ion-modal.cd-payment-method-form-modal {
   --border-radius: 20px;
 }
 
+ion-modal.inventory-operation-modal {
+  --width: min(620px, calc(100vw - 32px));
+  --height: min(820px, calc(100vh - 32px));
+  --border-radius: 20px;
+}
+
+ion-modal.inventory-date-modal {
+  --width: auto;
+  --height: auto;
+  --border-radius: 16px;
+}
+
 @media (max-width: 560px) {
+  ion-modal.cd-inventory-product-picker {
+    --width: 100%; --height: 92%; --border-radius: 20px 20px 0 0; align-items: flex-end;
+  }
   .cd-management-header ion-toolbar {
     --padding-end: 10px;
   }
@@ -170,6 +235,13 @@ ion-modal.cd-payment-method-form-modal {
   ion-modal.cd-payment-method-form-modal {
     --width: 100%;
     --height: min(560px, 82%);
+    --border-radius: 20px 20px 0 0;
+    align-items: flex-end;
+  }
+
+  ion-modal.inventory-operation-modal {
+    --width: 100%;
+    --height: 94%;
     --border-radius: 20px 20px 0 0;
     align-items: flex-end;
   }

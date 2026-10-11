@@ -8,9 +8,10 @@ export interface SessionSummaryI {
   status: 'open' | 'closed';
   openingBalance: number;
   transactions: {
-    incomeByPaymentMethod: { name: string; total: number }[];
+    incomeByPaymentMethod: { name: string; total: number; received?: number; refunded?: number }[];
     totalSales: number;
     totalWithdrawals: number;
+    netIncome?: number;
   };
   expectedClosingBalance: number;
 }

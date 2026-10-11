@@ -58,6 +58,7 @@ export interface OrderPaymentRecord {
 
 // 2. Definimos cómo se ve una orden
 export interface Order {
+  inventoryVersion?: number;
   id?: number; // opcional, porque aún no existe hasta que backend la guarde
   companyId?: number;
   companyOrderNumber?: number | null;

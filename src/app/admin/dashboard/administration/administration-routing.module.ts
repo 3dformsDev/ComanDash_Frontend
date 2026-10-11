@@ -4,6 +4,8 @@ import { Routes, RouterModule } from '@angular/router';
 import { AdministrationPage } from './administration.page';
 
 const routes: Routes = [
+  { path: 'inventory/movements', data: { view: 'history' }, loadComponent: () => import('./inventory/inventory.page').then(m => m.InventoryPage) },
+  { path: 'inventory', loadComponent: () => import('./inventory/inventory.page').then(m => m.InventoryPage) },
   {
     path: '',
     component: AdministrationPage

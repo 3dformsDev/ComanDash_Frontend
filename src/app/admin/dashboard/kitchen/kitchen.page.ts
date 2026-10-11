@@ -238,8 +238,8 @@ export class KitchenPage implements OnInit, OnDestroy {
   markProductAsReady(productName: string) {
     this.pendingOrders.forEach(order => {
       order.orderItems.forEach((item: any) => {
-        if (item.product.name === productName && !item.isReady) {
-          item.isReady = true;
+        if (item.product.name === productName && !item.isReady && !this.isKitchenItemLocked(item)) {
+          this._kitchenRealtimeService.notifyItemStatusChange(order.id, item.id, true);
         }
       });
     });

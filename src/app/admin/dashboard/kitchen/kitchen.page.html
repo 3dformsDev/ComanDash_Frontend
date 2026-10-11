@@ -5,6 +5,7 @@
       <p>Pedidos pendientes</p>
     </ion-title>
     <ion-buttons slot="end">
+      <app-inventory-alerts></app-inventory-alerts>
       <ion-button class="home-button" routerLink="/dashboard" aria-label="Ir al inicio">
         <ion-icon slot="icon-only" name="home-outline"></ion-icon>
       </ion-button>
@@ -18,7 +19,6 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-
   <div *ngIf="isLoading" class="loading-container">
     <ion-spinner name="crescent"></ion-spinner>
     <p>Cargando comandas pendientes...</p>

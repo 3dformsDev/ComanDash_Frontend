@@ -45,6 +45,7 @@
           {{ getZoneLabel(table) }} · {{ table.capacity || 1 }}
           {{ (table.capacity || 1) === 1 ? 'persona' : 'personas' }}
         </p>
+        <ion-button *ngIf="table.isBussy" fill="outline" size="small" class="recover-table-button" [disabled]="recoveringTableId !== null" (click)="recoverTable(table)"><ion-icon name="lock-open-outline" slot="start"></ion-icon>Liberar mesa</ion-button>
       </ion-label>
 
       <span slot="end" class="cd-status-pill" [class.is-active]="table.isActive">

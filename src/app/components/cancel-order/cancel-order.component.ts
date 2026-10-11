@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import {
@@ -7,15 +7,24 @@ import {
   PaymentMethodService,
 } from '@services/payment-method.service';
 import { firstValueFrom } from 'rxjs';
+import { InventoryService, InventoryReturn } from '@services/inventory.service';
+import { InventoryReturnComponent, returnsValid } from '../inventory-return/inventory-return.component';
 
 @Component({
   selector: 'app-cancel-order',
   templateUrl: './cancel-order.component.html',
   styleUrls: ['./cancel-order.component.scss'],
-  imports: [IonicModule, CommonModule, FormsModule],
+  imports: [IonicModule, CommonModule, FormsModule, InventoryReturnComponent],
 })
 export class CancelOrderComponent implements OnInit {
+  private inventory = inject(InventoryService);
   @Input() order: any; // Recibimos la orden para mostrar su número
+  @Input() withRefund = true;
+  inventoryReturns: InventoryReturn[] = [];
+  inventoryLoading = true;
+  inventoryError = '';
+  get canConfirm() { return !this.inventoryLoading && !this.inventoryError && returnsValid(this.inventoryReturns)
+    && (!this.withRefund || (!!this.reason.trim() && !!this.selectedPaymentMethodId)); }
 
   allPaymentMethods: PaymentMethodI[] = [];
   reason: string = '';
@@ -71,11 +80,15 @@ export class CancelOrderComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    // Obtenemos solo los métodos de pago activos para el reembolso
-    this.allPaymentMethods = await firstValueFrom(
-      this.paymentMethodService.getPaymentMethods(true),
-    );
-    this.refundAmount = this.getNetPaidAmount();
+    try {
+      const preview = await firstValueFrom(this.inventory.preview(this.order.id, this.order.inventoryVersion ?? 0, 'return'));
+      this.inventoryReturns = preview.items;
+      if (this.withRefund) {
+        this.allPaymentMethods = await firstValueFrom(this.paymentMethodService.getPaymentMethods(true));
+        this.refundAmount = this.getNetPaidAmount();
+      }
+    } catch (error: any) { this.inventoryError = error.error?.message || 'No se pudo revisar el pedido. Cierra esta ventana y vuelve a intentarlo.'; }
+    finally { this.inventoryLoading = false; }
   }
 
   dismiss() {
@@ -83,12 +96,14 @@ export class CancelOrderComponent implements OnInit {
   }
 
   confirm() {
-    if (!this.reason || !this.selectedPaymentMethodId) {
+    if (!this.canConfirm) {
       return;
     }
     const result = {
       reason: this.reason,
-      paymentMethodId: this.selectedPaymentMethodId,
+      paymentMethodId: this.withRefund ? this.selectedPaymentMethodId : undefined,
+      expectedOrderVersion: this.order.inventoryVersion ?? 0,
+      inventoryReturns: this.inventoryReturns,
     };
     this.modalCtrl.dismiss(result, 'confirm');
   }

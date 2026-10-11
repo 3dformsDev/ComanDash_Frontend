@@ -8,6 +8,7 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <ion-button *ifRole="['super_admin', 'admin', 'manager']" fill="outline" routerLink="/dashboard/administration/inventory/movements">Movimientos de inventario</ion-button>
   <ion-segment
     class="reports-tabs"
     [value]="activeTab"
@@ -264,7 +265,7 @@
               <td>{{ row.productName }}</td>
               <td>{{ row.category }}</td>
               <td>{{ row.quantity }}</td>
-              <td>{{ row.total | currency:'COP':'$' }}</td>
+              <td>{{ row.total | currency:'COP':'$':'1.0-0' }}</td>
             </tr>
           </tbody>
         </table>
@@ -472,28 +473,29 @@
 </ion-content>
 
 <!-- MODALES FUERA DEL ION-CONTENT -->
-<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalStart>
+<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalStart (didDismiss)="restoreDatePicker($event, startDate)">
   <ng-template>
-    <ion-datetime id="datetimeStart" presentation="date" [(ngModel)]="startDate" [max]="endDate"
+    <ion-datetime appDesktopWheelDrag id="datetimeStart" presentation="date" [value]="startDate || undefined" [max]="endDate"
       (ionChange)="onStartDateChange($event)">
     </ion-datetime>
   </ng-template>
 </ion-modal>
 
-<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalEnd>
+<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalEnd (didDismiss)="restoreDatePicker($event, endDate)">
   <ng-template>
-    <ion-datetime id="datetimeEnd" presentation="date" [(ngModel)]="endDate" [min]="startDate" [max]="maxDate"
+    <ion-datetime appDesktopWheelDrag id="datetimeEnd" presentation="date" [value]="endDate || undefined" [min]="startDate" [max]="maxDate"
       (ionChange)="onEndDateChange($event)">
     </ion-datetime>
   </ng-template>
 </ion-modal>
 
-<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalDaily>
+<ion-modal class="report-date-modal" [keepContentsMounted]="true" #modalDaily (didDismiss)="restoreDatePicker($event, dailyDate)">
   <ng-template>
     <ion-datetime
+      appDesktopWheelDrag
       id="datetimeDaily"
       presentation="date"
-      [(ngModel)]="dailyDate"
+      [value]="dailyDate || undefined"
       [max]="maxDate"
       (ionChange)="onDailyDateChange($event)"
     ></ion-datetime>

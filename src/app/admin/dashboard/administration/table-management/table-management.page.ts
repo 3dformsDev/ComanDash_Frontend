@@ -31,6 +31,7 @@ export class TableManagementPage implements OnInit {
   isZoneManagementOpen = false;
   isSavingZone = false;
   removingZoneId: number | null = null;
+  recoveringTableId: number | null = null;
   tableToEdit: TableI | null = null;
   zoneToEdit: TableZoneI | null = null;
   tableForm: TableFormValue = this.createEmptyForm();
@@ -313,6 +314,26 @@ export class TableManagementPage implements OnInit {
     });
 
     await alert.present();
+  }
+
+  async recoverTable(table: TableI) {
+    if (this.recoveringTableId !== null) return;
+    const alert = await this.alertCtrl.create({
+      header: 'Liberar mesa',
+      message: 'Confirma que los clientes ya se retiraron y la mesa está vacía. Si tiene una comanda pendiente, no se podrá liberar.',
+      cssClass: 'confirmation-action-alert',
+      buttons: [{ text: 'Cancelar', role: 'cancel', cssClass: 'alert-secondary-action' },
+        { text: 'La mesa está vacía', role: 'confirm', cssClass: 'alert-primary-action' }],
+    });
+    await alert.present();
+    if ((await alert.onDidDismiss()).role !== 'confirm' || this.recoveringTableId !== null) return;
+    this.recoveringTableId = table.id;
+    try {
+      await firstValueFrom(this.tableService.recoverAvailability(table.id));
+      await this.loadConfiguration();
+      await this.presentToast('Mesa disponible nuevamente.');
+    } catch (error: any) { await this.presentToast(error?.error?.message || 'No se pudo liberar la mesa.', 'danger'); }
+    finally { this.recoveringTableId = null; }
   }
 
   getZoneIcon(iconType: TableZoneIconType | null | undefined): string {

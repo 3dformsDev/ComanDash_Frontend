@@ -7,11 +7,13 @@ import { IonicModule } from '@ionic/angular';
 import { KitchenPageRoutingModule } from './kitchen-routing.module';
 
 import { KitchenPage } from './kitchen.page';
+import { InventoryAlertsComponent } from '../../../components/inventory-alerts/inventory-alerts.component';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @NgModule({
   imports: [
     CommonModule,
+    InventoryAlertsComponent,
     FormsModule,
     IonicModule,
     KitchenPageRoutingModule,

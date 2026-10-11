@@ -124,3 +124,31 @@
     font-weight: 600;
     text-transform: none;
 }
+
+// Estilos del formulario de administración actual.
+.custom-header ion-toolbar {
+    --background: #fff;
+    --padding-start: 16px;
+    --padding-end: 14px;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: none;
+}
+.header-title { padding: 0; color: #252b38; font-size: 1.1rem; font-weight: 800; }
+.cancel-btn {
+    width: 42px; height: 42px; margin: 0;
+    --background: #f2f3f6; --border-radius: 50%; --color: #374151;
+    --padding-start: 0; --padding-end: 0;
+}
+.cash-inventory-shortcut { display: flex; justify-content: flex-end; padding: 16px 24px 0; }
+.form-container { min-height: calc(100% - 60px); height: auto; padding: 18px; }
+.cash-field {
+    display: block; width: 100%; min-width: 0; box-sizing: border-box;
+    --background: #fff; --padding-start: 11px; --inner-padding-end: 11px; --border-radius: 11px;
+    min-height: 72px; border: 1px solid #dfe2e7; border-radius: 11px;
+    box-shadow: 0 2px 7px rgba(15, 23, 42, .04);
+    &.item-has-focus { border-color: var(--ion-color-primary); }
+    ion-input, ion-textarea { width: 100%; min-width: 0; --color: #252b38; font-size: .92rem; }
+    ion-input::part(label), ion-textarea::part(label) { color: #666e7b; font-size: .73rem; }
+}
+.button-section { padding-top: 10px; }
+.save-btn { height: 48px; margin: 0; font-weight: 800; --border-radius: 12px; }

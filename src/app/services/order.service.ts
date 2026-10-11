@@ -1,9 +1,16 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '@environments/environment';
 import { Order, OrderPayment } from '@store/orders/orders.state';
-import { Observable } from 'rxjs';
+import { Observable, defer, firstValueFrom } from 'rxjs';
+import { InventoryService, InventoryReturn } from './inventory.service';
+import { ModalController } from '@ionic/angular';
+import { InventoryReturnModalComponent } from '../components/inventory-return/inventory-return.component';
 import { tap } from 'rxjs/operators';
+
+export function orderFromUpdateResponse(result: Order | { order: Order }): Order {
+  return 'order' in result ? result.order : result;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +19,8 @@ export class OrderService {
   private apiUrl = `${environment.apiUrl}/v1/orders`;
   private paymentOrderUrl = `${environment.apiUrl}/v1/orderpayments`;
 
+  private inventory = inject(InventoryService);
+  private modal = inject(ModalController);
   constructor(private http: HttpClient) {}
 
   // --> Nuevo método para obtener órdenes pendientes para la cocina
@@ -33,7 +42,7 @@ export class OrderService {
    * @returns Un Observable con la orden creada (usualmente incluye el ID asignado por el backend).
    */
   createOrder(order: Order): Observable<Order> {
-    return this.http.post<Order>(this.apiUrl, order);
+    return this.inventory.mutate<Order>('POST', this.apiUrl, order);
   }
 
   /**
@@ -46,7 +55,40 @@ export class OrderService {
       throw new Error('El ID de la orden es requerido para actualizar.');
     }
     const url = `${this.apiUrl}/${order.id}`;
-    return this.http.put<Order>(url, order);
+    return defer(async () => {
+      const intent = JSON.stringify(order);
+      const storageKey = 'comandash.inventory.orderUpdates';
+      let prepared: Record<string, any> = {};
+      try { prepared = JSON.parse(sessionStorage.getItem(storageKey) || '{}'); } catch {}
+      const send = async (body: any): Promise<Order> => {
+        const clear = () => { try { const current = JSON.parse(sessionStorage.getItem(storageKey) || '{}'); delete current[intent]; sessionStorage.setItem(storageKey, JSON.stringify(current)); } catch {} };
+        try {
+          const result = await firstValueFrom(this.inventory.mutate<Order | { order: Order }>('PUT', url, body));
+          clear();
+          // The update endpoint returns metadata around the refreshed order. NgRx
+          // and the page have always consumed the order itself.
+          return orderFromUpdateResponse(result);
+        }
+        catch (error: any) { if (error.status >= 400 && error.status < 500) clear(); throw error; }
+      };
+      // After a timeout, replay the reviewed request before asking for a new preview.
+      if (prepared[intent]) return send(prepared[intent]);
+      const version = order.inventoryVersion ?? 0;
+      const preview = await firstValueFrom(this.inventory.preview(order.id!, version, 'edit', order.orderItems));
+      let inventoryReturns = preview.items;
+      if (inventoryReturns.length) {
+        const dialog = await this.modal.create({ component: InventoryReturnModalComponent,
+          componentProps: { items: inventoryReturns }, cssClass: 'cancel-order-modal' });
+        await dialog.present();
+        const result = await dialog.onDidDismiss();
+        if (result.role !== 'confirm') throw { error: { message: 'No se guardaron los cambios. Tu pedido sigue disponible para revisarlo.' } };
+        inventoryReturns = result.data;
+      }
+      const body = { ...order, expectedOrderVersion: version, inventoryReturns };
+      prepared[intent] = body;
+      try { sessionStorage.setItem(storageKey, JSON.stringify(prepared)); } catch {}
+      return send(body);
+    });
   }
 
   /**
@@ -116,6 +158,8 @@ export class OrderService {
     orderId: number;
     reason?: string;
     paymentMethodId?: number;
+    expectedOrderVersion: number;
+    inventoryReturns: InventoryReturn[];
   }): Observable<any> {
     // 1. Usamos "destructuring" para separar el ID del resto de los datos.
     //    'orderId' se usará para la URL.
@@ -129,7 +173,7 @@ export class OrderService {
     // 3. Hacemos una petición POST a esa URL.
     //    El objeto 'body' se envía como el payload de la petición.
     //    Si 'reason' o 'paymentMethodId' no venían en el payload, simplemente no se incluirán.
-    return this.http.post<any>(url, body);
+    return this.inventory.mutate<any>('POST', url, body);
   }
 
   downloadReceipt(orderId: number): Observable<Blob> {

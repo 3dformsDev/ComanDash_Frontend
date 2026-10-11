@@ -7,12 +7,14 @@ import { IonicModule } from '@ionic/angular';
 import { DashboardPageRoutingModule } from './dashboard-routing.module';
 
 import { DashboardPage } from './dashboard.page';
+import { InventoryAlertsComponent } from '../../components/inventory-alerts/inventory-alerts.component';
 import { TableSelectionComponent } from 'src/app/components/table-selection/table-selection.component';
 import { IfRoleDirective } from 'src/app/directives/if-role';
 
 @NgModule({
   imports: [
     CommonModule,
+    InventoryAlertsComponent,
     FormsModule,
     IonicModule,
     DashboardPageRoutingModule,

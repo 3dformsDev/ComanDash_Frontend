@@ -9,7 +9,8 @@ import {
   NgZone,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonicModule, ModalController, ToastController } from '@ionic/angular';
+import { InventorySnapshot, inventoryMissingForDraft } from '@services/inventory.service';
 import { PaymentComponent } from '../payment/payment.component';
 import { ProductsService } from '@services/products.service';
 
@@ -22,6 +23,7 @@ import { ProductsService } from '@services/products.service';
 })
 export class OrderSummaryComponent implements OnInit, AfterViewInit {
   @Input() orderItems: any[] = [];
+  @Input() getInventorySnapshot?: () => InventorySnapshot | null;
   @Input() modalId!: string;
   @Input() isOrderAlreadyPaid: boolean = false;
   @Input() isEditMode: boolean = false;
@@ -53,6 +55,7 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
     private modalCtrl: ModalController,
     private elementRef: ElementRef,
     private _productService: ProductsService,
+    private toastCtrl: ToastController,
   ) {}
 
   ngOnInit() {
@@ -105,7 +108,17 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
     });
   }
 
-  addItem(item: any) {
+  canAddItem(item: any): boolean {
+    const snapshot = this.getInventorySnapshot?.();
+    return !snapshot || !inventoryMissingForDraft(snapshot, [...this.orderItems, item], this.originalOrderItems);
+  }
+
+  async addItem(item: any) {
+    if (!this.canAddItem(item)) {
+      const toast = await this.toastCtrl.create({ message: 'No hay suficientes unidades disponibles para agregar otra.', duration: 3000, color: 'warning' });
+      await toast.present();
+      return;
+    }
     this.orderItems = [...this.orderItems, item];
     this.groupItems();
   }
@@ -183,6 +196,12 @@ export class OrderSummaryComponent implements OnInit, AfterViewInit {
   }
 
   async confirmOrder() {
+    const snapshot = this.getInventorySnapshot?.();
+    const missing = snapshot && inventoryMissingForDraft(snapshot, this.orderItems, this.originalOrderItems);
+    if (missing) {
+      const toast = await this.toastCtrl.create({ message: `Revisa la cantidad de ${missing.name}: ya no hay suficientes unidades.`, duration: 4000, color: 'warning' });
+      await toast.present(); return;
+    }
     // Restaurar focusabilidad antes de proceder
     if (this.confirmButton?.nativeElement) {
       this.confirmButton.nativeElement.tabIndex = 0;

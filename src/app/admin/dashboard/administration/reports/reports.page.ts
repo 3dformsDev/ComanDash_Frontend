@@ -18,6 +18,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { firstValueFrom } from 'rxjs'; // 1. IMPORTAR
 import { Chart } from 'chart.js/auto'; // 2. IMPORTAR
+import { selectedCalendarDay } from '../../../../directives/desktop-wheel-drag.directive';
 
 @Component({
   selector: 'app-reports',
@@ -331,6 +332,7 @@ export class ReportsPage implements OnInit {
     });
 
     const worksheet = XLSX.utils.json_to_sheet(rows);
+    this.formatSheetMoney(worksheet);
     worksheet['!cols'] = [
       { wch: 12 },
       { wch: 12 },
@@ -564,9 +566,10 @@ export class ReportsPage implements OnInit {
       'Categoría': row.category,
       'Cantidad': row.quantity,
       'Opciones elegidas': this.formatProductOptions(row),
-      'Total': row.total
+      'Total': Number(row.total)
     }));
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
+    this.formatSheetMoney(ws);
     ws['!cols'] = [
       { wch: 30 }, { wch: 20 }, { wch: 10 }, { wch: 45 }, { wch: 15 }
     ];
@@ -579,6 +582,18 @@ export class ReportsPage implements OnInit {
   /**
    * Muestra un mensaje temporal (toast).
    */
+  private formatSheetMoney(sheet: XLSX.WorkSheet) {
+    const headers = new Set(['Total', 'Recargos', 'Descuentos', 'Devoluciones']);
+    const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+    for (let c = 0; c <= range.e.c; c++) {
+      if (!headers.has(String(sheet[XLSX.utils.encode_cell({ r: 0, c })]?.v))) continue;
+      for (let r = 1; r <= range.e.r; r++) {
+        const cell = sheet[XLSX.utils.encode_cell({ r, c })];
+        if (cell?.t === 'n') cell.z = '#,##0';
+      }
+    }
+  }
+
   async presentToast(message: string, color: string = 'success') {
     const toast = await this.toastCtrl.create({
       message: message,
@@ -589,24 +604,37 @@ export class ReportsPage implements OnInit {
     toast.present();
   }
 
+  restoreDatePicker(event: Event, value: string): void {
+    const modal = event.target;
+    if (!(modal instanceof HTMLElement)) return;
+    const picker = modal.querySelector('ion-datetime');
+    if (picker) picker.value = value || undefined;
+  }
+
   /**
-   * Se ejecuta cuando cambia la fecha de inicio
+   * Se ejecuta al elegir un dia, no al navegar por mes y ano.
    */
-  onStartDateChange(event: any) {
-    this.startDate = event.detail.value;
+  onStartDateChange(event: CustomEvent) {
+    const value = selectedCalendarDay(event);
+    if (!value) return;
+    this.startDate = value;
     this.modalStart.dismiss();
   }
 
   /**
    * Se ejecuta cuando cambia la fecha de fin
    */
-  onEndDateChange(event: any) {
-    this.endDate = event.detail.value;
+  onEndDateChange(event: CustomEvent) {
+    const value = selectedCalendarDay(event);
+    if (!value) return;
+    this.endDate = value;
     this.modalEnd.dismiss();
   }
 
-  onDailyDateChange(event: any): void {
-    this.dailyDate = event.detail.value;
+  onDailyDateChange(event: CustomEvent): void {
+    const value = selectedCalendarDay(event);
+    if (!value) return;
+    this.dailyDate = value;
     this.modalDaily.dismiss();
   }
 

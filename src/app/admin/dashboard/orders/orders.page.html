@@ -86,6 +86,7 @@
       <div class="item-content">
         <div class="item-details">
           <h3>{{ item.name }}</h3>
+          <p *ngIf="stockFor(item.id) as stock" [style.color]="stock.status === 'available' ? null : 'var(--ion-color-danger)'">{{stock.quantity === 0 ? 'Agotado' : 'Disponibles: ' + stock.quantity}}</p>
           <p>{{ item.price | currency:'COP':'$' }}</p>
         </div>
 
@@ -94,6 +95,7 @@
             *ngIf="getItemQuantity(item) === 0"
             class="single-add-btn"
             (click)="addItem(item)"
+            [disabled]="!!item.hasPersonalizations && isPersonalizationInProgress"
           >
             <ion-icon slot="icon-only" name="add-outline"></ion-icon>
           </ion-button>
@@ -112,6 +114,7 @@
               fill="clear"
               class="control-btn"
               (click)="addItem(item)"
+              [disabled]="!!item.hasPersonalizations && isPersonalizationInProgress"
             >
               <ion-icon slot="icon-only" name="add-outline"></ion-icon>
             </ion-button>

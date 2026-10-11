@@ -1,47 +1,47 @@
-<ion-header class="custom-header">
+<ion-header class="ion-no-border custom-header">
   <ion-toolbar>
-    <ion-title class="header-title">
-      Cerrar Sesión: {{ cashRegisterName }}
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" class="cancel-btn" (click)="dismiss()">
-        <ion-icon name="close-outline" slot="start"></ion-icon>
-        Cancelar
+    <div class="cash-close-heading">
+      <div><h1>Cerrar caja</h1><p>{{ cashRegisterName }}</p></div>
+      <ion-button fill="clear" class="cancel-btn" (click)="dismiss()" aria-label="Cancelar cierre de caja">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
-    </ion-buttons>
+    </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="form-content" *ngIf="summary">
   <div class="form-container">
+    <p class="balance-help">Este cierre reúne todos los medios de pago y la base de apertura.</p>
 
     <ion-list lines="full" class="summary-section">
-      <ion-list-header>
-        <ion-label>Resumen del Sistema</ion-label>
-      </ion-list-header>
+      <h2 class="summary-heading">Resumen del sistema</h2>
       <ion-item>
         <ion-label>Monto de Apertura</ion-label>
-        <ion-text slot="end">{{ summary.openingBalance | currency:'COP':'$' }}</ion-text>
+        <ion-text slot="end">{{ summary.openingBalance | currency:'COP':'$':'1.0-0' }}</ion-text>
       </ion-item>
       <ion-item>
-        <ion-label color="success">Total en Ventas</ion-label>
-        <ion-text slot="end" color="success">+ {{ summary.transactions.totalSales | currency:'COP':'$' }}</ion-text>
+        <ion-label color="success">Cobros recibidos</ion-label>
+        <ion-text slot="end" color="success">+ {{ summary.transactions.totalSales | currency:'COP':'$':'1.0-0' }}</ion-text>
       </ion-item>
       <ion-item>
-        <ion-label color="danger">Total Retiros/Reembolsos</ion-label>
-        <ion-text slot="end" color="danger">- {{ summary.transactions.totalWithdrawals | currency:'COP':'$'
+        <ion-label color="danger">Devoluciones</ion-label>
+        <ion-text slot="end" color="danger">- {{ summary.transactions.totalWithdrawals | currency:'COP':'$':'1.0-0'
           }}</ion-text>
+      </ion-item>
+      <ion-item>
+        <ion-label>Ingreso neto</ion-label>
+        <ion-text slot="end">{{ (summary.transactions.totalSales - summary.transactions.totalWithdrawals) | currency:'COP':'$':'1.0-0' }}</ion-text>
       </ion-item>
       <ion-item class="summary-total-item">
         <ion-label><strong>Saldo Esperado</strong></ion-label>
-        <ion-text slot="end" color="primary"><strong>{{ summary.expectedClosingBalance | currency:'COP':'$'
+        <ion-text slot="end" color="primary"><strong>{{ summary.expectedClosingBalance | currency:'COP':'$':'1.0-0'
             }}</strong></ion-text>
       </ion-item>
       <ion-item>
         <ion-label>Diferencia</ion-label>
         <ion-text slot="end" [color]="difference > 0 ? 'success' : (difference < 0 ? 'danger' : 'medium')"
           class="difference-text">
-          {{ difference | currency:'COP':'$' }}
+          {{ difference | currency:'COP':'$':'1.0-0' }}
           <span *ngIf="difference > 0">(Sobrante)</span>
           <span *ngIf="difference < 0">(Faltante)</span>
         </ion-text>
@@ -51,8 +51,7 @@
     <div class="form-section">
       <div class="input-group">
         <ion-item class="custom-item" lines="none">
-          <ion-label position="stacked" class="custom-label">Saldo Real Contado *</ion-label>
-          <ion-input type="tel" [ngModel]="formData.realClosingBalance | number:'1.0-0':'es-CO'"
+          <ion-input label="Saldo real de todos los medios *" labelPlacement="stacked" type="tel" inputmode="numeric" [ngModel]="formData.realClosingBalance | number:'1.0-0':'es-CO'"
             (ionInput)="formatAndCalculate($event)" class="custom-input" placeholder="0" required>
             <div slot="start" class="currency-symbol">$</div>
           </ion-input>
@@ -60,8 +59,7 @@
       </div>
       <div class="input-group">
         <ion-item class="custom-item" lines="none">
-          <ion-label position="stacked" class="custom-label">Notas de Cierre (Opcional)</ion-label>
-          <ion-textarea rows="3" [(ngModel)]="formData.notes" class="custom-input"
+          <ion-textarea label="Notas de cierre (opcional)" labelPlacement="stacked" rows="3" [(ngModel)]="formData.notes" class="custom-input"
             placeholder="Ej: Hubo un faltante debido a un error en el cambio.">
           </ion-textarea>
         </ion-item>
@@ -69,12 +67,10 @@
     </div>
 
     <ion-list lines="full" class="summary-section" *ngIf="summary.transactions.incomeByPaymentMethod.length > 0">
-      <ion-list-header>
-        <ion-label>Desglose de Ingresos</ion-label>
-      </ion-list-header>
+      <h2 class="summary-heading">Desglose por medio de pago</h2>
       <ion-item *ngFor="let item of summary.transactions.incomeByPaymentMethod">
-        <ion-label>{{ item.name }}</ion-label>
-        <ion-text slot="end">{{ item.total | currency:'COP':'$' }}</ion-text>
+        <ion-label>{{ item.name }}<p *ngIf="item.refunded">Devuelto: {{ item.refunded | currency:'COP':'$':'1.0-0' }}</p></ion-label>
+        <ion-text slot="end">{{ item.total | currency:'COP':'$':'1.0-0' }}</ion-text>
       </ion-item>
     </ion-list>
 

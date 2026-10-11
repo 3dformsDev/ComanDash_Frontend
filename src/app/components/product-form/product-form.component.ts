@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
 import { IonicModule, ModalController, ToastController, Platform } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CategoryI } from '@services/categories.service';
@@ -14,21 +14,41 @@ import {
   ProductModifierOptionPriceDto,
 } from '@services/personalizations.service';
 import { firstValueFrom } from 'rxjs';
+import { InventoryComponent, InventoryService, InventoryProduct } from '@services/inventory.service';
+import { InventoryFieldsComponent, InventoryDraft, inventoryDraft, inventoryDraftValid } from '../inventory-fields/inventory-fields.component';
+
+export interface ProductFormSubmission {
+  product: any;
+  file: File | null;
+  inventory?: InventoryDraft;
+  personalizations: ProductPersonalizationAssignmentDto[];
+}
 
 @Component({
   selector: 'app-product-form',
   templateUrl: './product-form.component.html',
   styleUrls: ['./product-form.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, InventoryFieldsComponent]
 })
 export class ProductFormComponent implements OnInit {
+  private inventory = inject(InventoryService);
+  inventoryDraft?: InventoryDraft;
+  inventoryProducts: InventoryProduct[] = [];
+  inventoryComponents: InventoryComponent[] = [];
+  inventoryPickerOpen = false;
+  inventoryPickerSearch = '';
+  inventoryPickerProducts: InventoryProduct[] = [];
+  private pickerComponent?: InventoryComponent;
+  inventoryError = '';
   private readonly supportedImageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
   private readonly supportedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
 
   @Input() categories: CategoryI[] = [];
   @Input() mode: 'new' | 'edit' = 'new';
+  @Input() onSave?: (data: ProductFormSubmission) => Promise<boolean>;
+  isSaving = false;
   @Input() product: any = {
     name: '',
     price: null,
@@ -48,9 +68,15 @@ export class ProductFormComponent implements OnInit {
   public productPersonalizations: ProductPersonalizationAssignmentDto[] = [];
   public selectedModifierGroupId: number | null = null;
   public personalizationsLoading = false;
+  public expandedGroupIds = new Set<number>();
+  public expandedOptionKeys = new Set<string>();
   public readonly modifierGroupSelectOptions = {
     cssClass: 'product-group-select-alert',
     header: 'Selecciona un grupo de opciones',
+  };
+  public readonly categorySelectOptions = {
+    cssClass: 'product-group-select-alert',
+    header: 'Selecciona una categoría',
   };
   private readonly pricedOptionIds = new Set<number>();
   private activeOptionsByGroupId = new Map<number, ModifierOptionI[]>();
@@ -65,6 +91,7 @@ export class ProductFormComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.product = { ...this.product };
     // Detectar si estamos en nativo o web
     this.isNative = this.platform.is('hybrid');
 
@@ -79,13 +106,47 @@ export class ProductFormComponent implements OnInit {
     }
 
     void this.loadPersonalizations();
+    void this.loadInventory();
+  }
+
+  private async loadInventory() {
+    try {
+      const snapshot = await firstValueFrom(this.inventory.balances());
+      if (!snapshot.canManage) return;
+      this.inventoryProducts = snapshot.data;
+      this.inventoryComponents = snapshot.components;
+      this.inventoryDraft = inventoryDraft(snapshot.data.find((p) => p.productId === this.product.id), snapshot.components.filter((c) => c.productId === this.product.id));
+      if (!this.inventoryDraft.wasEnabled) this.inventoryDraft.unitCost = this.product.cost;
+    } catch { this.inventoryError = 'No se pudo cargar el inventario. Podrás configurarlo desde Inventario.'; }
   }
 
   dismiss() {
+    if (this.isSaving) return;
     this.modalCtrl.dismiss(null, 'cancel');
   }
 
+  openInventory() {
+    if (this.isSaving) return;
+    void this.modalCtrl.dismiss({ productId: this.product?.id }, 'inventory');
+  }
+
+  inventoryDependencyLabels(): string[] {
+    if (!this.product?.id) return [];
+    return [...new Set(this.inventoryComponents
+      .filter((component) => component.componentProductId === this.product.id)
+      .map((component) => this.inventoryProducts.find((product) => product.productId === component.productId)?.name)
+      .filter((name): name is string => !!name))];
+  }
+
   async save() {
+    if (this.isSaving) return;
+    if (this.selectedImageFile && !this.isSupportedImage(this.selectedImageFile)) {
+      this.presentToast('Usa una imagen JPG, PNG o WEBP de máximo 5 MB.'); return;
+    }
+    if (this.inventoryDraft && !this.inventoryDraft.wasEnabled) this.inventoryDraft.unitCost = this.product.cost;
+    if (this.inventoryDraft && !inventoryDraftValid(this.inventoryDraft)) {
+      this.presentToast('Revisa las cantidades y el costo del inventario.'); return;
+    }
     if (!this.isFormValid()) {
       this.presentToast('Por favor, completa todos los campos obligatorios (*).');
       return;
@@ -99,14 +160,31 @@ export class ProductFormComponent implements OnInit {
 
     delete productData.imageUrl;
 
-    this.modalCtrl.dismiss({
+    const submission: ProductFormSubmission = {
       product: productData,
       file: this.selectedImageFile,
+      inventory: this.inventoryDraft ? { ...this.inventoryDraft, components: this.inventoryDraft.components.filter((c) => this.productPersonalizations.some((a) => a.modifierGroupId === c.modifierGroupId)) } : undefined,
       personalizations: this.productPersonalizations.map((assignment, index) => ({
         ...assignment,
         displayOrder: index,
       })),
-    }, 'save');
+    };
+    this.isSaving = true;
+    try {
+      if (this.onSave) {
+        if (await this.onSave(submission)) {
+          this.isSaving = false;
+          await this.modalCtrl.dismiss(null, 'saved');
+        }
+      } else {
+        this.isSaving = false;
+        await this.modalCtrl.dismiss(submission, 'save');
+      }
+    } catch {
+      this.presentToast('No se pudo guardar. Tus datos siguen aquí; vuelve a intentarlo.');
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   get availableModifierGroups(): ModifierGroupI[] {
@@ -122,6 +200,17 @@ export class ProductFormComponent implements OnInit {
 
   getActiveOptionsCount(groupId: number): number {
     return this.getModifierGroup(groupId)?.options.filter((option) => option.isActive).length || 0;
+  }
+
+  toggleModifierGroup(groupId: number): void {
+    this.expandedGroupIds.has(groupId) ? this.expandedGroupIds.delete(groupId) : this.expandedGroupIds.add(groupId);
+  }
+
+  optionKey(groupId: number, optionId: number): string { return `${groupId}:${optionId}`; }
+
+  toggleModifierOption(groupId: number, optionId: number): void {
+    const key = this.optionKey(groupId, optionId);
+    this.expandedOptionKeys.has(key) ? this.expandedOptionKeys.delete(key) : this.expandedOptionKeys.add(key);
   }
 
   addModifierGroup() {
@@ -153,6 +242,74 @@ export class ProductFormComponent implements OnInit {
 
   trackModifierOptionById(_index: number, option: ModifierOptionI): number {
     return option.id;
+  }
+
+  trackInventoryProductById(_index: number, product: InventoryProduct): number {
+    return product.productId;
+  }
+
+  trackInventoryComponent(_index: number, component: InventoryComponent): InventoryComponent {
+    return component;
+  }
+
+  optionUsesInventory(groupId: number, optionId: number): boolean {
+    return !!this.inventoryDraft?.components.some((component) => component.modifierGroupId === groupId && component.modifierOptionId === optionId);
+  }
+
+  setOptionUsesInventory(groupId: number, optionId: number, enabled: boolean): void {
+    if (!this.inventoryDraft) return;
+    if (!enabled) {
+      this.inventoryDraft.components = this.inventoryDraft.components.filter(
+        (component) => component.modifierGroupId !== groupId || component.modifierOptionId !== optionId,
+      );
+      return;
+    }
+    if (!this.optionUsesInventory(groupId, optionId)) {
+      this.inventoryDraft.components.push({ modifierGroupId: groupId, modifierOptionId: optionId, componentProductId: 0, units: 1 });
+    }
+  }
+
+  addInventoryComponent(groupId: number, optionId: number): void {
+    this.inventoryDraft?.components.push({ modifierGroupId: groupId, modifierOptionId: optionId, componentProductId: 0, units: 1 });
+  }
+
+  removeInventoryComponent(index: number): void {
+    this.inventoryDraft?.components.splice(index, 1);
+  }
+
+  inventoryProductName(component: InventoryComponent): string {
+    return this.inventoryProducts.find((product) => product.productId === component.componentProductId)?.name || 'Elegir producto';
+  }
+
+  openInventoryProductPicker(component: InventoryComponent): void {
+    this.pickerComponent = component;
+    this.inventoryPickerSearch = '';
+    this.updateInventoryPickerProducts();
+    this.inventoryPickerOpen = true;
+  }
+
+  updateInventoryPickerProducts(): void {
+    const current = this.pickerComponent;
+    const term = (this.inventoryPickerSearch || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
+    this.inventoryPickerProducts = this.inventoryProducts.filter((product) => {
+      if (!current || (!product.enabled && product.productId !== current.componentProductId)) return false;
+      if (this.inventoryDraft?.components.some((item) => item !== current && item.modifierGroupId === current.modifierGroupId
+        && item.modifierOptionId === current.modifierOptionId && item.componentProductId === product.productId)) return false;
+      return !term || product.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().includes(term);
+    });
+  }
+
+  selectInventoryProduct(product: InventoryProduct): void {
+    if (!this.pickerComponent) return;
+    this.pickerComponent.componentProductId = product.productId;
+    this.closeInventoryProductPicker();
+  }
+
+  closeInventoryProductPicker(): void {
+    this.inventoryPickerOpen = false;
+    this.pickerComponent = undefined;
+    this.inventoryPickerSearch = '';
+    this.inventoryPickerProducts = [];
   }
 
   optionHasPrice(assignment: ProductPersonalizationAssignmentDto, optionId: number): boolean {
@@ -211,6 +368,8 @@ export class ProductFormComponent implements OnInit {
   }
 
   removeModifierGroup(groupId: number) {
+    this.expandedGroupIds.delete(groupId);
+    for (const key of this.expandedOptionKeys) if (key.startsWith(`${groupId}:`)) this.expandedOptionKeys.delete(key);
     this.productPersonalizations = this.productPersonalizations
       .filter((item) => item.modifierGroupId !== groupId)
       .map((item, index) => ({ ...item, displayOrder: index }));
@@ -341,7 +500,7 @@ export class ProductFormComponent implements OnInit {
         if (!this.isSupportedImage(selectedFile)) {
           this.selectedImagePreview = null;
           this.selectedImageFile = null;
-          this.presentToast('Formato no compatible. Usa una imagen JPG, PNG o WEBP.');
+        this.presentToast('Usa una imagen JPG, PNG o WEBP de máximo 5 MB.');
           return;
         }
 
@@ -404,7 +563,7 @@ export class ProductFormComponent implements OnInit {
       // Guardar archivo
       this.selectedImageFile = file;
     } else {
-      this.presentToast('Formato no compatible. Usa una imagen JPG, PNG o WEBP.');
+      this.presentToast('Usa una imagen JPG, PNG o WEBP de máximo 5 MB.');
       if (event.target) {
         event.target.value = '';
       }
@@ -416,7 +575,7 @@ export class ProductFormComponent implements OnInit {
     const hasSupportedExtension = this.supportedImageExtensions.includes(extension);
     const hasSupportedType = !file.type || this.supportedImageTypes.includes(file.type.toLowerCase());
 
-    return hasSupportedExtension && hasSupportedType;
+    return hasSupportedExtension && hasSupportedType && file.size <= 5 * 1024 * 1024;
   }
 
   /**
@@ -510,9 +669,11 @@ export class ProductFormComponent implements OnInit {
     let rawValue = event.target.value.replace(/[^0-9]/g, '');
     if (!rawValue) {
       this.product[field] = null;
+      if (field === 'cost' && this.inventoryDraft && !this.inventoryDraft.wasEnabled) this.inventoryDraft.unitCost = null;
       return;
     }
     this.product[field] = parseInt(rawValue, 10);
+    if (field === 'cost' && this.inventoryDraft && !this.inventoryDraft.wasEnabled) this.inventoryDraft.unitCost = this.product.cost;
     const formattedValue = new Intl.NumberFormat('es-CO').format(this.product[field]);
     setTimeout(() => {
       event.target.value = formattedValue;
@@ -525,7 +686,9 @@ export class ProductFormComponent implements OnInit {
         this.protectedImages.set(productId, imageUrl);
       },
       error: (error) => {
-        console.error(`Error al cargar la imagen protegida para el producto ${productId}:`, error);
+        this.protectedImages.delete(productId);
+        if (this.product?.id === productId) this.selectedImagePreview = null;
+        console.warn(`No se encontró la imagen del producto ${productId}. Se mostrará el marcador predeterminado.`, error?.status || '');
       }
     });
   }

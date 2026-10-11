@@ -8,6 +8,13 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
+.dashboard-inventory-shortcut {
+    position: fixed;
+    z-index: 20;
+    top: calc(14px + env(safe-area-inset-top));
+    right: 14px;
+}
+
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }

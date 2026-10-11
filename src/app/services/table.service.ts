@@ -117,4 +117,8 @@ export class TableService {
       .pipe(map(response => response.data));
   }
 
+  recoverAvailability(tableId: number): Observable<TableI> {
+    return this._http.post<TableI>(`${this.tablesEndpoint}/${tableId}/recover-availability`, { confirmEmpty: true });
+  }
+
 }

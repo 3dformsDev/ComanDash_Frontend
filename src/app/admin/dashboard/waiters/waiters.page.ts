@@ -312,7 +312,9 @@ export class WaitersPage implements OnInit, OnDestroy {
     // this.applyFilters();
 
     // Si la orden tiene fecha de pago, requiere reembolso
-    if (order.paidAt) {
+    const netPaid = Array.isArray(order.payments) ? order.payments.reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0)
+      : Number(order.paymentSummary?.paidAmount ?? (order.paidAt ? order.totalAmount : 0));
+    if (netPaid > 0) {
       this.promptForRefundCancellation(order);
     } else {
       // Si no, es una cancelación simple
@@ -322,53 +324,14 @@ export class WaitersPage implements OnInit, OnDestroy {
 
   // ✅ AÑADE ESTE MÉTODO para cancelaciones simples
   private async promptForSimpleCancellation(order: Order) {
-    const alert = await this.alertController.create({
-      header: 'Cancelar Comanda',
-      message: `¿Estás seguro de cancelar la comanda #${order.orderNumber}?`,
-      cssClass: ['confirmation-action-alert', 'cancel-order-alert'],
-      inputs: [
-        {
-          name: 'reason',
-          type: 'textarea',
-          placeholder: 'Motivo de la cancelación (opcional)',
-        },
-      ],
-      buttons: [
-        {
-          text: 'Atrás',
-          role: 'cancel',
-          cssClass: 'alert-secondary-action',
-        },
-        {
-          text: 'Sí, Cancelar',
-          cssClass: 'alert-primary-action',
-          handler: (data) => {
-            this._ordersService
-              .cancelOrder({ orderId: order.id!, reason: data.reason })
-              .subscribe({
-                next: () =>
-                  this._toastService.presentToast(
-                    'Comanda cancelada exitosamente.',
-                    'success',
-                  ),
-                error: (err) =>
-                  this._toastService.presentToast(
-                    `Error: ${err.error.message}`,
-                    'danger',
-                  ),
-              });
-          },
-        },
-      ],
-    });
-    await alert.present();
+    await this.promptForRefundCancellation(order, false);
   }
 
   // ✅ AÑADE ESTE MÉTODO para cancelaciones con reembolso
-  private async promptForRefundCancellation(order: Order) {
+  private async promptForRefundCancellation(order: Order, withRefund = true) {
     const modal = await this.modalCtrl.create({
       component: CancelOrderComponent,
-      componentProps: { order: order },
+      componentProps: { order: order, withRefund },
       // Estilos para que el modal no sea pantalla completa en móvil
       cssClass: 'cancel-order-modal',
     });
@@ -382,6 +345,8 @@ export class WaitersPage implements OnInit, OnDestroy {
           orderId: order.id!,
           reason: data.reason,
           paymentMethodId: data.paymentMethodId,
+          expectedOrderVersion: data.expectedOrderVersion,
+          inventoryReturns: data.inventoryReturns,
         })
         .subscribe({
           next: (res) => {
@@ -399,7 +364,7 @@ export class WaitersPage implements OnInit, OnDestroy {
             this.applyFilters();
 
             this._toastService.presentToast(
-              `Comanda cancelada. Reembolso de ${res.refundAmount} procesado.`,
+              withRefund ? `Comanda cancelada. Reembolso de ${res.refundAmount} procesado.` : 'Comanda cancelada.',
               'success',
             );
           },

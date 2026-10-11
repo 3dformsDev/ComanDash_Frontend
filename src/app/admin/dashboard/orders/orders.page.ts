@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppState } from '@capacitor/app';
 import {
@@ -32,6 +32,8 @@ import {
   ProductPersonalizationsI,
 } from '@services/personalizations.service';
 import { ProductPersonalizationModalComponent } from 'src/app/components/product-personalization-modal/product-personalization-modal.component';
+import { InventoryService, InventorySnapshot, inventoryDemand } from '@services/inventory.service';
+import { Subscription } from 'rxjs';
 
 interface GroupedProduct extends ProductI {
   id: number;
@@ -48,6 +50,10 @@ interface GroupedProduct extends ProductI {
   standalone: false,
 })
 export class OrdersPage implements OnInit, OnDestroy {
+  private inventory = inject(InventoryService);
+  inventorySnapshot: InventorySnapshot | null = null;
+  private inventorySubscription?: Subscription;
+  stockFor(id: number) { return this.inventorySnapshot?.data.find((p) => p.productId === id && p.enabled); }
   selectedOrders$!: Observable<OrdersState>;
   allCategories: CategoryI[] = [];
   allProducts: ProductI[] = [];
@@ -72,6 +78,7 @@ export class OrdersPage implements OnInit, OnDestroy {
   public protectedItemQuantities: Record<number, number> = {};
   public protectedLineQuantities: Record<string, number> = {};
   private personalizationCache = new Map<number, ProductPersonalizationsI>();
+  public isPersonalizationInProgress = false;
 
   public protectedImages = new Map<number, string>();
 
@@ -148,11 +155,15 @@ export class OrdersPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.inventorySubscription?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   async ionViewWillEnter() {
+    this.inventorySubscription?.unsubscribe();
+    this.inventorySubscription = this.inventory.watch().subscribe((snapshot) => { this.inventorySnapshot = snapshot || null; this.personalizationCache.clear(); });
+    this.inventory.refresh();
     try {
       this.personalizationCache.clear();
       this.allCategories = await firstValueFrom(
@@ -178,6 +189,7 @@ export class OrdersPage implements OnInit, OnDestroy {
   }
 
   ionViewWillLeave() {
+    this.inventorySubscription?.unsubscribe();
     // 1. Limpiamos el estado GLOBAL (NgRx Store)
     this.store.dispatch(OrdersActions.clearCurrentOrderForEdit());
 
@@ -248,6 +260,14 @@ export class OrdersPage implements OnInit, OnDestroy {
     item: ProductI,
     modifierSelections: OrderLineModifierSelectionI[],
   ): void {
+    if (this.inventorySnapshot) {
+      const needed = inventoryDemand(this.inventorySnapshot, item.id, modifierSelections);
+      this.currentOrder.filter((line) => !line.orderItemId).forEach((line) => {
+        for (const [id, count] of inventoryDemand(this.inventorySnapshot!, line.id, line.modifierSelections, line.quantity)) needed.set(id, (needed.get(id) || 0) + count);
+      });
+      const missing = this.inventorySnapshot.data.find((p) => p.enabled && (needed.get(p.productId) || 0) > Number(p.quantity));
+      if (missing) { this.toastService.presentToast(`Solo quedan ${missing.quantity} unidades de ${missing.name}. Revisa las que ya agregaste al pedido.`, 'danger'); return; }
+    }
     const lineKey = this.buildLineKey(item.id, modifierSelections);
     const existingItemIndex = this.currentOrder.findIndex(
       (p) => p.lineKey === lineKey && !p.orderItemId,
@@ -283,6 +303,9 @@ export class OrdersPage implements OnInit, OnDestroy {
   }
 
   private async addPersonalizedItem(item: ProductI): Promise<void> {
+    // Acquire before the first await: rapid taps must not queue additional modals.
+    if (this.isPersonalizationInProgress) return;
+    this.isPersonalizationInProgress = true;
     try {
       let configuration = this.personalizationCache.get(item.id);
       if (!configuration) {
@@ -305,7 +328,7 @@ export class OrdersPage implements OnInit, OnDestroy {
         showBackdrop: true,
       });
       await modal.present();
-      const { data, role } = await modal.onWillDismiss();
+      const { data, role } = await modal.onDidDismiss();
       if (role === 'confirmed' && data?.selections) {
         this.addConfiguredLine(item, data.selections);
       }
@@ -315,6 +338,8 @@ export class OrdersPage implements OnInit, OnDestroy {
         'No fue posible cargar las opciones de este producto.',
         'danger',
       );
+    } finally {
+      this.isPersonalizationInProgress = false;
     }
   }
 
@@ -439,6 +464,7 @@ export class OrdersPage implements OnInit, OnDestroy {
       component: OrderSummaryComponent,
       componentProps: {
         orderItems: flatOrderItems,
+        getInventorySnapshot: () => this.inventorySnapshot,
         modalId: 'orderSummaryModal',
         isOrderAlreadyPaid: isAlreadyPaid,
         isEditMode: this.isEditMode,
@@ -552,7 +578,7 @@ export class OrdersPage implements OnInit, OnDestroy {
           await this.hideLoading();
 
           this.toastService.presentToast(
-            `¡Pedido #${order.id || 'N/A'} creado exitosamente!`,
+            `¡Pedido #${order.orderNumber || order.id || 'N/A'} creado exitosamente!`,
             'success',
           );
 

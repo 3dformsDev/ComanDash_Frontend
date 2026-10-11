@@ -379,12 +379,14 @@ export class CashBoxManagementPage implements OnInit {
 
   async editCashRegister(cashRegister: CashRegisterI) {
     const alert = await this.alertCtrl.create({
-      header: 'Editar Nombre',
-      inputs: [{ name: 'name', type: 'text', value: cashRegister.name }],
+      header: 'Editar caja',
+      cssClass: 'management-form-alert',
+      inputs: [{ name: 'name', type: 'text', value: cashRegister.name, placeholder: 'Nombre de la caja', attributes: { 'aria-label': 'Nombre de la caja' } }],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Cancelar', role: 'cancel', cssClass: 'alert-secondary-action' },
         {
           text: 'Actualizar',
+          cssClass: 'alert-primary-action',
           handler: async (data) => {
             const newName = data.name.trim();
             if (!newName || newName === cashRegister.name) return true;
@@ -412,10 +414,12 @@ export class CashBoxManagementPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: `Confirmar`,
       message: `¿Seguro que quieres ${action} la caja "${cashRegister.name}"?`,
+      cssClass: 'confirmation-action-alert',
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Cancelar', role: 'cancel', cssClass: 'alert-secondary-action' },
         {
           text: action.charAt(0).toUpperCase() + action.slice(1),
+          cssClass: 'alert-primary-action',
           handler: async () => {
             const loading = await this.loadingCtrl.create({ message: `${action.endsWith('ar') ? action.slice(0, -2) : action}ando...` });
             await loading.present();

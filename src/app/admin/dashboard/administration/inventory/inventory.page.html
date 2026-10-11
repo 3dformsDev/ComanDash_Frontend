@@ -1,0 +1,157 @@
+<ion-header class="ion-no-border cd-management-header">
+  <ion-toolbar>
+    <div class="cd-toolbar-layout">
+      <ion-buttons><ion-back-button text="" defaultHref="/dashboard/administration"></ion-back-button></ion-buttons>
+      <div class="cd-title-group"><h1>Inventario</h1><p>Unidades disponibles y movimientos</p></div>
+      <ion-buttons class="toolbar-actions"><ion-button class="cd-icon-action inventory-refresh-button" (click)="inventory.refresh()" [disabled]="busy" aria-label="Actualizar inventario"><ion-icon name="refresh-outline" slot="icon-only"></ion-icon></ion-button></ion-buttons>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding cd-management-content">
+  <main class="inventory-shell">
+    <section class="inventory-summary" *ngIf="snapshot">
+      <div><span class="summary-icon"><ion-icon name="archive-outline"></ion-icon></span><div><h2>Tu inventario, al día</h2><p>Última consulta: {{snapshot.asOf | date:'dd/MM/yyyy HH:mm:ss':'-0500'}}</p></div></div>
+      <span class="cd-status-pill" [class.is-alert]="alerts">{{alerts}} {{alerts === 1 ? 'producto por revisar' : 'productos por revisar'}}</span>
+    </section>
+    <ion-text color="danger" *ngIf="error"><p class="error-message" role="alert">{{error}}</p></ion-text>
+    <div class="loading-state" *ngIf="!snapshot && !error"><ion-spinner name="crescent"></ion-spinner><p>Cargando inventario…</p></div>
+
+    <ion-segment class="inventory-tabs" [(ngModel)]="view" *ngIf="snapshot?.canManage" (ionChange)="view === 'history' && loadHistory()">
+      <ion-segment-button value="stock"><ion-label>Disponibles</ion-label></ion-segment-button>
+      <ion-segment-button value="history"><ion-label>Movimientos</ion-label></ion-segment-button>
+    </ion-segment>
+
+    <ng-container *ngIf="view === 'stock' && snapshot">
+      <div class="primary-actions stock-entry-action" *ngIf="snapshot.canManage"><ion-button expand="block" (click)="openReceipt()" [disabled]="busy"><ion-icon name="add-outline" slot="start"></ion-icon>Registrar entrada</ion-button></div>
+      <section class="collapsible-panel">
+        <button type="button" class="panel-toggle" [attr.aria-expanded]="stockFiltersOpen" (click)="stockFiltersOpen = !stockFiltersOpen"><span><ion-icon name="options-outline"></ion-icon><strong>Buscar y filtrar</strong></span><ion-icon [name]="stockFiltersOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon></button>
+        <div class="panel-body" *ngIf="stockFiltersOpen">
+          <ion-searchbar placeholder="Buscar producto" [(ngModel)]="draftSearch" show-clear-button="focus"></ion-searchbar>
+          <div class="field-grid">
+            <ion-item class="form-field" lines="none"><ion-select label="Mostrar" labelPlacement="stacked" interface="alert" [interfaceOptions]="selectOptions" [(ngModel)]="draftStatus"><ion-select-option value="">Productos con inventario</ion-select-option><ion-select-option value="empty">Agotados</ion-select-option><ion-select-option value="low">Por acabarse</ion-select-option><ion-select-option value="available">Disponibles</ion-select-option><ion-select-option value="untracked">Sin control</ion-select-option></ion-select></ion-item>
+            <ion-item class="form-field" lines="none"><ion-select label="Categoría" labelPlacement="stacked" interface="alert" [interfaceOptions]="selectOptions" [(ngModel)]="draftCategory"><ion-select-option value="">Todas</ion-select-option><ion-select-option *ngFor="let categoryName of categories" [value]="categoryName">{{categoryName}}</ion-select-option></ion-select></ion-item>
+          </div>
+          <div class="primary-actions stock-filter-actions"><ion-button (click)="consultStock()" [disabled]="busy">Consultar</ion-button><ion-button fill="outline" (click)="exportStock()" [disabled]="busy"><ion-icon name="download-outline" slot="start"></ion-icon>Descargar Excel</ion-button></div>
+        </div>
+      </section>
+      <p class="result-count">{{productCountLabel()}}</p>
+      <article class="inventory-product" *ngFor="let product of filtered" [class.is-low]="product.status === 'low' || product.status === 'empty'">
+        <button type="button" class="product-summary" [attr.aria-expanded]="expandedProducts.has(product.productId)" (click)="toggleProduct(product.productId)">
+          <span class="product-copy"><strong>{{product.name}}</strong><small>{{product.category}}<span *ngIf="!product.active"> · Producto inactivo</span></small></span>
+          <span class="product-numbers"><strong>{{product.quantity ?? '—'}}</strong><small>unidades</small></span>
+          <span class="cd-status-pill" [class.is-alert]="product.status === 'low' || product.status === 'empty'">{{label(product.status)}}</span>
+          <ion-icon [name]="expandedProducts.has(product.productId) ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </button>
+        <div class="product-details" *ngIf="expandedProducts.has(product.productId)">
+          <div class="value-grid">
+            <div><small>Precio de venta</small><strong>{{product.price | currency:'COP':'symbol-narrow':'1.0-0'}}</strong></div>
+            <div *ngIf="product.enabled"><small>Avisar cuando queden</small><strong>{{product.minimumQuantity}}</strong></div>
+            <div *ngIf="snapshot.canManage && product.enabled"><small>Costo promedio</small><strong>{{product.averageCost | currency:'COP':'symbol-narrow':'1.0-0'}}</strong></div>
+            <div *ngIf="snapshot.canManage && product.enabled"><small>Valor disponible de todas las unidades</small><strong>{{product.value | currency:'COP':'symbol-narrow':'1.0-0'}}</strong></div>
+          </div>
+          <div class="option-usage" *ngIf="optionUsage(product.productId).length"><ion-icon name="git-branch-outline"></ion-icon><span>Usado en {{optionUsage(product.productId).length}} {{optionUsage(product.productId).length === 1 ? 'opción' : 'opciones'}}<small>{{optionUsageLabels(product.productId).join(', ')}}</small></span></div>
+          <div class="card-actions">
+            <ion-button *ngIf="snapshot.canManage" fill="outline" size="small" (click)="editProduct(product)"><ion-icon name="create-outline" slot="start"></ion-icon>Editar producto</ion-button>
+            <ion-button *ngIf="snapshot.canManage" fill="outline" size="small" (click)="configure(product)"><ion-icon name="settings-outline" slot="start"></ion-icon>Configurar inventario</ion-button>
+            <ion-button *ngIf="snapshot.canManage && product.enabled" fill="outline" size="small" (click)="openAdjustment(product)"><ion-icon name="swap-horizontal-outline" slot="start"></ion-icon>Ajustar unidades</ion-button>
+          </div>
+        </div>
+      </article>
+      <div *ngIf="!filtered.length" class="empty-state"><ion-icon name="search-outline"></ion-icon><h2>Sin resultados</h2><p>Prueba con otro nombre o filtro.</p></div>
+    </ng-container>
+
+    <ng-container *ngIf="view === 'history' && snapshot?.canManage">
+      <section class="collapsible-panel">
+        <button type="button" class="panel-toggle" [attr.aria-expanded]="historyFiltersOpen" (click)="historyFiltersOpen = !historyFiltersOpen"><span><ion-icon name="options-outline"></ion-icon><strong>Filtros de movimientos</strong></span><ion-icon [name]="historyFiltersOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon></button>
+        <div class="panel-body" *ngIf="historyFiltersOpen">
+          <div class="date-grid">
+            <button type="button" class="date-trigger" (click)="activeDatePicker = 'from'" aria-label="Elegir fecha desde"><span><small>Desde</small><strong>{{filters.from ? (filters.from | date:'dd/MM/yyyy') : 'Elegir fecha'}}</strong></span><ion-icon name="calendar-outline"></ion-icon></button>
+            <button type="button" class="date-trigger" (click)="activeDatePicker = 'to'" aria-label="Elegir fecha hasta"><span><small>Hasta</small><strong>{{filters.to ? (filters.to | date:'dd/MM/yyyy') : 'Elegir fecha'}}</strong></span><ion-icon name="calendar-outline"></ion-icon></button>
+          </div>
+          <ion-button fill="clear" size="small" *ngIf="filters.from || filters.to" (click)="clearHistoryDates()">Limpiar fechas</ion-button>
+          <div class="field-grid">
+            <ion-item class="form-field" lines="none"><ion-select label="Producto" labelPlacement="stacked" interface="alert" [interfaceOptions]="selectOptions" [(ngModel)]="filters.productId"><ion-select-option value="">Todos</ion-select-option><ion-select-option *ngFor="let product of products" [value]="product.productId">{{product.name}}</ion-select-option></ion-select></ion-item>
+            <ion-item class="form-field" lines="none"><ion-select label="Movimiento" labelPlacement="stacked" interface="alert" [interfaceOptions]="selectOptions" [(ngModel)]="filters.type"><ion-select-option value="">Todos</ion-select-option><ion-select-option *ngFor="let type of types | keyvalue" [value]="type.key">{{type.value}}</ion-select-option></ion-select></ion-item>
+            <ion-item class="form-field" lines="none"><ion-input label="Número de comanda" labelPlacement="stacked" inputmode="numeric" [(ngModel)]="filters.orderNumber"></ion-input></ion-item>
+            <ion-item class="form-field" lines="none"><ion-input label="Número de orden" labelPlacement="stacked" inputmode="numeric" [(ngModel)]="filters.companyOrderNumber"></ion-input></ion-item>
+            <ion-item class="form-field" lines="none"><ion-select label="Responsable" labelPlacement="stacked" interface="alert" [interfaceOptions]="selectOptions" [(ngModel)]="filters.actorId"><ion-select-option value="">Todos</ion-select-option><ion-select-option *ngFor="let actor of actors" [value]="actor.actor_id">{{actor.actor_name}}</ion-select-option></ion-select></ion-item>
+          </div>
+          <ion-item class="filter-toggle" lines="none"><ion-label>Solo unidades que no regresaron</ion-label><ion-toggle [(ngModel)]="filters.notRecovered"></ion-toggle></ion-item>
+          <div class="primary-actions"><ion-button (click)="loadHistory()" [disabled]="historyLoading || busy">Consultar</ion-button><ion-button fill="outline" (click)="exportHistory()" [disabled]="busy || historyLoading">Descargar Excel</ion-button></div>
+        </div>
+      </section>
+      <article class="inventory-operation" *ngFor="let operation of operations">
+        <button type="button" class="operation-summary" [attr.aria-expanded]="expandedOperations.has(operation.id)" (click)="toggleOperation(operation.id)"><span><strong>{{types[operation.type] || operation.type}}</strong><small>{{operation.created_at | date:'dd/MM/yyyy HH:mm:ss':'-0500'}} · {{operation.actor_name}}<span *ngIf="operation.order_number"> · Comanda {{operation.order_number}}</span><span *ngIf="operation.company_order_number"> · Orden {{operation.company_order_number}}</span></small></span><ion-icon [name]="expandedOperations.has(operation.id) ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon></button>
+        <div class="operation-details" *ngIf="expandedOperations.has(operation.id)">
+          <p *ngIf="operation.reason">{{operation.reason}}</p>
+          <p *ngIf="operation.supplier || operation.reference">{{operation.supplier}} {{operation.reference}}</p>
+          <p *ngIf="operation.details?.productName && !operation.movements.length && !operation.returns.length">{{operation.details.productName}}</p>
+          <div *ngFor="let movement of operation.movements" class="movement">
+            <strong>{{movement.product_name}}</strong>
+            <div class="movement-values" *ngIf="operation.type === 'initial' || operation.type === 'reactivation'; else movementDelta"><span class="movement-recount">Nuevo conteo: <b>{{movement.quantity_after}} unidades</b></span></div>
+            <ng-template #movementDelta><div class="movement-values"><span>Antes <b>{{movement.quantity_before}}</b></span><span [class.positive]="movement.quantity > 0">{{movement.quantity > 0 ? 'Entran' : 'Salen'}} <b>{{movement.quantity > 0 ? '+' : ''}}{{movement.quantity}}</b></span><span>Quedan <b>{{movement.quantity_after}}</b></span></div></ng-template>
+          </div>
+          <div *ngFor="let returned of operation.returns" class="return-detail"><strong>{{returned.product_name}}</strong><p>Regresaron: {{returned.recovered_quantity}} · No regresaron: {{returned.not_recovered_quantity}}</p><p *ngIf="returned.reason">{{returned.reason}}</p><p *ngIf="!returned.applied_to_stock">Control desactivado: se registró la devolución sin cambiar el saldo.</p></div>
+        </div>
+      </article>
+      <ion-button expand="block" fill="outline" *ngIf="nextBeforeId" (click)="loadHistory(true)" [disabled]="historyLoading">Ver más movimientos</ion-button>
+      <div *ngIf="!operations.length && !historyLoading" class="empty-state"><ion-icon name="swap-horizontal-outline"></ion-icon><h2>Sin movimientos</h2><p>No hay resultados para esta consulta.</p></div>
+    </ng-container>
+  </main>
+
+  <ion-modal [isOpen]="!!editor" [backdropDismiss]="!busy" (didDismiss)="closeEditor()" cssClass="inventory-operation-modal">
+    <ng-template>
+      <ion-header class="ion-no-border modal-header"><ion-toolbar><div class="modal-toolbar"><div><h1>{{editor === 'control' ? selected?.name : editor === 'receipt' ? 'Entrada de mercancía' : 'Ajustar unidades'}}</h1><p>{{editor === 'control' ? 'Configura el control de existencias' : editor === 'receipt' ? 'Registra uno o varios productos recibidos' : selected?.name}}</p></div><ion-button fill="clear" class="modal-close" (click)="closeEditor()" [disabled]="busy" aria-label="Cerrar"><ion-icon name="close-outline" slot="icon-only"></ion-icon></ion-button></div></ion-toolbar></ion-header>
+      <ion-content class="ion-padding modal-content">
+        <app-inventory-fields *ngIf="editor === 'control' && draft" [draft]="draft" [dependencyLabels]="selected ? optionUsageLabels(selected.productId) : []"></app-inventory-fields>
+        <ng-container *ngIf="editor === 'receipt'">
+          <p class="form-intro">Ingresa las unidades recibidas y lo que pagaste por cada una.</p>
+          <article class="receipt-card" *ngFor="let line of receipt.lines; let index = index">
+            <button type="button" class="receipt-header" (click)="expandedReceiptLine = expandedReceiptLine === index ? -1 : index"><span><strong>{{productName(line.productId) || ('Producto ' + (index + 1))}}</strong><small>{{line.productId ? 'Producto seleccionado' : 'Selecciona el producto'}}</small></span><ion-icon [name]="expandedReceiptLine === index ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon></button>
+            <div class="receipt-body" *ngIf="expandedReceiptLine === index">
+              <button type="button" class="receipt-product-picker" (click)="openReceiptPicker(index)" [disabled]="busy"><span><small>Producto *</small><strong>{{productName(line.productId) || 'Buscar y seleccionar producto'}}</strong></span><ion-icon name="search-outline"></ion-icon></button>
+              <ion-item class="filter-toggle" lines="none"><ion-label><strong>Recibí cajas o paquetes</strong><p>Calcularemos las unidades totales</p></ion-label><ion-toggle [(ngModel)]="line.boxed"></ion-toggle></ion-item>
+              <div class="field-grid" *ngIf="line.boxed"><ion-item class="form-field" lines="none"><ion-input label="Número de cajas *" labelPlacement="stacked" type="number" min="1" [(ngModel)]="line.packs"></ion-input></ion-item><ion-item class="form-field" lines="none"><ion-input label="Unidades por caja *" labelPlacement="stacked" type="number" min="1" [(ngModel)]="line.unitsPerPack"></ion-input></ion-item></div>
+              <p class="calculated-total" *ngIf="line.boxed">Se agregarán <strong>{{line.packs * line.unitsPerPack}} unidades</strong>.</p>
+              <ion-item class="form-field" lines="none" *ngIf="!line.boxed"><ion-input label="Unidades recibidas *" labelPlacement="stacked" type="number" min="1" [(ngModel)]="line.quantity"></ion-input></ion-item>
+              <ion-item class="form-field" lines="none"><ion-input label="Costo de cada unidad *" labelPlacement="stacked" type="text" inputmode="numeric" [ngModel]="line.unitCost | number:'1.0-0':'es-CO'" (ionInput)="line.unitCost = enteredPesos($event.detail.value)"></ion-input></ion-item><p class="field-help">Es lo que pagaste por cada unidad. Puede ser cero.</p>
+              <ion-item class="filter-toggle" lines="none"><ion-label><strong>Actualizar costo del producto</strong><p>Usará este costo en Gestión de Menú</p></ion-label><ion-toggle [(ngModel)]="line.updateProductCost"></ion-toggle></ion-item>
+              <ion-item class="filter-toggle" lines="none"><ion-label><strong>Cambiar precio de venta</strong><p>Actualiza lo que paga el cliente</p></ion-label><ion-toggle [(ngModel)]="line.changePrice"></ion-toggle></ion-item>
+              <ion-item class="form-field" lines="none" *ngIf="line.changePrice"><ion-input label="Nuevo precio de venta *" labelPlacement="stacked" type="text" inputmode="numeric" [ngModel]="line.newPrice | number:'1.0-0':'es-CO'" (ionInput)="line.newPrice = enteredPesos($event.detail.value)"></ion-input></ion-item>
+              <ion-button *ngIf="receipt.lines.length > 1" fill="clear" color="danger" (click)="receipt.lines.splice(index,1)"><ion-icon name="trash-outline" slot="start"></ion-icon>Quitar producto</ion-button>
+            </div>
+          </article>
+          <ion-button expand="block" fill="outline" (click)="addReceiptLine()" [disabled]="busy || receipt.lines.length >= 100"><ion-icon name="add-outline" slot="start"></ion-icon>Agregar otro producto</ion-button>
+          <ion-item class="form-field" lines="none"><ion-input label="Proveedor (opcional)" labelPlacement="stacked" [(ngModel)]="receipt.supplier"></ion-input></ion-item>
+          <ion-item class="form-field" lines="none"><ion-input label="Referencia de factura (opcional)" labelPlacement="stacked" [(ngModel)]="receipt.reference"></ion-input></ion-item>
+          <ion-item class="form-field" lines="none"><ion-textarea label="Observación (opcional)" labelPlacement="stacked" [(ngModel)]="receipt.reason"></ion-textarea></ion-item>
+        </ng-container>
+        <ng-container *ngIf="editor === 'adjustment'">
+          <p class="form-intro">Usa un número positivo para agregar unidades o uno negativo para retirar.</p>
+          <ion-item class="form-field" lines="none"><ion-input label="Unidades que entran (+) o salen (-) *" labelPlacement="stacked" type="number" [(ngModel)]="adjustment.quantity"></ion-input></ion-item>
+          <ion-item class="form-field" lines="none" *ngIf="adjustment.quantity > 0"><ion-input label="Costo de cada unidad que entra *" labelPlacement="stacked" type="text" inputmode="numeric" [ngModel]="adjustment.unitCost | number:'1.0-0':'es-CO'" (ionInput)="adjustment.unitCost = enteredPesos($event.detail.value)"></ion-input></ion-item>
+          <ion-item class="form-field" lines="none"><ion-textarea label="Motivo *" labelPlacement="stacked" maxlength="1000" [(ngModel)]="adjustment.reason"></ion-textarea></ion-item>
+        </ng-container>
+      </ion-content>
+      <ion-footer class="ion-no-border modal-footer"><ion-toolbar><ion-button expand="block" (click)="save()" [disabled]="!canSave"><ion-spinner *ngIf="busy" name="crescent"></ion-spinner><span *ngIf="!busy">Guardar</span></ion-button></ion-toolbar></ion-footer>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-modal class="cd-inventory-product-picker" [isOpen]="receiptPickerIndex !== null" (didDismiss)="receiptPickerIndex = null">
+  <ng-template>
+    <ion-header class="ion-no-border modal-header"><ion-toolbar><div class="modal-toolbar"><div><h1>Seleccionar producto</h1><p>Busca entre tus productos con inventario.</p></div><ion-button fill="clear" class="modal-close" (click)="receiptPickerIndex = null" aria-label="Cerrar"><ion-icon slot="icon-only" name="close-outline"></ion-icon></ion-button></div></ion-toolbar></ion-header>
+    <ion-content class="inventory-picker-content ion-padding"><ion-searchbar placeholder="Buscar producto" [(ngModel)]="receiptPickerSearch"></ion-searchbar>
+      <button type="button" class="inventory-picker-option" *ngFor="let product of receiptPickerProducts" (click)="selectReceiptProduct(product)"><span><strong>{{product.name}}</strong><small>{{product.category}}</small></span><ion-icon name="chevron-forward-outline"></ion-icon></button>
+      <p class="inventory-picker-empty" *ngIf="!receiptPickerProducts.length">No hay productos disponibles para esta búsqueda.</p>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ion-modal class="inventory-date-modal" [isOpen]="activeDatePicker === 'from'" (didDismiss)="activeDatePicker = ''">
+  <ng-template><ion-datetime appDesktopWheelDrag presentation="date" locale="es-CO" [value]="filters.from || undefined" [max]="filters.to || undefined" (ionChange)="onHistoryDateChange('from', $event)"></ion-datetime></ng-template>
+</ion-modal>
+<ion-modal class="inventory-date-modal" [isOpen]="activeDatePicker === 'to'" (didDismiss)="activeDatePicker = ''">
+  <ng-template><ion-datetime appDesktopWheelDrag presentation="date" locale="es-CO" [value]="filters.to || undefined" [min]="filters.from || undefined" (ionChange)="onHistoryDateChange('to', $event)"></ion-datetime></ng-template>
+</ion-modal>
